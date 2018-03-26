@@ -5,6 +5,7 @@ library(kableExtra)
 library(formattable)
 library(knitr)
 library(dplyr)
+library(gmailr)
 
 source("./global.R")
 
@@ -129,6 +130,35 @@ shinyServer(function(input, output, session) {
     nam<-gsub(",","",nam)
     substr(nam,1,15)[[1]]
   }
+
+  parseemail<-function(emailboxtext){
+    rmfrom<-strsplit(emailboxtext,"From:")[[1]][2]
+    lookforemail<-strsplit(rmfrom," ")[[1]]
+    temp<-grepl("@",lookforemail)
+    if(sum(temp)==1){
+      email=lookforemail[temp]
+      firstslotmail<-match(T,temp)+1
+      #firstnl<-max(grep("\n",lookforemail))+1
+      body<-paste(lookforemail[firstslotmail:length(lookforemail)],collapse=" ")
+      return(list(email=email,body=body))
+    }
+
+  }
+
+  observeEvent(input$emailsend,{
+
+    details<-parseemail(input$email)
+
+    test_email <- mime() %>%
+      to(c("t.carruthers@oceans.ubc.ca",details$email)) %>%
+      from("edsappemailhelp@gmail.com") %>%
+      subject("A question about EDS") %>%
+      text_body(details$body)
+    send_message(test_email)
+
+    doprogress("Sending email")
+
+  })
 
 
   observeEvent(input$Load,{

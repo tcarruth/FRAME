@@ -519,7 +519,7 @@ shinyUI(
                ),
                column(width = 1,offset=2,
                       conditionalPanel(condition="input.tabs1==4",
-                            actionButton("email","Send")
+                            actionButton("emailsend","Send")
                       )
 
                )
