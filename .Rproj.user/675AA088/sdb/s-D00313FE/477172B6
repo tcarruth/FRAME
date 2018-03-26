@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "import(\"formattable\",\n       \"kableExtra\",\n       \"DLMtool\",\n       \"knitr\",\n       \"dplyr\",\n       \"shiny\")\n\n",
+    "created" : 1522100840422.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "466702854",
+    "id" : "477172B6",
+    "lastKnownWriteTime" : 1522100957,
+    "last_content_update" : 1522100957656,
+    "path" : "C:/GitHub/EDS/NAMESPACE",
+    "project_path" : "NAMESPACE",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_namespace"
+}

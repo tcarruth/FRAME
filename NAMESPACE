@@ -1,2 +1,7 @@
-import("formattable")
+import("formattable",
+       "kableExtra",
+       "DLMtool",
+       "knitr",
+       "dplyr",
+       "shiny")
 
