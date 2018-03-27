@@ -50,19 +50,33 @@ shinyUI(
                                          DLMtool-MSC User Guide: ", a("Section 4", href="https://dlmtool.github.io/DLMtool/userguide/index.html", target="_blank"))),
 
                             conditionalPanel(width=4,condition="output.Fpanel==1",#|output.Fpanel==undefined",
-                                  h5("1. Fishery description"),
-                                  column(width=12,style="height:40px",
-                                         textInput("Name", "", "Name of fishery (e.g. 'Atlantic swordfish')")),
-                                  column(width=12,style="height:40px",
-                                         textInput("Species","","Species (e.g. 'Xiphias gladius')")),
-                                  column(width=12,style="height:40px",
-                                         textInput("Region","","Region (e.g. 'North Atlantic')")),
-                                  column(width=12,style="height:40px",
-                                         textInput("Agency","","Management Agency (e.g. 'ICCAT')")),
-                                  column(width=12,style="height:40px",
-                                         textInput("nyears", "", "Years of historical fishing (e.g. '68' years since 1951)")),
-                                  column(width=12,style="height:40px",
-                                         textInput("Author", "","Author of this analysis ('Alex Smith (a.smith@gmail.com)')"))
+                                fluidRow(
+                                  column(width=12,h5("1. Fishery description")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("Name:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("Name", "", "e.g. Atlantic swordfish")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("Species:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("Species","","e.g. Xiphias gladius")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("Region:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("Region","","e.g. North Atlantic")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("Agency:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("Agency","","e.g. ICCAT")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("No. years:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("nyears", "", "e.g. 68 (since 1951)")),
+                                  column(width=4,style="height:40px;padding:19px",
+                                         h5("Author:",style="font-weight:bold")),
+                                  column(width=8,style="height:40px",
+                                         textInput("Author", "","Alex Doe (a.doe@gmail.com)"))
+                                )
                              ),
 
                             conditionalPanel(width=4,condition="output.Fpanel==2",#|output.Fpanel==undefined",
@@ -528,11 +542,11 @@ shinyUI(
         ),
 
 
-        conditionalPanel(condition="input.Calculate>0",
-          column(12,
+
+        column(12,
               h4("Results",style = "color:black"),
               hr(),
-              conditionalPanel(condition="input.Calculate>0",
+              conditionalPanel(condition="output.Calc==1",
                 fluidRow(
                 column(width = 12,
 
@@ -572,8 +586,8 @@ shinyUI(
                 )
 
                )
-            )
           ),
+
 
           column(12,style="height:80px",
                HTML("<br>"),
@@ -588,23 +602,23 @@ shinyUI(
              hr()
         ),
 
-        column(3,style="height:50px",
+        column(12,style="height:50px",
              HTML("<br>"),
              downloadButton("Build_OM","Build operating model report")
         ),
 
-        conditionalPanel(condition="input.Calculate>0",
-          column(3,style="height:50px",
+        conditionalPanel(condition="output.Calc>0",
+          column(12,style="height:50px",
                  HTML("<br>"),
                  downloadButton("Build_Eval","Build evaluation report")
           ),
 
-          column(3,style="height:50px",
+          column(12,style="height:50px",
                  HTML("<br>"),
                  downloadButton("Build_VOI","Build value of information report")
           ),
 
-          column(3,style="height:50px",
+          column(12,style="height:50px",
                  HTML("<br>"),
                  downloadButton("Build_AI","Build ancillary indicators report")
           )

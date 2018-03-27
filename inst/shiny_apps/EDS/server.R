@@ -15,15 +15,18 @@ shinyServer(function(input, output, session) {
   Fpanel<-reactiveVal(0)
   Mpanel<-reactiveVal(0)
   Dpanel<-reactiveVal(0)
+  Calc<-reactiveVal(0)
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
+  output$Calc   <- reactive({ Calc()})
 
   #vals <- reactiveValues(Fpanel = 0,Mpanel=0,Dpanel=0)
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Dpanel",suspendWhenHidden=FALSE)
+  outputOptions(output,"Calc",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -190,12 +193,13 @@ shinyServer(function(input, output, session) {
     updateRadioButtons(session, as.character(inputnames[[i]][j]), selected = selected)
 
     updateTextInput(session, "Name",     value= MSClog[[3]]$Name)
-    updateTextInput(session, "Species", value= MSClog[[3]]$Species)
-    updateTextInput(session, "Region", value= MSClog[[3]]$Region)
-    updateTextInput(session, "Agency", value=MSClog[[3]]$Agency)
+    updateTextInput(session, "Species",  value= MSClog[[3]]$Species)
+    updateTextInput(session, "Region",   value= MSClog[[3]]$Region)
+    updateTextInput(session, "Agency",   value= MSClog[[3]]$Agency)
     updateTextInput(session, "nyears",   value= MSClog[[3]]$nyears)
     updateTextInput(session, "Author",   value= MSClog[[3]]$Author)
-
+    updateTextInput(session, "Justification",value=Just[[1]][1])
+    updateTabsetPanel(session,"tabs1",selected="1")
     #=== DEBUGGING WINDOW =====================================================
     #updateTextAreaInput(session,"Debug",value=choices)
     #updateTextAreaInput(session,"Debug2",value=selected)
@@ -205,8 +209,7 @@ shinyServer(function(input, output, session) {
     Fpanel(1)
     Mpanel(1)
     Dpanel(1)
-
-    doprogress("Loading")
+    Calc(0)
 
   })
 
@@ -597,8 +600,8 @@ shinyServer(function(input, output, session) {
     OM<<-makeOM(PanelState,nsim=nsim)
 
     if(input$Analysis_type=="Demo"){
-      #MPs<<-c('FMSYref','AvC','DCAC','curE','matlenlim','MRreal','MCD','MCD4010','DD4010')
-      MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
+      MPs<<-c('FMSYref','AvC','DCAC','curE','matlenlim','MRreal','MCD','MCD4010','DD4010')
+      #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
       nsim<-32
     }else{
       MPs<<-avail('MP')
@@ -648,7 +651,7 @@ shinyServer(function(input, output, session) {
 
 
     }
-
+    Calc(1)
 
   })
 
@@ -689,7 +692,7 @@ shinyServer(function(input, output, session) {
   # OM report
   output$Build_OM <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = namconv(input$Name), #"report.html",
+    filename = paste0(namconv(input$Name),".html"), #"report.html",
     content = function(file) {
       doprogress("Building OM report",3)
       OM<<-makeOM(PanelState,nsim=nsim)
