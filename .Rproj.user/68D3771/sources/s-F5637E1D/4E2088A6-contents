@@ -541,61 +541,42 @@ shinyUI(
              )
         ),
 
-
-
         column(12,
               h4("Results",style = "color:black"),
               hr(),
               conditionalPanel(condition="output.Calc==1",
                 fluidRow(
-                column(width = 12,
+                  column(width = 12,
 
-                   h5("Performance Indicator Table",style="color::grey"),
-                   tableOutput('Ptable')
-                   #img(src = "Ranking table.jpg", height = 260, width = 550)
+                     h5("Performance Indicator Table",style="color::grey"),
+                     tableOutput('Ptable')
 
-                ),
-                column(width = 6,
+                  ),
+                  column(width = 6,
 
-                   h5("PI.1.1.1a vs Long term yield trade-off",style="color::grey"),
-                   plotOutput("P1_LTY")
-                   #img(src = "Results1.jpg", height = 600, width = 600)
+                     h5("PI.1.1.1a vs Long term yield trade-off",style="color::grey"),
+                     plotOutput("P1_LTY")
 
-                ),
-                column(width = 12),
-                column(width = 12,
-
+                  )
+                ), # end of fluid row
+                fluidRow(
                    h5("B/BMSY and F/FMSY projection plots",style="color::grey"),
-                   plotOutput("wormplot")
-                       #img(src = "Results1.jpg", height = 600, width = 600)
+                   plotOutput("wormplot",height="auto"),
+                   h5("HCR and Tools, PI.1.2.2.a",style="color::grey"),
+                   plotOutput("HCR",height="auto"),
+                   h5("Cost of Current Uncertainties Analysis",style = "color:black"),
+                   plotOutput("CCU",height="auto")
+                ), # end of fluid row
 
-                ),
-                column(width = 12),
-                column(width = 12,
-
-                       h5("HCR and Tools, PI.1.2.2.a",style="color::grey"),
-                       plotOutput("HCR")
-                       #img(src = "Results1.jpg", height = 600, width = 600)
-
-                ),
-                column(width = 12),
-                column(12,
-                       HTML("<br>"),
-                       h5("Cost of Current Uncertainties Analysis",style = "color:black"),
-                       plotOutput("CCU",height=650)
+                column(12,style="height:80px",
+                     HTML("<br>"),
+                     h4("Ancillary Indicators",style = "color:black"),
+                     hr()
                 )
-
-               )
-          ),
+              ) # end of conditional panel
 
 
-          column(12,style="height:80px",
-               HTML("<br>"),
-               h4("Ancillary Indicators",style = "color:black"),
-               hr()
-          )
-
-        ),
+        ), # end of results
 
         column(12,style="height:40px",
              h4("Reporting",style = "color:black"),

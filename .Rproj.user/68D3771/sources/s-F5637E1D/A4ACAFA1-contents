@@ -516,7 +516,7 @@ shinyServer(function(input, output, session) {
   HCRplot<-function(MSEobj,Pcrit=0.2){
 
     nMPs<-MSEobj@nMPs
-    ncol=ceiling(nMPs*0.5)
+    ncol=8
     nrow=ceiling(nMPs/ncol)
     par(mfrow=c(nrow,ncol),mai=c(0.4,0.4,0.01,0.01),omi=c(0.3,0.3,0.01,0.01))
 
@@ -548,12 +548,6 @@ shinyServer(function(input, output, session) {
 
   }
 
-  Pplot3<-function(MSEobj){
-    nc<-8
-    nr<-ceiling(MSEobj@nMPs/nc)
-    par(mfrow=c(nc,nr*2),mai=c(0.5,0.5,0.01,0.01))
-    Pplot2(MSEobj,traj="quant",incquant=T,quants=c(0.1,0.9),oneIt=F,yline=c(0.5,1),quantcol=fcol,maxMP=100,parOR=T)
-  }
 
   getVOI<-function(MSEobj){
 
@@ -647,10 +641,11 @@ shinyServer(function(input, output, session) {
       Ptab1<<-Ptab(MSEobj,MSEobj_FB,Eyr=10,rnd=0)
       output$Ptable <- function()Ptab_formatted(Ptab1)
       output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj))
-      output$wormplot<-renderPlot(Pplot3(MSEobj))#wormplot_msc(MSEobj))
-      output$HCR<-renderPlot(HCRplot(MSEobj_FB))
+      nMPs<-length(MSEobj@MPs)
+      output$wormplot<-renderPlot(Pplot3(MSEobj), height =ceiling(nMPs/8)*280 , width = 1200)#wormplot_msc(MSEobj))
+      output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/8)*280 , width = 1200)
       VOIout<<-getVOI(MSEobj)
-      output$CCU<-renderPlot(CCU_plot(VOIout))
+      output$CCU<-renderPlot(CCU_plot(VOIout),height=ceiling(nMPs/3)*280,width=1200)
     } else if(input$Analysis_type=="FIP"){ # FIP presentations
 
 
@@ -701,7 +696,7 @@ shinyServer(function(input, output, session) {
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),".html"), #"report.html",
     content = function(file) {
-      doprogress("Building OM report",3)
+      doprogress("Building OM report",5)
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OMRep.Rmd')
 
@@ -743,7 +738,7 @@ shinyServer(function(input, output, session) {
     content = function(file) {
 
       src <- normalizePath('MSERep.Rmd')
-      doprogress("Building evaluation report",2)
+      doprogress("Building evaluation report",4)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -2101,6 +2096,69 @@ shinyServer(function(input, output, session) {
 
   output$plotBeta <- renderPlot(plotBeta())
 
+
+
+  Pplot3<-function(MSEobj,maxcol=8,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){
+
+    if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
+    MPs<-MSEobj@MPs
+    nMPs<-length(MPs)
+    yrs<-curyr+(1:MSEobj@proyears)
+
+    plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/maxcol))
+
+    nr<-length(plots)*2
+    nc<-maxcol
+
+    mat<-array(0,c(nc,nr*1.5))
+    ind<-floor(0.5+(1:nr)*1.5)
+    mat[,ind]<-1:(nr*nc)
+    mat<-t(mat)
+    ht<-rep(0.2,nr*1.5)
+    ht[ind]<-1
+    layout(mat,heights=ht)
+    par(mai=c(0.3,0.3,0.01,0.01),omi=c(0.5,0.5,0.05,0.05))
+
+    B_BMSY<-MSEobj@B_BMSY
+    Yd<-MSEobj@C/ MSEobj@OM$RefY
+
+    Blims <- c(0,quantile(B_BMSY,0.95))
+    Ylims<- c(0,quantile(Yd,0.95))
+
+    plotquant<-function(x,p=c(0.1,0.9),yrs,qcol,lcol,addline=T){
+      ny<-length(yrs)
+      qs<-apply(x,2,quantile,p=p)
+      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col=qcol)
+
+      if(addline)for(i in 1:2)lines(yrs,x[i,],col=lcol,lty=i)
+      lines(yrs,apply(x,2,quantile,p=0.5),lwd=2,col="white")
+    }
+
+    for(pp in 1:length(plots)){
+
+      toplot<-unlist(plots[pp])
+      nt<-length(toplot)
+
+      for(i in toplot){
+        plot(range(yrs),Blims,col="white")
+        plotquant(B_BMSY[,i,],p=quants,yrs,qcol,lcol)
+        mtext(MSEobj@MPs[i],3,line=0.2,font=2)
+        if(i==toplot[1])mtext("SSB/SSBMSY",2,line=2.3)
+      }
+      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
+
+      for(i in toplot){
+        plot(range(yrs),Ylims,col="white")
+        plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
+        if(i==toplot[1])mtext("Yd/FMSY Yd",2,line=2.3)
+      }
+      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
+
+    }
+
+    mtext("Projection Year",1,line=0.7,outer=T)
+
+  }
 
 
 })
