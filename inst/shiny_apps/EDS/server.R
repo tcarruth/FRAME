@@ -548,6 +548,13 @@ shinyServer(function(input, output, session) {
 
   }
 
+  Pplot3<-function(MSEobj){
+    nc<-8
+    nr<-ceiling(MSEobj@nMPs/nc)
+    par(mfrow=c(nc,nr*2),mai=c(0.5,0.5,0.01,0.01))
+    Pplot2(MSEobj,traj="quant",incquant=T,quants=c(0.1,0.9),oneIt=F,yline=c(0.5,1),quantcol=fcol,maxMP=100,parOR=T)
+  }
+
   getVOI<-function(MSEobj){
 
     opt1<-  c("M",        "Depletion",      "hs",      "Esd",          "LFS",        "Vmaxlen",  "DR",          "PRM",             "procsd",   "qinc",            "Frac_area_1","Prob_staying",
@@ -640,7 +647,7 @@ shinyServer(function(input, output, session) {
       Ptab1<<-Ptab(MSEobj,MSEobj_FB,Eyr=10,rnd=0)
       output$Ptable <- function()Ptab_formatted(Ptab1)
       output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj))
-      output$wormplot<-renderPlot(Pplot2(MSEobj,traj="quant",incquant=T,quants=c(0.1,0.9),oneIt=F,yline=c(0.5,1),quantcol=fcol,maxMP=10))#wormplot_msc(MSEobj))
+      output$wormplot<-renderPlot(Pplot3(MSEobj))#wormplot_msc(MSEobj))
       output$HCR<-renderPlot(HCRplot(MSEobj_FB))
       VOIout<<-getVOI(MSEobj)
       output$CCU<-renderPlot(CCU_plot(VOIout))
@@ -731,7 +738,7 @@ shinyServer(function(input, output, session) {
   # MSE report
   output$Build_Eval <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = paste0(namconv(input$Name),"Eval.pdf"), #"report.html",
+    filename = paste0(namconv(input$Name),"Eval.html"), #"report.html",
 
     content = function(file) {
 
@@ -1181,7 +1188,7 @@ shinyServer(function(input, output, session) {
     ny=60
 
     trends<-array(NA,c(6,ny))
-   # par(mfrow=c(3,2),mar=rep(0.1,4))
+    # par(mfrow=c(3,2),mar=rep(0.1,4))
     for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],ny=ny)
     cols<-rep(c(fcol,'black','dark grey'),2)
     ltys<-rep(c(1,2),each=3)
@@ -2093,6 +2100,7 @@ shinyServer(function(input, output, session) {
   }
 
   output$plotBeta <- renderPlot(plotBeta())
+
 
 
 })

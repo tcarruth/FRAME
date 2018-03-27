@@ -88,7 +88,10 @@ P1_LTY_plot(params$MSEobj)
 # B/BMSY and F/FMSY projection plots
 
 ```{r pencil,echo=F,warning=F,error=F,message=F,fig.width=13, fig.height=5}
-Pplot2(params$MSEobj,traj="quant",incquant=T,quants=c(0.1,0.9),oneIt=F,yline=c(0.5,1),quantcol=fcol,maxMP=10)
+nc<-8
+nr<-ceiling(MSEobj@nMPs/nc)
+par(mfrow=c(nc,nr*2),mai=c(0.5,0.5,0.01,0.01))
+Pplot3(params$MSEobj)
 
 ```
 

@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "A4ACAFA1",
-    "lastKnownWriteTime" : 1522127953,
-    "last_content_update" : 1522127953078,
+    "lastKnownWriteTime" : 1522131116,
+    "last_content_update" : 1522131116893,
     "path" : "C:/GitHub/EDS/inst/shiny_apps/EDS/server.R",
     "project_path" : "inst/shiny_apps/EDS/server.R",
     "properties" : {
-        "cursorPosition" : "81,3",
-        "scrollLine" : "76"
+        "cursorPosition" : "546,38",
+        "scrollLine" : "546"
     },
     "relative_order" : 7,
     "source_on_save" : false,
