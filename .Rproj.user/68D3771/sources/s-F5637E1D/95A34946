@@ -5,13 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "466702854",
+    "hash" : "852952723",
     "id" : "95A34946",
-    "lastKnownWriteTime" : 1522120594,
-    "last_content_update" : 1522120594,
+    "lastKnownWriteTime" : 1522121273,
+    "last_content_update" : 1522121273925,
     "path" : "C:/GitHub/EDS/NAMESPACE",
     "project_path" : "NAMESPACE",
     "properties" : {
+        "cursorPosition" : "0,0",
+        "scrollLine" : "0"
     },
     "relative_order" : 2,
     "source_on_save" : false,
