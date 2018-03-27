@@ -548,23 +548,29 @@ shinyUI(
                 fluidRow(
                   column(width = 12,
 
-                     h5("Performance Indicator Table",style="color::grey"),
+                     column(width = 12,h5("Performance Indicator Table",style="color::grey")),
                      tableOutput('Ptable')
 
                   ),
                   column(width = 6,
 
-                     h5("PI.1.1.1a vs Long term yield trade-off",style="color::grey"),
-                     plotOutput("P1_LTY")
+                     column(width = 12,h5("PI.1.1.1a vs Long term yield trade-off",style="color::grey")),
+                     plotOutput("P1_LTY",height="auto")
+
+                  ),
+                  column(width = 6,
+
+                     column(width = 12,h5("PI.1.2.1a vs Long term yield trade-off",style="color::grey")),
+                     plotOutput("P2_LTY",height="auto")
 
                   )
                 ), # end of fluid row
                 fluidRow(
-                   h5("B/BMSY and F/FMSY projection plots",style="color::grey"),
+                   column(width = 12,h5("B/BMSY and F/FMSY projection plots",style="color::grey")),
                    plotOutput("wormplot",height="auto"),
-                   h5("HCR and Tools, PI.1.2.2.a",style="color::grey"),
+                   column(width = 12,h5("HCR and Tools, PI.1.2.2.a",style="color::grey")),
                    plotOutput("HCR",height="auto"),
-                   h5("Cost of Current Uncertainties Analysis",style = "color:black"),
+                   column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "color:black")),
                    plotOutput("CCU",height="auto")
                 ), # end of fluid row
 
@@ -592,11 +598,6 @@ shinyUI(
           column(12,style="height:50px",
                  HTML("<br>"),
                  downloadButton("Build_Eval","Build evaluation report")
-          ),
-
-          column(12,style="height:50px",
-                 HTML("<br>"),
-                 downloadButton("Build_VOI","Build value of information report")
           ),
 
           column(12,style="height:50px",

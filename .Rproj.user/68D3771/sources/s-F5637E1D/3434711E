@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1522186599364.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3434711E",
+    "lastKnownWriteTime" : 1516894219,
+    "last_content_update" : 1516894219,
+    "path" : "C:/GitHub/abft-mse/R_package/ABTMSE/vignettes/ABT-MSE.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "167,254",
+        "scrollLine" : "147"
+    },
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

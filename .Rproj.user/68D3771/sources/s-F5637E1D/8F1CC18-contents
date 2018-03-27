@@ -1,8 +1,11 @@
 
 
 library(DLMtool)
-
-MSEobj<-runMSE()
+setup()
+MPs<-avail('MP')
+myOM<-testOM
+myOM@nsim<-8
+MSEobj<-runMSE(MPs=MPs,parallel=T)
 
 
 Pplot3<-function(MSEobj,maxcol=8,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){

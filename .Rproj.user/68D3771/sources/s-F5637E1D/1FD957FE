@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "4186936626",
+    "hash" : "2302357776",
     "id" : "1FD957FE",
-    "lastKnownWriteTime" : 1522131111,
-    "last_content_update" : 1522131111582,
+    "lastKnownWriteTime" : 1522187420,
+    "last_content_update" : 1522187420789,
     "path" : "C:/GitHub/EDS/inst/shiny_apps/EDS/MSERep.Rmd",
     "project_path" : "inst/shiny_apps/EDS/MSERep.Rmd",
     "properties" : {
-        "cursorPosition" : "92,0",
-        "scrollLine" : "78"
+        "cursorPosition" : "161,0",
+        "scrollLine" : "149"
     },
     "relative_order" : 7,
     "source_on_save" : false,

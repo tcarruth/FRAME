@@ -506,6 +506,25 @@ shinyServer(function(input, output, session) {
 
   }
 
+  P2_LTY_plot<<-function(MSEobj){
+
+    rnd<-0
+    PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
+    refY<-sum(MSEobj@C[,1,11:50])
+    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
+    MP<-MSEobj@MPs
+    par(mai=c(0.8,0.8,0.1,0.1))
+    ylim<-c(0,max(LTY))
+    plot(c(-10,110),ylim,col='white',xlab="",ylab="")
+    mtext("PI.1.2.1a",1,line=2.5,cex=1.2)
+    mtext("Long term yield",2,line=2.5,cex=1.2)
+    abline(v=c(0,100),col="#99999950")
+    abline(h=c(0,100),col="#99999950")
+
+    text(PI.121.a,LTY,MSEobj@MPs,col=icol,cex=1.2)
+
+  }
+
   wormplot_msc<-function(MSEobj){
 
     par(mai=c(0.6,0.6,0.01,0.01))
@@ -516,7 +535,7 @@ shinyServer(function(input, output, session) {
   HCRplot<-function(MSEobj,Pcrit=0.2){
 
     nMPs<-MSEobj@nMPs
-    ncol=8
+    ncol=6
     nrow=ceiling(nMPs/ncol)
     par(mfrow=c(nrow,ncol),mai=c(0.4,0.4,0.01,0.01),omi=c(0.3,0.3,0.01,0.01))
 
@@ -563,7 +582,7 @@ shinyServer(function(input, output, session) {
 
   }
 
-  CCU_plot<-function(VOIout){
+  CCU_plot<-function(VOIout,MSEobj){
 
     qno<-   c("F2",       "F3",             "F4",       "F6",         "F7",       "F8",          "F9",              "F10",      "F11",             "F12",        "F13",          "F14",
               "M2",       "M3",  "D2",    "D3")
@@ -588,7 +607,7 @@ shinyServer(function(input, output, session) {
       dat2<-dat2[order(dat2$x,decreasing=T),]
       labs<-paste(qno,qtext,sep=" - ")
       barplot(dat2[,2],names.arg=labs[match(dat2[,1],qno)], las=2,col=fcol,border=NA,cex.axis=1.4,cex.names=1.3)
-      legend('topright',MP,bty='n',text.font=2,cex=1.6)
+      legend('top',MP,bty='n',text.font=2,cex=1.6)
     }
 
     mtext("Question / operating model characteristic",1,outer=T,line=0.5)
@@ -597,19 +616,19 @@ shinyServer(function(input, output, session) {
   }
 
   observeEvent(input$Calculate,{
-
+    nsim<<-input$nsim
     OM<<-makeOM(PanelState,nsim=nsim)
 
     if(input$Analysis_type=="Demo"){
       MPs<<-c('FMSYref','AvC','DCAC','curE','matlenlim','MRreal','MCD','MCD4010','DD4010')
       #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
-      nsim<-32
+
     }else{
       MPs<<-avail('MP')
       cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
       if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
       MPs<-c('FMSYref',MPs[!cond])
-      nsim<-48
+
     }
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
@@ -640,12 +659,13 @@ shinyServer(function(input, output, session) {
 
       Ptab1<<-Ptab(MSEobj,MSEobj_FB,Eyr=10,rnd=0)
       output$Ptable <- function()Ptab_formatted(Ptab1)
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj))
+      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj),height=600,width=600)
+      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj),height=600,width=600)
       nMPs<-length(MSEobj@MPs)
-      output$wormplot<-renderPlot(Pplot3(MSEobj), height =ceiling(nMPs/8)*280 , width = 1200)#wormplot_msc(MSEobj))
-      output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/8)*280 , width = 1200)
+      output$wormplot<-renderPlot(Pplot3(MSEobj), height =ceiling(nMPs/6)*320 , width = 1300)#wormplot_msc(MSEobj))
+      output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/6)*190 , width = 1300)
       VOIout<<-getVOI(MSEobj)
-      output$CCU<-renderPlot(CCU_plot(VOIout),height=ceiling(nMPs/3)*280,width=1200)
+      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj),height=ceiling(nMPs/3)*290,width=1300)
     } else if(input$Analysis_type=="FIP"){ # FIP presentations
 
 
@@ -2098,7 +2118,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  Pplot3<-function(MSEobj,maxcol=8,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){
+  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){
 
     if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
     MPs<-MSEobj@MPs
@@ -2143,14 +2163,14 @@ shinyServer(function(input, output, session) {
         plot(range(yrs),Blims,col="white")
         plotquant(B_BMSY[,i,],p=quants,yrs,qcol,lcol)
         mtext(MSEobj@MPs[i],3,line=0.2,font=2)
-        if(i==toplot[1])mtext("SSB/SSBMSY",2,line=2.3)
+        if(i==toplot[1])mtext("B/BMSY",2,line=2.3)
       }
       if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
 
       for(i in toplot){
         plot(range(yrs),Ylims,col="white")
         plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
-        if(i==toplot[1])mtext("Yd/FMSY Yd",2,line=2.3)
+        if(i==toplot[1])mtext("Rel. Yd.",2,line=2.3)
       }
       if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
 
