@@ -607,7 +607,7 @@ shinyServer(function(input, output, session) {
       dat2<-dat2[order(dat2$x,decreasing=T),]
       labs<-paste(qno,qtext,sep=" - ")
       barplot(dat2[,2],names.arg=labs[match(dat2[,1],qno)], las=2,col=fcol,border=NA,cex.axis=1.4,cex.names=1.3)
-      legend('top',MP,bty='n',text.font=2,cex=1.6)
+      legend('topright',MP,bty='n',text.font=2,cex=1.6)
     }
 
     mtext("Question / operating model characteristic",1,outer=T,line=0.5)
@@ -617,6 +617,11 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Calculate,{
     nsim<<-input$nsim
+    parallel=F
+    if(input$Parallel){
+      setup()
+      if(nsim>47)parallel=T
+    }
     OM<<-makeOM(PanelState,nsim=nsim)
 
     if(input$Analysis_type=="Demo"){
@@ -630,12 +635,12 @@ shinyServer(function(input, output, session) {
       MPs<-c('FMSYref',MPs[!cond])
 
     }
-
+    if(input$Ex_Ref_MPs)MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
 
     withProgress(message = "Running MSE", value = 0, {
-      MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T)
+      MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
     })
 
     OM_FB<-OM
@@ -647,7 +652,7 @@ shinyServer(function(input, output, session) {
     OM_FB<-Replace(OM_FB,temp,Sub="Imp")
 
     withProgress(message = "HCR evaluation", value = 0, {
-      MSEobj_FB<<-runMSE(OM_FB,MPs=MPs,silent=T,control=list(progress=T))
+      MSEobj_FB<<-runMSE(OM_FB,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
     })
 
     save(MSEobj,file="MSEobj")

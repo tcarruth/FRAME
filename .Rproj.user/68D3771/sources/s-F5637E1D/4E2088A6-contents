@@ -642,7 +642,7 @@ shinyUI(
         ),
         column(12),
         column(3,style="height:80px;padding:18px;",
-             checkboxInput("Ref_MPs", label = "Include reference MPs", value = FALSE)
+             checkboxInput("Ex_Ref_MPs", label = "Exclude reference MPs", value = FALSE)
         ),
         column(3,style="height:80px;padding:18px;",
              checkboxInput("Parallel", label = "Run with parallel computation (no progress bar)", value = FALSE)
@@ -658,7 +658,6 @@ shinyUI(
              numericInput("nsim", label = "Number of simulations", value=16)
         ),
         column(12),
-        column(6, textInput("WD", "Select a working directory for this session", "C:/myprojects/risk_assessment/swordfish")),
         column(6, textInput("Source", "Source custom DLMtool/MSEtool MPs, performance metrics, MSE controls", "mysource.r")),
 
         column(12,style="height:60px"),
