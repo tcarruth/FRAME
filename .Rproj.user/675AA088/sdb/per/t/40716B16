@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Package: EDS\nType: Package\nTitle: Evaluation by Dynamical Simulation\nVersion: 0.9.0\nAuthors@R: person(\"Tom\", \"Carruthers\",, \"t.carruthers@fisheries.ubc.ca\", role=c(\"aut\", \"cre\"))\nMaintainer: Tom Carruthers <t.carruthers@oceans.ubc.ca>\nDescription: A population risk assessment framework that links a Shiny GUI to the DLMtool/MSEtool operating model\nLicense: GPL-2\nEncoding: UTF-8\nLazyData: true\nImports: corpcor,\n         DLMtool,\n         dplyr,\n         formattable,\n         gmailr,\n         kableExtra,\n         knitr,\n         shiny\n",
+    "created" : 1522253493066.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1128138820",
+    "id" : "40716B16",
+    "lastKnownWriteTime" : 1522252747,
+    "last_content_update" : 1522252747,
+    "path" : "C:/GitHub/EDS/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "dcf"
+}

@@ -1,14 +1,14 @@
 {
     "collab_server" : "",
-    "contents" : "import(\"formattable\",\n       \"kableExtra\",\n       \"DLMtool\",\n       \"knitr\",\n       \"dplyr\",\n       \"shiny\")\n\n",
+    "contents" : "export(Shiny)\nimportFrom(corpcor,pseudoinverse)\n",
     "created" : 1522100840422.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "466702854",
+    "hash" : "532042851",
     "id" : "477172B6",
-    "lastKnownWriteTime" : 1522100957,
-    "last_content_update" : 1522100957656,
+    "lastKnownWriteTime" : 1522252747,
+    "last_content_update" : 1522252747,
     "path" : "C:/GitHub/EDS/NAMESPACE",
     "project_path" : "NAMESPACE",
     "properties" : {
