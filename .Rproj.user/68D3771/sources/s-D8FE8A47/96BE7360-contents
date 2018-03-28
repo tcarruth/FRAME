@@ -8,7 +8,8 @@ Description: A population risk assessment framework that links a Shiny GUI to th
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
-Imports: DLMtool,
+Imports: corpcor,
+         DLMtool,
          dplyr,
          formattable,
          gmailr,

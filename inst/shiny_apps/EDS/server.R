@@ -114,7 +114,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Analysis_type,{
 
     if(input$Analysis_type=='Demo'){
-      updateNumericInput(session,'nsim',value="16")
+      updateNumericInput(session,'nsim',value="24")
     }else{
       updateNumericInput(session,'nsim',value="96")
     }
@@ -224,6 +224,7 @@ shinyServer(function(input, output, session) {
   makeOM<-function(PanelState,nsim=48){
 
     OM<-testOM
+    OM@R0<-100000
     OM@nsim<-nsim
 
     OM@Linf<-c(3,3.5)
@@ -409,8 +410,16 @@ shinyServer(function(input, output, session) {
     speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
     MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
 
-    Ptab2<-Ptab1#[,1:ncol(Ptab1)]
-    names(Ptab2)<-c("MP","PI111a","PI111b","PI112","PI121a","PI121b","PI122a","PI122b","LTY")
+    MP_Type<-rep("TAC",length(MPs))
+    MP_Type[type[,2]==1]<-"TAE"
+    MP_Type[type[,3]==1]<-"SzLim"
+    MP_Type[type[,4]==1]<-"MPA"
+    MP_Type[totneeded>1]<-"Mixed"
+
+
+    Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
+    Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
+    names(Ptab2)<-c("MP","MP_Type","PI111a","PI111b","PI112","PI121a","PI121b","PI122a","PI122b","LTY")
 
     PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5] & Ptab2$PI122a >= thresh[6] & Ptab2$PI122b >= thresh[7]
     MPcols<-rep('black',length(MPs))
@@ -439,6 +448,7 @@ shinyServer(function(input, output, session) {
       mutate(
         #MP = row.names(.),
         MP =  cell_spec(MP, "html", color = MPcols, bold = T),
+        MP_Type =  cell_spec(MP_Type, "html", bold = T),
         PI111a = ifelse(PI111a >= thresh[1],
                         cell_spec(PI111a, "html", color = "green", bold = T),
                         cell_spec(PI111a, "html", color = "red", italic = T)),
@@ -470,16 +480,16 @@ shinyServer(function(input, output, session) {
       knitr::kable("html", escape = F,align = "c") %>%
       kable_styling("striped", full_width = F)%>%
       column_spec(5, width = "3cm") %>%
-      add_header_above(c(" ", "> 0.5 BMSY" = 1, "> BMSY" = 1,
+      add_header_above(c(" ", " ","> 0.5 BMSY" = 1, "> BMSY" = 1,
                          "> BMSY"=1,"> 0.5 BMSY"=1,"> BMSY"=1,"P/F"=1,
                          "0.5 - 1.5 FMSY"=1,"vs FMSYref"=1,"not"=1))%>%
 
-      add_header_above(c(" ", "Biomass (yrs 1-10)" = 2, "Biomass (2 MGT)" = 1,
+      add_header_above(c(" ", " ", "Biomass (yrs 1-10)" = 2, "Biomass (2 MGT)" = 1,
                          "Biomass (yrs 11-50)"=2,"F decrease w B"=1,
                          "Fishing Mortality (yrs 1-50)"=1,
                          "yrs 11-50"=1,"Reason"=1))%>%
 
-      add_header_above(c(" ", "Stock Status" = 2, "Rebuilding" = 1,
+      add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
                          "Harvest Strategy"=2,"HCR & Tools"=2,
                          "Long-Term Yield"=1," "=1))
 
@@ -671,6 +681,23 @@ shinyServer(function(input, output, session) {
       output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/6)*190 , width = 1300)
       VOIout<<-getVOI(MSEobj)
       output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj),height=ceiling(nMPs/3)*290,width=1300)
+
+      test<-match(input$AI_MP,MPs)
+      if(is.na(test))mm<-1
+      if(!is.na(test))mm<-test
+      PPD<-MSEobj@Misc[[mm]]
+
+      tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+      stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+      res<-6
+
+      indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
+      indData<-matrix(indPPD[,1,1],ncol=1)
+
+      output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+      output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+
+
     } else if(input$Analysis_type=="FIP"){ # FIP presentations
 
 
@@ -793,6 +820,49 @@ shinyServer(function(input, output, session) {
 
     }
 
+  )
+
+
+  output$Build_AI <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_AI.html"), #"report.html",
+    content = function(file) {
+      doprogress("Building AI report",3)
+      src <- normalizePath('AIRep.Rmd')
+
+      test<-match(input$AI_MP,MPs)
+      if(is.na(test))mm<-1
+      if(!is.na(test))mm<-test
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'AIRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
+                     set_type=switch(input$Analysis_type,
+                                     "Demo"="Demonstration certification analysis",
+                                     "RE" = "Generic risk evaluation analysis",
+                                     "FIP" = "Fishery Improvement Project (FIP) analysis",
+                                     "Cert" = "MSC certification analysis"),
+
+                     PanelState=MSClog[[1]],
+                     Just=MSClog[[2]],
+                     Des=MSClog[[3]],
+                     OM=OM,
+                     inputnames=inputnames,
+                     MSEobj=MSEobj,
+                     mm=mm
+      )
+
+      out<-render("AIRep.Rmd", params = params)
+      file.rename(out, file)
+
+    }
   )
 
 
@@ -2122,7 +2192,6 @@ shinyServer(function(input, output, session) {
   output$plotBeta <- renderPlot(plotBeta())
 
 
-
   Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){
 
     if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
@@ -2184,6 +2253,161 @@ shinyServer(function(input, output, session) {
     mtext("Projection Year",1,line=0.7,outer=T)
 
   }
+
+  # Ancillary indicators functions ================================
+
+  slp<-function(x,mat,ind){
+    y<-log(mat[x,ind])
+    if(sum(!is.na(y))<2){
+      return(NA)
+    }else{
+     return(lm(y~x1,data.frame(x1=1:length(ind),y=y))$coef[2])
+    }
+  }
+
+  slp2<-function(x,mat,ind){
+    x1<-1:length(ind)
+    y=log(mat[x,ind])
+    mux<-mean(x1)
+    muy<-mean(y)
+    SS<-sum((x1-mux)^2)
+    (1/SS)*sum((x1-mux)*(y-muy))
+   }
+
+  AAV<-function(x,mat,ind){
+    ni<-length(ind)
+    mean(abs((mat[x,ind[2:ni]]-mat[x,ind[1:(ni-1)]])/mat[x,ind[1:(ni-1)]]))
+  }
+
+  mu<-function(x,mat,ind){
+    log(mean(mat[x,ind]))
+  }
+
+  getinds<-function(PPD,styr,res, tsd= c("Cat","Cat","Cat","Ind","ML"),stat=c("slp","AAV","mu","slp", "slp")){
+    nsim<-dim(PPD@Cat)[1]
+    proyears<-dim(PPD@Cat)[2]-styr+1
+
+    if(res>proyears)message(paste0("The temporal resolution for posterior predictive data calculation (",res,") is higher than the number of projected years (",proyears,"). Only one time step of indicators are calculated for ",proyears, " projected years."))
+    np<-floor(proyears/res)
+
+    ntsd<-length(tsd)
+    inds<-array(NA,c(ntsd,np,nsim))
+
+    for(i in 1:ntsd){
+      for(pp in 1:np){
+        ind<-styr+((pp-1)*res)+1:res
+        inds[i,pp,]<-sapply(1:nsim,get(stat[i]),mat=slot(PPD,tsd[i]),ind=ind)
+      }
+    }
+    inds
+  }
+
+  CC<-function(indPPD,indData,pp=1,dnam=c("CS","CV","CM","IS","IM","MLS","MLM"),res=6){
+
+    if(pp>1)namst<-paste(rep(dnam,pp),rep((1:pp)*res,each=length(dnam)))
+    if(pp==1)namst=dnam
+    cols<-c("#ff000050","#0000ff50")
+    ntsd<-dim(indPPD)[1]
+    ni<-pp*ntsd
+    ind2PPD<-matrix(indPPD[,1:pp,],nrow=ni)
+    ind2Data<-matrix(indData[,1:pp],nrow=ni)
+    par(mfrow=c(ni-1,ni-1),mai=rep(0,4),omi=c(0.5,0.75,0,0.05))
+
+    for(i in 2:ni){
+
+      for(j in 1:(ni-1)){
+
+        if(j==i|j>i){
+
+          plot(1,1,col='white',axes=F)
+
+
+        }else{
+
+          #coly=cols[ceiling(posmean(cor(mcmc@rawdat[1:maxn,keep1[i]],mcmc@rawdat[1:maxn,keep2[j]]))*ncols)]
+          xlim<-quantile(c(ind2PPD[j,],ind2Data[j,]),c(0.02,0.98))
+          ylim<-quantile(c(ind2PPD[i,],ind2Data[i,]),c(0.02,0.98))
+          plot(ind2PPD[j,],ind2PPD[i,],pch=19,xlim=xlim,ylim=ylim,cex=1.2,col=cols[1],axes=F)
+          axis(1,c(-10E10,10E10),c(-10E10,10E10))
+          axis(2,c(-10E10,10E10),c(-10E10,10E10))
+          axis(3,c(-10E10,10E10),c(-10E10,10E10))
+          axis(4,c(-10E10,10E10),c(-10E10,10E10))
+          points(ind2Data[j,],ind2Data[i,],pch=4,cex=2,col=cols[2],lwd=2)
+
+        }
+        if(i==2&j==(ni-1)){
+          legend('center',legend=c("Observed","Simulated"),text.col=c("blue","red"),bty='n',cex=1.4,text.font=2)
+
+        }
+
+        if(j==1)mtext(namst[i],2,line=2,cex=1,las=2)
+        if(i==ni)mtext(namst[j],1,line=1,cex=1,las=2)
+        #if(j==1)mtext(i,2,line=2,cex=0.5,las=2)
+        #if(i==nplotted)mtext(j,1,line=1,cex=0.5,las=2)
+
+      }
+
+    }
+
+  }
+
+  mahalanobis_robust<-function (x, center, cov, inverted = FALSE) {
+
+    x <- if (is.vector(x))
+      matrix(x, ncol = length(x))
+    else as.matrix(x)
+    if (!identical(center, FALSE))
+      x <- sweep(x, 2L, center)
+
+    invcov <- corpcor::pseudoinverse(cov)
+    setNames(rowSums(x %*% invcov * x), rownames(x))
+
+  }
+
+  getsegment<-function(densobj,thresh,lower=T){
+    if(lower){
+      cond<-densobj$x<thresh
+    }else{
+      cond<-densobj$x>thresh
+    }
+
+    xs<-c(0,densobj$y[cond],0)
+    ys<-densobj$x[cond]
+    ys<-c(ys[1],ys,ys[length(ys)])
+
+    list(x=xs,y=ys)
+  }
+
+  plot_mdist<-function(indPPD,indData){
+    nullcov<-cov(t(indPPD[,1,]))
+    nullm<-apply(indPPD[,1,],1,mean)
+    nullsims<-t(indPPD[,1,])
+    obs=indData[,1]
+
+    dist<-mahalanobis_robust(x=obs, center=nullm, cov=nullcov)
+    dists<-mahalanobis_robust(x=nullsims, center=nullm, cov=nullcov)
+
+    dens<-density(dists,from=0,to=quantile(dists,0.99))
+    plot(dens,xlab="",main="",col='blue',ylab="")
+    thresh<-quantile(dists,0.95)
+    abline(v=thresh,lty=2,lwd=2)
+    text(thresh+1.2,max(dens$y)-0.02,"V (alpha = 5%)")
+    mtext("Mahanobis distance, D",1,line=2)
+    mtext("Density",2,line=2)
+    subdens<-getsegment(dens,thresh,lower=T)
+    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
+
+    leg<-"Outlier detected (Obs > V)"
+    lcol<-"Red"
+    if(dist<thresh){
+      leg<-"Outlier not detected (Obs < V)"
+      lcol="green"
+    }
+    abline(v=dist,lwd=2,col=lcol)
+    text(dist+1.2,max(dens$y)-0.02,"Observed M-distance",col=lcol)
+    legend('top',legend=leg,text.col=lcol,bty='n')
+  }
+
 
 
 })

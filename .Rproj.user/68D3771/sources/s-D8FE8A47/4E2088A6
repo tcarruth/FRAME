@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2228596682",
+    "hash" : "2581233367",
     "id" : "4E2088A6",
-    "lastKnownWriteTime" : 1522204236,
-    "last_content_update" : 1522204236378,
+    "lastKnownWriteTime" : 1522217436,
+    "last_content_update" : 1522217436585,
     "path" : "C:/GitHub/EDS/inst/shiny_apps/EDS/ui.R",
     "project_path" : "inst/shiny_apps/EDS/ui.R",
     "properties" : {
-        "cursorPosition" : "647,23",
-        "scrollLine" : "633"
+        "cursorPosition" : "659,135",
+        "scrollLine" : "648"
     },
     "relative_order" : 5,
     "source_on_save" : false,

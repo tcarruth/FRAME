@@ -574,10 +574,22 @@ shinyUI(
                    plotOutput("CCU",height="auto")
                 ), # end of fluid row
 
-                column(12,style="height:80px",
+                column(12,
                      HTML("<br>"),
                      h4("Ancillary Indicators",style = "color:black"),
-                     hr()
+                     hr(),
+                     fluidRow(
+                       column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
+                       column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
+                       column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
+                       column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
+
+                       plotOutput("CC",height="auto"),
+                       column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
+                       plotOutput("MahD",height="auto")
+
+                     )
+
                 )
               ) # end of conditional panel
 
@@ -645,7 +657,7 @@ shinyUI(
              checkboxInput("Ex_Ref_MPs", label = "Exclude reference MPs", value = FALSE)
         ),
         column(3,style="height:80px;padding:18px;",
-             checkboxInput("Parallel", label = "Run with parallel computation (no progress bar)", value = FALSE)
+             checkboxInput("Parallel", label = "Run with parallel computation (no progress bar, doesn't work with Ancilliary indicators)", value = FALSE)
         ),
         column(12),
         column(3,style="height:90px;padding:18px;",
@@ -655,7 +667,11 @@ shinyUI(
              numericInput("proyears", label = "Number of projected years for the simulation", value=50)
         ),
         column(3,style="height:90px;padding:18px;",
-             numericInput("nsim", label = "Number of simulations", value=16)
+             numericInput("nsim", label = "Number of simulations", value=24)
+        ),
+        column(12),
+        column(3,style="height:90px;padding:18px;",
+             numericInput("AI_MP", label = "MP for Ancilliary Indicators Analysis", value="AvC")
         ),
         column(12),
         column(6, textInput("Source", "Source custom DLMtool/MSEtool MPs, performance metrics, MSE controls", "mysource.r")),
