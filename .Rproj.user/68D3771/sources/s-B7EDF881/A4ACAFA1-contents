@@ -227,8 +227,8 @@ shinyServer(function(input, output, session) {
     OM@R0<-100000
     OM@nsim<-nsim
 
-    OM@Linf<-c(3,3.5)
-    OM@L50<-c(1.5,1.5)
+    OM@Linf<-c(3,3)
+    OM@L50<-c(1.3,2.4)
     OM@L50_95<-c(0.2,0.2)
     OM@isRel<-"FALSE"
 
