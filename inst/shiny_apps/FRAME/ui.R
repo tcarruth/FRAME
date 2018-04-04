@@ -12,7 +12,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(4,style="height:65px",
-             h5("fishery risk assessment and management evaluation (v0.9)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation (v0.9)",style="padding:19px;")
       ),
 
       column(4,offset=3,style="padding:23px;height:65px",
