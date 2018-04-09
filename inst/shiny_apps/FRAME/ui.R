@@ -103,7 +103,7 @@ shinyUI(
                                  h5("At any stage you can press the CALCULATE button and the MSE will run for the questions you have answered.",style="color:grey"),
                                  h5(""),
                                  tagList("More detailed help on the Fishery questions can be found in the
-                                         FRAME User Guide: ", a("Section 4.", href="https://dlmtool.github.io/DLMtool/userguide/index.html", target="_blank"))),
+                                         FRAME User Guide: ", a("Section 4.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#4_the_fishery_tab", target="_blank"))),
 
                             conditionalPanel(width=4,condition="output.Fpanel==1",#|output.Fpanel==undefined",
                                 fluidRow(
@@ -214,7 +214,7 @@ shinyUI(
                                       h5(" - determine the relative success of various management procedures that provide different types of advice.",style="color:grey"),
                                       h5(""),
                                       tagList("More detailed help on the Management questions can be found in the FRAME manual:
-                                              ", a("Section 5", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))),
+                                              ", a("Section 5", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#5_the_management_tab", target="_blank"))),
 
 
                                  conditionalPanel(width=4,condition="output.Mpanel==1",
@@ -245,7 +245,7 @@ shinyUI(
                                   h5(" - determine the relative success of the various management types that rely on differing types of data.",style="color:grey"),
                                   h5(""),
                                  tagList("More detailed help on the Data questions can be found in the FRAME manual
-                                         : ", a("Section 6", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))),
+                                         : ", a("Section 6", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#6_the_data_tab", target="_blank"))),
 
                                  conditionalPanel(width=4,condition="output.Dpanel==1",
                                                   checkboxGroupInput("D1", label = h5("1. Types of data that are available",style="color:black"),
@@ -277,7 +277,7 @@ shinyUI(
                                       to speed up MSE calculations.",style="color:grey"),
                                    h5(""),
                                    tagList("More detailed help on the Data questions can be found in the FRAME manual
-                                            : ", a("Section 7.", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))
+                                            : ", a("Section 7.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#7_the_options_tab", target="_blank"))
 
                                  ),
 
@@ -317,9 +317,9 @@ shinyUI(
                                  h5("5. Build report",style = "color:grey"),
                                  h5("6. Monitor ancillary indicators",style = "color:grey"),
                                  HTML("<br>"),
-                                 tagList("For further information see the ", a("FRAME Manual.", href="https://www.datalimitedtoolkit.org/", target="_blank")),
+                                 tagList("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank")),
                                  HTML("<br>"),
-                                 tagList("The DLMtool paper is also available ", a("here.", href="https://www.datalimitedtoolkit.org/", target="_blank")),
+                                 tagList("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank")),
                                  value=4)
                       )
 
