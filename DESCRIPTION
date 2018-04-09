@@ -1,10 +1,10 @@
-Package: EDS
+Package: FRAME
 Type: Package
-Title: Evaluation by Dynamical Simulation
-Version: 0.9.0
+Title: Fisheries Risk Assessment and Method Evaluation
+Version: 0.9.3
 Authors@R: person("Tom", "Carruthers",, "t.carruthers@fisheries.ubc.ca", role=c("aut", "cre"))
 Maintainer: Tom Carruthers <t.carruthers@oceans.ubc.ca>
-Description: A population risk assessment framework that links a Shiny GUI to the DLMtool/MSEtool operating model
+Description: A population risk assessment framework that links a Shiny GUI to the DLMtool/MSEtool operating model OMx
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
@@ -15,4 +15,5 @@ Imports: corpcor,
          gmailr,
          kableExtra,
          knitr,
-         shiny
+         shiny,
+         shinyjs

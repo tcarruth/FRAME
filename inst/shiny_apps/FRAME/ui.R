@@ -1,8 +1,64 @@
 
 library(shiny)
+library(shinyjs)
 
 shinyUI(
+  
   fluidPage(
+    useShinyjs(),
+    tags$head(
+      tags$style(HTML("hr {border-top: 1.4px solid #E3E1DE;}
+                      h4 { font-size:15px;}
+                      h5 { font-size:13px;}
+                      h6 { font-size:11px;}
+                      textarea{ font-size:13px;}
+                      button{ font-size:13px;}
+                      title{ font-size:13px;}
+                      caption{ font-size:13px;font-weight:normal}
+                      label{ font-size:13px;}
+                      legend{ font-size:13px;}
+                      link{ font-size:13px;}
+                      select{ font-size:13px;}
+                      menu{ font-size:13px;}
+                      option{ font-size:13px;}
+                      output{ font-size:13px;}
+                      tbody{ font-size:13px;}
+                      style{ font-size:13px;}
+                      [type = 'number'] {font-size:13px;height:20px;}
+                      [type = 'text'] {font-size:13px;height:20px;}
+                      [type = 'textArea'] {font-size:13px;}
+                      #Fpanelout{font-size: 13px;}
+                      #Dpanelout{font-size: 13px;}
+                      #Mpanelout{font-size: 13px;}
+                      #email{font-size: 13px;}
+                      #emailsend{font-size: 13px;}
+                      #calculate{font-size: 13px;}
+                      #Fcont{font-size: 13px;}
+                      #FcontD{font-size: 13px;}
+                      #Fback{font-size: 13px;}
+                      #FbackD{font-size: 13px;}
+                      #Build_OM{font-size: 13px;}
+                      #Build_Eval{font-size: 13px;}
+                      #Build_AI{font-size: 13px;}
+                      #Save{font-size: 13px;}
+                      #Load{font-size: 13px; height:20px;}
+                      #Justification{font-size: 13px;}
+                      #SessionID{font-size:11px;}
+
+
+                      ")),
+      
+      tags$style(HTML("
+      @import url('//fonts.googleapis.com/css?family=Raleway|Cabin:400,700');
+                      
+                      h2 {
+                      font-family: 'Raleway', cursive;
+                      font-weight: 500;
+                      line-height: 1.1;
+                      }
+                      
+                      "))
+    ),
 
     includeCSS("www/custom.css"),
 
@@ -11,18 +67,18 @@ shinyUI(
       column(1,style="height:65px",
              h2("FRAME")
       ),
-      column(4,style="height:65px",
-             h5("fishery risk assessment and method evaluation (v0.9)",style="padding:19px;")
+      column(6,style="height:65px",
+             h5("fishery risk assessment and method evaluation (v0.93)",style="padding:19px;")
       ),
 
-      column(4,offset=3,style="padding:23px;height:65px",
+      column(2,offset=3,style="padding:12px;height:65px",
              fluidRow(
 
                column(10,
-                      img(src = "MSC.png", height = 37, width = 60),
-                      img(src = "DLMtool.png", height = 40, width = 130),
-                      img(src = "NRDC.png", height = 40, width = 30),
-                      img(src = "UBC.png", height = 40, width = 30))
+                      #img(src = "MSC.png", height = 37, width = 60),
+                      tags$a(img(src = "DLMtool.png", height = 45, width = 145),href="https://www.datalimitedtoolkit.org",target='_blank'))
+                      #img(src = "NRDC.png", height = 40, width = 30),
+                      #img(src = "UBC.png", height = 40, width = 30))
 
 
              )
@@ -44,10 +100,10 @@ shinyUI(
                                  h5("The Fishery panel is a set of questions about the characteristics of the fish population and its fishery.",style="color:grey"),
                                  h5("These questions specify the range of simulations in the MSE.",style="color:grey"),
                                  h5("Questions are presented in order of importance.",style="color:grey"),
-                                 h5("At any stage you can press the CALCULATE button and the MSE will run for the questions you have answered",style="color:grey"),
+                                 h5("At any stage you can press the CALCULATE button and the MSE will run for the questions you have answered.",style="color:grey"),
                                  h5(""),
                                  tagList("More detailed help on the Fishery questions can be found in the
-                                         DLMtool-MSC User Guide: ", a("Section 4", href="https://dlmtool.github.io/DLMtool/userguide/index.html", target="_blank"))),
+                                         FRAME User Guide: ", a("Section 4.", href="https://dlmtool.github.io/DLMtool/userguide/index.html", target="_blank"))),
 
                             conditionalPanel(width=4,condition="output.Fpanel==1",#|output.Fpanel==undefined",
                                 fluidRow(
@@ -155,9 +211,9 @@ shinyUI(
                                       h5("The Management panel is a set of questions about what fishery management options are available and how well management advice is followed.",style="color:grey"),
                                       h5("These questions: ",style="color:grey"),
                                       h5(" - identify what management procedures are feasible given the types of management measures.",style="color:grey"),
-                                      h5(" - determine the relative success of various management procedures that provide different types of advice",style="color:grey"),
+                                      h5(" - determine the relative success of various management procedures that provide different types of advice.",style="color:grey"),
                                       h5(""),
-                                      tagList("More detailed help on the Management questions can be found in the DLMtool-MSC manual:
+                                      tagList("More detailed help on the Management questions can be found in the FRAME manual:
                                               ", a("Section 5", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))),
 
 
@@ -183,12 +239,12 @@ shinyUI(
                                  conditionalPanel(width=4,condition="output.Dpanel==undefined|output.Dpanel==0",
 
                                   HTML("<br>"),
-                                  h5("The Data panel is a set of questions about what types of data are available and quality of the data that are available",style="color:grey"),
+                                  h5("The Data panel is a set of questions about what types of data are available and quality of the data that are available.",style="color:grey"),
                                   h5("These questions: ",style="color:grey"),
                                   h5(" - identify what management procedures are feasible given the types of data available.",style="color:grey"),
-                                  h5(" - determine the relative success of the various management types that rely on differing types of data",style="color:grey"),
+                                  h5(" - determine the relative success of the various management types that rely on differing types of data.",style="color:grey"),
                                   h5(""),
-                                 tagList("More detailed help on the Data questions can be found in the DLMtool-MSC manual
+                                 tagList("More detailed help on the Data questions can be found in the FRAME manual
                                          : ", a("Section 6", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))),
 
                                  conditionalPanel(width=4,condition="output.Dpanel==1",
@@ -212,19 +268,58 @@ shinyUI(
                                                   actionLink("All_Err","DEFAULT")),
                                  value=3),
 
-                        tabPanel(h4("Help",style = "color:black"),
+                        tabPanel(h4("Options",style = "color:#C6C6C6"),
+
+                                 conditionalPanel(width=4,condition="output.Dpanel==0 & output.Fpanel== 0 & output.Mpanel == 0",
+                                   HTML("<br>"),
+                                   h5("The Options panel allows the user to control aspects of the MSE testing of Management procedures such as
+                                      the number of MSE simulations, the number of years for historical projections and whether to use parallel computation
+                                      to speed up MSE calculations.",style="color:grey"),
+                                   h5(""),
+                                   tagList("More detailed help on the Data questions can be found in the FRAME manual
+                                            : ", a("Section 7.", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))
+
+                                 ),
+
+                                 conditionalPanel(width=4,condition="output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0",
+
+                                   column(12,style="height:15px"),
+                                   column(6,
+                                          radioButtons("Analysis_type","Analysis type:",
+                                                       c("Demo"="Demo","Certification" = "Cert"),
+                                                       selected="Demo",inline=T)),
+                                   column(6,style="padding:4px;",
+                                          radioButtons("Analysis_type2","",
+                                                       c("Risk Evaluation" = "RE", "FIP" = "FIP"),
+                                                       selected="",inline=T)
+                                   ),
+                                   column(12,style="height:15px"),
+                                   column(4,numericInput("nsim", label = "No. Simulations", value=24)),
+                                   column(5,numericInput("proyears", label = "No. Projected years", value=50)),
+                                   column(2,numericInput("interval", label = "Interval", value=4)),
+                                   column(6,numericInput("AI_MP", label = "MP for AI Analysis", value="AvC")),
+                                   column(6, textInput("Source", "Source custom code", "mysource.r")),
+                                   column(6,checkboxInput("Ex_Ref_MPs", label = "No reference MPs", value = FALSE)),
+                                   column(6,checkboxInput("Parallel", label = "Parallel computation", value = FALSE))
+                                 ),
+
+
+                                value=5),
+
+
+
+                        tabPanel(h4("Help",style = "color:#C6C6C6"),
                                 # textOutput(
                                  h5("1. Specify fishery, management and data attributes",style = "color:grey"),
                                  h5("2. Save progress",style = "color:grey"),
                                  h5("3. Run MSE by selecting CALCULATE (5 minutes)",style = "color:grey"),
                                  h5("4. Visualize results",style = "color:grey"),
                                  h5("5. Build report",style = "color:grey"),
-                                 h5("6. Determine ancillary indicators",style = "color:grey"),
-                                 h5("7. Calculate value-of-information",style = "color:grey"),
+                                 h5("6. Monitor ancillary indicators",style = "color:grey"),
                                  HTML("<br>"),
-                                 tagList("For further information see the ", a("EDS Manual", href="https://www.datalimitedtoolkit.org/", target="_blank")),
+                                 tagList("For further information see the ", a("FRAME Manual.", href="https://www.datalimitedtoolkit.org/", target="_blank")),
                                  HTML("<br>"),
-                                 tagList("The DLMtool paper is also available ", a("here", href="https://www.datalimitedtoolkit.org/")),
+                                 tagList("The DLMtool paper is also available ", a("here.", href="https://www.datalimitedtoolkit.org/", target="_blank")),
                                  value=4)
                       )
 
@@ -245,7 +340,7 @@ shinyUI(
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==1",
 
                           column(12,
-                            h5("Describe the fishery you are modelling and identify yourself and the relevant management agency",style = "color:grey")
+                            h5("Describe the fishery you are modelling and identify yourself and the relevant management agency.",style = "color:grey")
 
                       )),
 
@@ -253,12 +348,12 @@ shinyUI(
                           column(6,plotOutput("plotM",height=240)),
 
                           column(6,
-                            h5("How long lived is the fish species? This is a critical input determining stock productivity",style = "color:grey"),
+                            h5("How long lived is the fish species? This is a critical input determining stock productivity.",style = "color:grey"),
                             h5("The parameter M is the instantaneous natural mortality rate. For a review of data-limited methods of estimating M see",style = "color:grey"),
-                            tagList(a("Kenchington (2014)", href="http://onlinelibrary.wiley.com/doi/10.1111/faf.12027/abstract", target="_blank")),
+                            tagList(a("Kenchington (2014).", href="http://onlinelibrary.wiley.com/doi/10.1111/faf.12027/abstract", target="_blank")),
 
-                            h5("The plot to the left shows survival rates at age for the longevity scenarios you have selected",style = "color:grey"),
-                            h5("The range in the maximum age is plotted in orange and reflects the age at 2% survival for the most extreme longevity scenarios that were selected",style = "color:grey")
+                            h5("The plot to the left shows survival rates at age for the longevity scenarios you have selected.",style = "color:grey"),
+                            h5("The range in the maximum age is plotted in orange and reflects the age at 2% survival for the most extreme longevity scenarios that were selected.",style = "color:grey")
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==3",
@@ -275,85 +370,85 @@ shinyUI(
                           column(6,plotOutput("ploth",height=240)),
                           column(6,
                             h5("How resilient to exploitation is the stock? This question controls recruitment compensation - the extent to which recruitment is reduced from unfished levels (R0) as the spawning stock becomes increasingly depleted below unfishe levels (SSB0).
-                             Here resilence is expressed in terms of steepness (h): the fraction of unfished recruitment at 1/5 unfished spawning biomass",style = "color:grey"),
-                            tagList("For a useful review of compensatory density dependence in fish populations see ", a("Rose et al. (2001)", href="http://hqczhzkgch48vzcc4czubj6v.wpengine.netdna-cdn.com/files/2012/07/Rose_etal_FishFisheries.pdf", target="_blank"))
+                             Here resilence is expressed in terms of steepness (h): the fraction of unfished recruitment at 1/5 unfished spawning biomass.",style = "color:grey"),
+                            tagList("For a useful review of compensatory density dependence in fish populations see ", a("Rose et al. (2001).", href="http://hqczhzkgch48vzcc4czubj6v.wpengine.netdna-cdn.com/files/2012/07/Rose_etal_FishFisheries.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==5",
                           column(6,plotOutput("plotFP",height=240)),
                           column(6,
-                            h5("What temporal pattern best describes the trend in historical exploitation rates (aka fishing mortality rates or F)?. If more than one answer is given, historical fishing will be simulated subject to all trends in equal frequency. If it can be assumed that fishing effort is proportional to exploitation rate this can be summarized as historical patterns in fishing effort (e.g. boat-days per year, number of trips per year).
+                            h5("What temporal pattern best describes the trend in historical exploitation rates (aka fishing mortality rates or F)? If more than one answer is given, historical fishing will be simulated subject to all trends in equal frequency. If it can be assumed that fishing effort is proportional to exploitation rate this can be summarized as historical patterns in fishing effort (e.g. boat-days per year, number of trips per year).
                              This set of answers specified the possible range of mean trends, you will have an opportunity to adjust the extent of interannual variability in the following question.",style = "color:grey"),
-                            tagList("Here is a basic introduction to fishing effort and the assumption of proportionality courtesy of the ", a("UN FAO", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"))
+                            tagList("Here is a basic introduction to fishing effort and the assumption of proportionality courtesy of the ", a("UN FAO.", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==6",
                           column(6,plotOutput("plotF",height=240)),
                           column(6,
-                            h5("The extent of interannual variability in historical exploitation rates around the mean trend(s) specified in question F4.",style = "color:grey"),
-                            tagList("Again, here is the introduction to effort and exploitation rate by the ", a("UN FAO", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"))
+                            h5("The extent of interannual variability in historical exploitation rates around the mean trend(s) specified in Fishery question #5.",style = "color:grey"),
+                            tagList("Again, here is the introduction to effort and exploitation rate by the ", a("UN FAO.", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==7",
                           column(6,plotOutput("plotsel",height=240)),
                           column(6,
                             h5("Fishing gear selectivity relative to size at maturity (S). For example, if 50% of 40cm fish are caught by the gear and length at 50% maturity is 50cm, S = 4/5.",style = "color:grey"),
-                            tagList("The UN FAO explain something of fishing gear selectivity and how it may be quantified in an ", a("introductory document", href="http://www.fao.org/docrep/w5449e/w5449e08.htm")),
-                            tagList("For a more involved discussion on selectivity see the ", a("IATTC CAPAM workshop report", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
+                            tagList("The UN FAO explain something of fishing gear selectivity and how it may be quantified in an ", a("introductory document.", href="http://www.fao.org/docrep/w5449e/w5449e08.htm", target="_blank")),
+                            tagList("For a more involved discussion on selectivity see the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==8",
                          column(6,plotOutput("plotdome",height=240)),
                          column(6,
                            h5("Fishing gear selectivity of the largest individuals (SL). For example, if only 20% of the longest fish are caught by the gear SL = 0.2.",style = "color:grey"),
-                           tagList("Again here is the UN FAO introduction to fishing gear selectivity ", a("introductory document", href="http://www.fao.org/docrep/w5449e/w5449e08.htm", target="_blank")),
-                           tagList("and here is the ", a("IATTC CAPAM workshop report", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
+                           tagList("Again here is the UN FAO introduction to fishing gear selectivity ", a("introductory document.", href="http://www.fao.org/docrep/w5449e/w5449e08.htm", target="_blank")),
+                           tagList("and here is the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==9",
                           column(6,plotOutput("plotDR",height=240)),
                           column(6,
                             h5("Discard rate (DR). What fraction of fish that are caught are discarded (includes fish that are dead and alive)?",style = "color:grey"),
-                            tagList("The US National Marine Fisheries Service have a general guide to ", a("Understanding Fish Bycatch Discard and Escapee Mortality", href="https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf", target="_blank")),
-                            tagList("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
+                            tagList("The US National Marine Fisheries Service have a general guide to ", a("Understanding Fish Bycatch Discard and Escapee Mortality.", href="https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf", target="_blank")),
+                            tagList("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==10",
                           column(6,plotOutput("plotPRM",height=240)),
                           column(6,
                             h5("Post-release mortality rate (PRM). What fraction of discarded fish die after release?",style = "color:grey"),
-                            tagList("The US National Marine Fisheries Service have a general guide to ", a("Understanding Fish Bycatch Discard and Escapee Mortality", href="https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf", target="_blank")),
-                            tagList("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
+                            tagList("The US National Marine Fisheries Service have a general guide to ", a("Understanding Fish Bycatch Discard and Escapee Mortality.", href="https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf", target="_blank")),
+                            tagList("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==11",
                            column(6,plotOutput("plotsigR",height=240)),
                            column(6,
-                             h5("Interannual variability in recruitment (the coefficient of variation in log-normal recruitment deviations, sigma R). Recruitment is expected to change among years in response to changing spawning biomass levels. On top of this is additional variability that may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation.  Sigma R controls the extent of this additional variability in annual recruitments. For example, a sigma R of 10% means that 95% of recruitments will fall in approximately 80-120% of the mean recruitment predicted from spawning biomass",style = "color:grey"),
-                             tagList("Edward Houde authored a ", a("Comprehensive Review of Recruitment and Sources of Variability", href="https://drive.google.com/open?id=19q_ct4Xd954H2jjotX3YKy0BJ-v53bt2", target="_blank")),
-                             tagList("and if that isn't sufficient there is ", a("Chambers and Trippel (1997)", href="https://drive.google.com/open?id=1KhwP5URGPzW6ViJPiwprfY2tE2uucpDR", target="_blank"))
+                             h5("Interannual variability in recruitment (the coefficient of variation in log-normal recruitment deviations, sigma R). Recruitment is expected to change among years in response to changing spawning biomass levels. On top of this is additional variability that may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation.  Sigma R controls the extent of this additional variability in annual recruitments. For example, a sigma R of 10% means that 95% of recruitments will fall in approximately 80-120% of the mean recruitment predicted from spawning biomass.",style = "color:grey"),
+                             tagList("Edward Houde authored a ", a("Comprehensive Review of Recruitment and Sources of Variability.", href="https://drive.google.com/open?id=19q_ct4Xd954H2jjotX3YKy0BJ-v53bt2", target="_blank")),
+                             tagList("and if that isn't sufficient there is ", a("Chambers and Trippel (1997).", href="https://drive.google.com/open?id=1KhwP5URGPzW6ViJPiwprfY2tE2uucpDR", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==12",
                            column(6,plotOutput("plotq",height=240)),
                            column(6,
                              h5("The annual % increase/decrease in fishing efficiency (q). In targetted fisheries gear efficiency may improve over time given techological improvements in the gear, bait, fish location, sharing of information etc. Conversely, non-target or bycatch species may be subject to declining fishing efficiency due to regulations or avoidance behaviors. The catchability q is the fraction of available fish caught per unit of effort. For example, a 2% per annum increase in fishing efficiency means that after 35 years twice as many fish will be caught for the same effort as today.",style = "color:grey"),
-                             tagList("The introduction to fishing efficiency by the FAO provides a ", a("basic summary", href="http://www.fao.org/docrep/008/y6982e/y6982e06.htm", target="_blank")),
-                             tagList("alternatively there is a more comprehensive review by", a("Arrenguin-Sanchez", href="https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI", target="_blank"))
+                             tagList("The introduction to fishing efficiency by the FAO provides a ", a("basic summary.", href="http://www.fao.org/docrep/008/y6982e/y6982e06.htm", target="_blank")),
+                             tagList("Alternatively there is a more comprehensive review by", a("Arrenguin-Sanchez.", href="https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==13",
                            column(6,plotOutput("plotA",height=240)),
                            column(6,
-                             h5("The size of a potential or existing spatial closure (Marine Reserve). The size S is the % of habitat that is protected.",style = "color:grey"),
-                             tagList("The FAO provides a comprehensive ", a("review of Marine Protected Areas", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"))
+                             h5("The size of a potential or existing spatial closure (Marine Reserve). The size A is the % of habitat that is protected.",style = "color:grey"),
+                             tagList("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==14",
                            column(6,plotOutput("plotV",height=240)),
                            column(6,
                             h5("The degree of stock mixing. The probability P of a fish leaving area 1 (ie. the MPA) between years",style = "color:grey"),
-                            tagList("The FAO provides a comprehensive ", a("review of Marine Protected Areas", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"))
+                            tagList("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"))
                       )),
 
 
@@ -367,14 +462,14 @@ shinyUI(
                          # h5("Possible modes of fishery management",style = "color:black"),
                           h5("Here you indicate which MPs are feasible given the management options that are available.", style = "color:grey"),
                           h5("Management procedures can provide management advice in terms of:",style="color:grey"),
-                          h5(" - Total Allowable Catch limits (TACs, e.g. 20,000 metric tonnes)",style="color:grey"),
-                          h5(" - Total Allowable Effort (TAE, e.g. 800 trap days per year)",style="color:grey"),
-                          h5(" - Size limits (e.g. minimum size of 45cm)",style="color:grey"),
-                          h5(" - Time-area closures (e.g. closing an area to fishing, an MPA or a Winter closure",style="color:grey"),
+                          h5(" - Total Allowable Catch limits (TACs, e.g. 20,000 metric tonnes).",style="color:grey"),
+                          h5(" - Total Allowable Effort (TAE, e.g. 800 trap days per year).",style="color:grey"),
+                          h5(" - Size limits (e.g. minimum size of 45cm).",style="color:grey"),
+                          h5(" - Time-area closures (e.g. closing an area to fishing, an MPA or a Winter closure.",style="color:grey"),
                           h5(""),
-                          tagList("For more information see the ", a("UN FAO guide to fishery management types", href="http://www.fao.org/docrep/005/y3427e/y3427e06.htm", target="_blank")),
+                          tagList("For more information see the ", a("UN FAO guide to fishery management types.", href="http://www.fao.org/docrep/005/y3427e/y3427e06.htm", target="_blank")),
                           h5(""),
-                          tagList("Or alternatively, Steffanson and Rosenberg describe and discuss fishery managment types in ", a("their 2005 paper", href="https://drive.google.com/open?id=1V5aMNf3raitNC515qyFfITDivgbXkU4X", target="_blank"))
+                          tagList("Or alternatively, Steffanson and Rosenberg describe and discuss fishery managment types in ", a("their 2005 paper.", href="https://drive.google.com/open?id=1V5aMNf3raitNC515qyFfITDivgbXkU4X", target="_blank"))
 
                       ),
 
@@ -382,19 +477,19 @@ shinyUI(
                           column(7,plotOutput("plotIB",height=280)),
                           column(5,
                                  h5("What is the possible extent to which fishing operations may exceed (overages) or fall short (underages)
-                                     with respect to the specified Total Allowable Catch (TAC)and Effort (TAE). For example, given a TAC of 1000 tonnes and a TAE of 2000 boat-days of fishing a 10% overage would on average lead to 1100 tonnes of fish taken and 2200 boat days of effort.",style = "color:grey"),
+                                     with respect to the specified Total Allowable Catch (TAC)and Effort (TAE)? For example, given a TAC of 1000 tonnes and a TAE of 2000 boat-days of fishing a 10% overage would on average lead to 1100 tonnes of fish taken and 2200 boat days of effort.",style = "color:grey"),
                                  h5(""),
-                                 tagList("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank")),
+                                 tagList("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank")),
                                  h5(""),
-                                 tagList("Fulton et al. provide a discussion of implementation error in their ",a("2011 paper", href="https://drive.google.com/open?id=1gzTMnk3Cg3PzgxDdKAyV52T9IIptUK7h", target="_blank"))
+                                 tagList("Fulton et al. provide a discussion of implementation error in their ",a("2011 paper.", href="https://drive.google.com/open?id=1gzTMnk3Cg3PzgxDdKAyV52T9IIptUK7h", target="_blank"))
                       )),
 
                       conditionalPanel(condition="input.tabs1==2&output.Mpanel==3",
                           column(7,plotOutput("plotIV",height=280)),
                           column(5,
-                                h5("In question M2 you specified the range of possible overages/underages with respect to management recommendations. In this question you now also add the variability (V) in the implementation (TACs and TAEs) among years. For example if on average there are no overages or underages, V = 10% leads to overages/underages within 20% of the recommendation (the black line in the figure opposite) for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest (solid line) levels of overages/underages specified in question M2 ",style = "color:grey"),
+                                h5("In Management question #2 you specified the range of possible overages/underages with respect to management recommendations. In this question you now also add the variability (V) in the implementation (TACs and TAEs) among years. For example if on average there are no overages or underages, V = 10% leads to overages/underages within 20% of the recommendation (the black line in the figure opposite) for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest (solid line) levels of overages/underages specified in ,management question #2.",style = "color:grey"),
                                 h5(""),
-                                tagList("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"))
+                                tagList("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"))
                       )),
 
 
@@ -409,13 +504,13 @@ shinyUI(
                               may not be feasible.", style = "color:grey"),
                           h5("Annual catches are yearly reporting landings (e.g. 135 tonnes in 1998, 159 tonnes in 1999, etc).", style = "color:grey"),
                           h5("Relative abundance indices may be fishery-dependent such as catch-per-unit-effort data or fishery-independent such as an annual abundance survey.", style = "color:grey"),
-                          h5("In the context of annual catches and relative abundance indices, 'historical' refers to data going back to 'unfished conditions' (pre industrial fishing) such that catches may be used to reconstruct stock trajectory and indices may infer current stock depletion", style = "color:grey"),
-                          h5("In contrast, 'recent' refers to data available for least 5 years from today", style = "color:grey"),
-                          h5("Effort data are annual observations of fishing effort such as boat days in 2002", style = "color:grey"),
+                          h5("In the context of annual catches and relative abundance indices, 'historical' refers to data going back to 'unfished conditions' (pre industrial fishing) such that catches may be used to reconstruct stock trajectory and indices may infer current stock depletion.", style = "color:grey"),
+                          h5("In contrast, 'recent' refers to data available for least 5 years from today.", style = "color:grey"),
+                          h5("Effort data are annual observations of fishing effort such as boat days in 2002.", style = "color:grey"),
                           h5("Growth data refers to parameter estimates for growth parameters such as von Bertalanffy growth parameter K and mean asymptotic length, L-infinity.", style = "color:grey"),
-                          h5("Size and age composition data are samples of size and ages in the catch going back at least 2 years from today", style = "color:grey"),
+                          h5("Size and age composition data are samples of size and ages in the catch going back at least 2 years from today.", style = "color:grey"),
                            h5(""),
-                          tagList("If you require further guidance on what types of data are available in your fishery see the DLMtool-MSC manual: ", a("Section 6", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))
+                          tagList("If you require further guidance on what types of data are available in your fishery see the FRAME manual: ", a("Section 6.", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"))
 
                       ),
 
@@ -423,9 +518,9 @@ shinyUI(
                           column(7,plotOutput("plotCB",height=280)),
                           column(5,
                                 h5("Under reporting of catches",style = "color:grey"),
-                                h5("In some data-limited fisheries, incomplete monitoring of fishing operations may lead to under-reporting (and to a lesser extent over reporting) of annual catches",style = "color:grey"),
+                                h5("In some data-limited fisheries, incomplete monitoring of fishing operations may lead to under-reporting (and to a lesser extent over reporting) of annual catches.",style = "color:grey"),
                                 h5(""),
-                                tagList("For further discussion of catch under reporting see",a("Agnew et al. (2009)", href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2646833/", target="_blank"))
+                                tagList("For further discussion of catch under reporting see",a("Agnew et al. (2009).", href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2646833/", target="_blank"))
                           )
 
                       ),
@@ -444,15 +539,28 @@ shinyUI(
                       conditionalPanel(condition="input.tabs1==3&output.Dpanel==4",
                           #column(7,plotOutput("plotErr",height=280)),
                           column(12,
-                                h5("What is the overall quality of data that is available?",style = "color:grey"),
-                                h5("Perfect Information: An unrealistic and idealized observation model for testing the theoretical performance of MPs ",style = "color:grey"),
-                                h5("Good quality: annual catches and abundance indices are observed with low error (<20% CV) and length/age composition data are numerous (~100 independent observations per year)",style = "color:grey"),
-                                h5("Data moderate: annual catches and abundance indices are observed with greater error (<30% CV) and length/age composition data are fewer (~40 independent samples per year)",style = "color:grey"),
-                                h5("Data poor: annual catches and abundance indices are imprecisely observed (<50% CV) and length/age composition data are sparse (~15 independent samples per year)",style = "color:grey"),
+                                h5("What is the overall quality of data that are available?",style = "color:grey"),
+                                h5("Perfect Information: An unrealistic and idealized observation model for testing the theoretical performance of MPs.",style = "color:grey"),
+                                h5("Good quality: annual catches and abundance indices are observed with low error (<20% CV) and length/age composition data are numerous (~100 independent observations per year).",style = "color:grey"),
+                                h5("Data moderate: annual catches and abundance indices are observed with greater error (<30% CV) and length/age composition data are fewer (~40 independent samples per year).",style = "color:grey"),
+                                h5("Data poor: annual catches and abundance indices are imprecisely observed (<50% CV) and length/age composition data are sparse (~15 independent samples per year).",style = "color:grey"),
                                 h5(""),
                                 tagList("A description of the observation error model is included in ",a("Carruthers et al (2013)", href="https://drive.google.com/open?id=1EX6mu9HOb4jwlQF-Co6DQ-FJzwTcO7JP", target="_blank")),
-                                tagList(" and a similar model was used by ",a("Carruthers et al. (2015)", href="https://drive.google.com/open?id=1xvNxp_3oUOhSaLARY_mI2cAiG2qFAgqN", target="_blank"))
+                                tagList(" and a similar model was used by ",a("Carruthers et al. (2015).", href="https://drive.google.com/open?id=1xvNxp_3oUOhSaLARY_mI2cAiG2qFAgqN", target="_blank"))
                          )
+                      ),
+
+                      conditionalPanel(condition="input.tabs1==5 & (output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)",
+                           column(12,
+                             h5("Analysis Type: The Demo mode runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application;
+                                The Risk Evaluation mode provides generic risk assessment outputs over a longer projected time period of 100 years; The FIP (Fishery Improvement Project) mode provides MSC-specific
+                                guidance to help fisheries progress towards certification: The Certification mode generates a standard calculation and reporting of quantities relevant to MSC certification.",style = "color:grey"),
+                             h5("Users can also determine the total number of simulations, projected years and the management update interval (years between management recommendations in the projection)",style = "color:grey"),
+                             h5("Other options include selecting a management procedure for Ancillary Indicator analysis, the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
+                             h5("Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation (which is much faster but there is no MSE progress bar).",style = "color:grey"),
+                             h5(""),
+                             tagList("A more detailed guide to these extended options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"))
+                             )
                       )
 
                )
@@ -476,7 +584,7 @@ shinyUI(
                   conditionalPanel(condition="(input.tabs1==4)",
                                    #textInput("caption", h5(""),"< No reason for selection was provided >")
 
-                                   textAreaInput("email",h5("Alternatively email t.carruthers@oceans.ubc.ca for help:",style = "color:grey"), " From: your.email@gmail.com \n \n Hi, I've got a question about the MSC-DLMtool App...", height = "120px")
+                                   textAreaInput("email",h5("Alternatively email t.carruthers@oceans.ubc.ca for help:",style = "color:grey"), " From: your.email@gmail.com \n \n Hi, I've got a question about the FRAME App...", height = "120px")
                   )
 
 
@@ -521,16 +629,7 @@ shinyUI(
 
                       )
                ),
-               column(4,offset=1,style="height:80px",
-
-                      #conditionalPanel(condition="output.Fpanel==0 & output.Mpanel==0 & output.Dpanel==0",
-                       #                actionButton("start",h5("START",style="color:green"),width=300)
-                      #),
-                      #conditionalPanel(condition="!(output.Fpanel==0 & output.Mpanel==0 & output.Dpanel==0)",
-                                       actionButton("Calculate",h5("CALCULATE",style="color:red"),width=300)
-                      #)
-
-               ),
+               column(4,offset=1,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=300)),
                column(width = 1,offset=2,
                       conditionalPanel(condition="input.tabs1==4",
                             actionButton("emailsend","Send")
@@ -540,7 +639,7 @@ shinyUI(
 
              )
         ),
-
+        column(12,style="height:30px"),
         column(12,
               h4("Results",style = "color:black"),
               hr(),
@@ -595,7 +694,7 @@ shinyUI(
 
 
         ), # end of results
-
+        column(12,style="height:30px"),
         column(12,style="height:40px",
              h4("Reporting",style = "color:black"),
              hr()
@@ -620,64 +719,25 @@ shinyUI(
 
         ),
 
-        column(12,style="height:30px"),
+        column(12,style="height:60px"),
 
         column(12,style="height:160px",
              h4("File",style = "color:black"),
              hr(),
-             column(3,style="padding:10px",
-                                    fileInput("Load","Load a previous session")),
+             column(3,style="padding:10px;",
+                    fileInput("Load","Load a previous session")),
 
              column(3,
                     h5("Save progress",style="font-weight:bold"),
                     downloadButton("Save","",width=70))
             # column(8,textInput("File", "File name:", "myStock.msc"))
         ),
-
-        column(10,style="height:80px"),
-
-        column(2,style="height:80px",
-               #h4(paste("<",getSessionID(),">"),style="color:grey")
-               textOutput("SessionID")
-        ),
-        column(12,style="height:60px"),
-
-
-        column(12,style="height:100px",
-               hr(),
-               h4("Extended Options",style = "color:black"),
-            hr()
-        ),
-
-        column(12,
-             radioButtons("Analysis_type","Analysis type:", c("Demo"="Demo","Risk Evaluation" = "RE", "FIP" = "FIP", "Certification" = "Cert"), selected="Demo",inline=T)
-        ),
-        column(12),
-        column(3,style="height:80px;padding:18px;",
-             checkboxInput("Ex_Ref_MPs", label = "Exclude reference MPs", value = FALSE)
-        ),
-        column(3,style="height:80px;padding:18px;",
-             checkboxInput("Parallel", label = "Run with parallel computation (no progress bar, doesn't work with Ancilliary indicators)", value = FALSE)
-        ),
-        column(12),
-        column(3,style="height:90px;padding:18px;",
-             numericInput("interval", label = "Management update interval (years)", value=4)
-        ),
-        column(3,style="height:90px;padding:18px;",
-             numericInput("proyears", label = "Number of projected years for the simulation", value=50)
-        ),
-        column(3,style="height:90px;padding:18px;",
-             numericInput("nsim", label = "Number of simulations", value=24)
-        ),
-        column(12),
-        column(3,style="height:90px;padding:18px;",
-             numericInput("AI_MP", label = "MP for Ancilliary Indicators Analysis", value="AvC")
-        ),
-        column(12),
-        column(6, textInput("Source", "Source custom DLMtool/MSEtool MPs, performance metrics, MSE controls", "mysource.r")),
-
-        column(12,style="height:60px"),
-        column(6, textInput("Debug1", "Debug window", ""))
+        column(12,style="height:100px"),
+        column(8,style="height:40px"),
+        column(2,style="height:40px; padding:9px",textOutput("SessionID")),
+        column(2,style="height:40px", h6("copyright (c) NRDC 2018"))
+        #column(12,style="height:100px"),
+        #column(12, textInput("Debug1", "Debug window", ""))
 
      ) # end of fluid row
     ) # end of fluid page

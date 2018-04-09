@@ -147,7 +147,15 @@ shinyServer(function(input, output, session) {
     }
 
   }
+  
+  observeEvent(input$Fcont,{
 
+    disable("Analysis_type2")
+    #disable(selector = "[type=Analysis_type][value=FIP]")
+    #runjs("$('[type=Analysis][value=FIP]').parent().parent().addClass('disabled').css('opacity', 0.4)")
+    
+  })
+  
   observeEvent(input$emailsend,{
 
     details<-parseemail(input$email)

@@ -1,0 +1,285 @@
+---
+title: "FRAME User Guide (v0.93)"
+subtitle: "Fisheries Risk Assessment and Method Evaluation"
+author: "T. Carruthers"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true    
+ 
+---
+
+
+<style type="text/css">
+
+body{ /* Normal  */
+   font-size: 16px;
+}
+td {  /* Table  */
+   font-size: 16px;
+}
+title { /* title */
+ font-size: 26px;
+}
+h1 { /* Header 1 */
+ font-size: 24px;
+ color: DarkBlue;
+}
+h2 { /* Header 2 */
+ font-size: 21px;
+ color: DarkBlue;
+}
+h3 { /* Header 3 */
+ font-size: 19px;
+ color: DarkBlue;
+}
+code.r{ /* Code block */
+  font-size: 16px;
+}
+pre { /* Code block */
+  font-size: 16px
+}
+</style>
+
+
+<br>
+
+# Latest additions to FRAME 
+
+## Version 0.93 (alpha)
+
+* Options has a dedicated tab
+* UI font / style overhaul
+* Custom fonts now readily available for all text types
+* UI restructured
+* FIP and Risk Evaluation options properly greyed out
+
+## Version 0.92 (alpha)
+
+* Reactive panel system overhauled to improve reliability
+* Separated discard rate and post-release mortality rate
+* Ancillary indicator demonstration added
+
+
+<br>
+
+# Coming Soon
+
+* Two additional modes of analysis: 'Fishery Improvement Project' and 'Risk Evaluation'
+* Uploading of DLMtool / MSEtool operating models
+* Uploading of custom DLMtool / MSEtool source code (management procedures / MSE controls / performance metrics)
+* Dynamic evaluation of data requirements - ie proper evaluation of whether 'recent' data are sufficient
+
+# Introduction
+
+FRAME is a fishery risk assessment tool that links a streamlined user interface to an advanced operating model, using management strategy evaluation to identify sustainable fishery management options. The Application includes live help and links to external documentation. However this document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
+
+The current version of FRAME includes a total of 21 questions: 
+* 14 focus on the nature of the stock and fishery dynamics, 
+* 3 relate to the management system and 
+* 4 describe the types of data that are available and their quality. 
+
+FRAME allows for a high degree of uncertainty over any of these attributes. By default the questions are answered with the maximum level of uncertainty and assume bad quality of data. At any time the user can press 'Calculate' and the MSE will be calculated, even if the user has not prescribed any additional certainty. 
+
+At the heart of FRAME is OMx, a rapid and flexible operating model developed for the data-limited methods toolkit (DLMtool, Carruthers and Hordyk 2018) and the management strategy evaluation toolkit (MSEtool, Carruthers et al. 2018).
+
+The application is currently in Beta testing, all feedback can be submitted to <t.carruthers@oceans.ubc.ca>
+<br><br>
+
+
+# The Fishery Tab
+
+## Fishery description
+
+Describe the fishery you are modelling and identify yourself and the relevant management agency.
+
+## Longevity
+
+How long lived is the fish species? This is a critical input determining stock productivity. The parameter M is the instantaneous natural mortality rate. For a review of data-limited methods of estimating M see [Kenchington (2014)](http://onlinelibrary.wiley.com/doi/10.1111/faf.12027/abstract). 
+
+
+## Stock depletion
+
+Depletion D, refers to current spawning stock biomass relative to unfished.
+
+Since depletion is a data-rich quantity it may not be readily quantified and it may be necessary to specify a wide range of uncertainty for this input to identify MPs that are suitably robust.
+
+In a data-limited situation, coarse information regarding depletion may be obtained from examining length compositions, historical versus current catch rates, or by use of so-called Robin-Hood approaches.
+
+For further information see [Carruthers et al. (2014)](http://www.sciencedirect.com/science/article/pii/S0165783613003081) and [Punt et al (2011)](https://academic.oup.com/icesjms/article/68/5/972/653125/Among-stock-comparisons-for-improving-stock) 
+
+## Resilience
+
+How resilient to exploitation is the stock? This question controls recruitment compensation - the extent to which recruitment is reduced from unfished levels (R0) as the spawning stock becomes increasingly depleted below unfishe levels (SSB0). Here resilence is expressed in terms of steepness (h): the fraction of unfished recruitment at 1/5 unfished spawning biomass.
+
+For a useful review of compensatory density dependence in fish populations see [Rose et al. (2001)](http://hqczhzkgch48vzcc4czubj6v.wpengine.netdna-cdn.com/files/2012/07/Rose_etal_FishFisheries.pdf). 
+
+
+## Trend of historical exploitation
+
+What temporal pattern best describes the trend in historical exploitation rates (aka fishing mortality rates or F)? If more than one answer is given, historical fishing will be simulated subject to all trends in equal frequency. If it can be assumed that fishing effort is proportional to exploitation rate this can be summarized as historical patterns in fishing effort (e.g. boat-days per year, number of trips per year). This set of answers specified the possible range of mean trends, you will have an opportunity to adjust the extent of interannual variability in the following question.
+Here is a basic introduction to fishing effort and the assumption of proportionality courtesy of the [UN FAO](http://www.fao.org/docrep/x5685e/x5685e04.htm). 
+
+
+## Variability in historical exploitation
+
+The extent of interannual variability in historical exploitation rates around the mean trend(s) specified in Fishery question #5.
+Again, here is the introduction to effort and exploitation rate by the [UN FAO](http://www.fao.org/docrep/x5685e/x5685e04.htm).
+
+## Selectivity relative to length at maturity
+
+Fishing gear selectivity relative to size at maturity (S). For example, if 50% of 40cm fish are caught by the gear and length at 50% maturity is 50cm, S = 4/5.
+
+The UN FAO explain something of fishing gear selectivity and how it may be quantified in an [introductory document](http://www.fao.org/docrep/w5449e/w5449e08.htm). For a more involved discussion on selectivity see the [IATTC CAPAM workshop report](https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf).
+
+
+## Selectivity of large fish
+
+Fishing gear selectivity of the largest individuals (SL). For example, if only 20% of the longest fish are caught by the gear SL = 0.2.
+Again here is the [FAO introductory document](http://www.fao.org/docrep/w5449e/w5449e08.htm) and the [IATTC CAPAM workshop report](https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf).
+
+## Discard rate
+
+Discard rate (DR). What fraction of fish that are caught are discarded (includes fish that are dead and alive)?
+
+The US National Marine Fisheries Service have a [general guide to Understanding Fish Bycatch Discard and Escapee Mortality](https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf) and one of the authors of that guide, Michael Davis also has a useful article: [Key principles for understanding fish bycatch discard mortality](https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf). 
+
+## Post-release mortality rate
+Post-release mortality rate (PRM). What fraction of discarded fish die after release?
+
+Again here is NOAA's [general guide to Understanding Fish Bycatch Discard and Escapee Mortality](https://www.afsc.noaa.gov/quarterly/jfm03/featurejfm03.pdf) and one of the authors and the article fo Michael Davis: [Key principles for understanding fish bycatch discard mortality](https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf).  
+
+## Recruitment variability
+
+Interannual variability in recruitment (the coefficient of variation in log-normal recruitment deviations, sigma R). Recruitment is expected to change among years in response to changing spawning biomass levels. On top of this is additional variability that may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation. Sigma R controls the extent of this additional variability in annual recruitments. For example, a sigma R of 10% means that 95% of recruitments will fall in approximately 80-120% of the mean recruitment predicted from spawning biomass.
+
+Edward Houde authored a [Comprehensive Review of Recruitment and Sources of Variability](https://drive.google.com/open?id=19q_ct4Xd954H2jjotX3YKy0BJ-v53bt2) and if that isn't sufficient there is [Chambers and Trippel (1997)](https://drive.google.com/open?id=1KhwP5URGPzW6ViJPiwprfY2tE2uucpDR). 
+
+## Changing fishing efficiency
+
+The annual % increase/decrease in fishing efficiency (q). In targetted fisheries gear efficiency may improve over time given techological improvements in the gear, bait, fish location, sharing of information etc. Conversely, non-target or bycatch species may be subject to declining fishing efficiency due to regulations or avoidance behaviors. The catchability q is the fraction of available fish caught per unit of effort. For example, a 2% per annum increase in fishing efficiency means that after 35 years twice as many fish will be caught for the same effort as today.
+
+The introduction to fishing efficiency by the FAO provides a [basic summary](http://www.fao.org/docrep/008/y6982e/y6982e06.htm). Alternatively there is a more comprehensive review by [Arrenguin-Sanchez](https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI). 
+
+## Size of potential / existing marine reserve
+
+The size of a potential or existing spatial closure (Marine Reserve). The size A is the % of habitat that is protected.
+
+The FAO provides a [comprehensive review of Marine Protected Areas](http://www.fao.org/docrep/015/i2090e/i2090e.pdf). 
+
+## Spatial mixing (movement)
+
+The degree of stock mixing. The probability P of a fish leaving area 1 (ie. the MPA) between years
+
+The FAO provides a [comprehensive review of Marine Protected Areas](http://www.fao.org/docrep/015/i2090e/i2090e.pdf). 
+
+
+<br><br>
+
+# The Management Tab 
+
+
+## Types of fishery management that are possible
+
+Here you indicate which MPs are feasible given the management options that are available.
+Management procedures can provide management advice in terms of:
+- Total Allowable Catch limits (TACs, e.g. 20,000 metric tonnes).
+- Total Allowable Effort (TAE, e.g. 800 trap days per year).
+- Size limits (e.g. minimum size of 45cm).
+- Time-area closures (e.g. closing an area to fishing, an MPA or a Winter closure.
+
+For more information see the UN FAO [guide to fishery management types](http://www.fao.org/docrep/005/y3427e/y3427e06.htm). 
+
+Or alternatively, Steffanson and Rosenberg describe and discuss fishery managment types in their [2005 paper](https://drive.google.com/open?id=1V5aMNf3raitNC515qyFfITDivgbXkU4X). 
+
+## Implementation uncertainty: consistent overages/underages
+
+What is the possible extent to which fishing operations may exceed (overages) or fall short (underages) with respect to the specified Total Allowable Catch (TAC)and Effort (TAE)? For example, given a TAC of 1000 tonnes and a TAE of 2000 boat-days of fishing a 10% overage would on average lead to 1100 tonnes of fish taken and 2200 boat days of effort.
+
+The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error [here](http://www.fao.org/docrep/003/v8400e/V8400E03.htm). 
+
+Fulton et al. provide a discussion of implementation error in their [2011 paper](https://drive.google.com/open?id=1gzTMnk3Cg3PzgxDdKAyV52T9IIptUK7h). 
+
+
+## Implementation uncertainty: variability
+
+In management question #2 you specified the range of possible overages/underages with respect to management recommendations. In this question you now also add the variability (V) in the implementation (TACs and TAEs) among years. For example if on average there are no overages or underages, V = 10% leads to overages/underages within 20% of the recommendation (the black line in the figure opposite) for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest (solid line) levels of overages/underages specified in management question #2.
+
+The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error [here](http://www.fao.org/docrep/003/v8400e/V8400E03.htm). 
+
+
+
+<br><br>
+
+# The Data Tab 
+
+The Data panel is a set of questions about what types of data are available and quality of the data that are available.
+These questions: 
+* identify what management procedures are feasible given the types of data available.
+* determine the relative success of the various management types that rely on differing types of data.
+
+
+## Types of data that are available
+
+Management procedures require various data. Where data types are unavailable some MPs may not be feasible.
+
+Annual catches are yearly reporting landings (e.g. 135 tonnes in 1998, 159 tonnes in 1999, etc).
+
+Relative abundance indices may be fishery-dependent such as catch-per-unit-effort data or fishery-independent such as an annual abundance survey.
+
+In the context of annual catches and relative abundance indices, 'historical' refers to data going back to 'unfished conditions' (pre industrial fishing) such that catches may be used to reconstruct stock trajectory and indices may infer current stock depletion. In contrast, 'recent' refers to data available for least 5 years from today.
+
+Effort data are annual observations of fishing effort such as boat days in 2002.
+
+Growth data refers to parameter estimates for growth parameters such as von Bertalanffy growth parameter K and mean asymptotic length, L-infinity.
+
+Size and age composition data are samples of size and ages in the catch going back at least 2 years from today.
+
+
+## Catch reporting bias
+
+Under reporting of catches
+In some data-limited fisheries, incomplete monitoring of fishing operations may lead to under-reporting (and to a lesser extent over reporting) of annual catches.
+
+For further discussion of catch under reporting see [Agnew et al. (2009)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2646833/). 
+
+## Hyperstability in indices
+
+Is the primary index of relative abundance proportional to real biomass? Indices of relative abundance derived from fishery catch-per-unit effort may decline faster than real abundance (hyperdepletion) in cases where, for example, the species is being avoided or there has been attrition of high-density sub-population structure during early commericial fishing. 
+
+Conversely catch per unit effort data may respond slower than real biomass changes if the species is being targetted, there is range contraction of fishing toward high density areas as the stock declines or the population naturally forms aggregations. For example purse-seine fisheries are often strongly hyperstable since the fish per aggregation may remain high even at low stock sizes. 
+
+It may be generally assumed that a well designed fishery-independent survey is proportational to abundance but there are notable exceptions.
+
+See [Erisman et al. (1992)](https://drive.google.com/open?id=1jwhIGfTmXewKWGSTNyyjoo4TefW2JiNR) or [Maunder et al. (2006)](https://drive.google.com/open?id=1chNF72tCB_fjTjbbhZk7EyxtRU810EIc). 
+
+## Overall data quality
+
+What is the overall quality of data that are available?
+
+* Perfect Information: An unrealistic and idealized observation model for testing the theoretical performance of MPs.
+* Good quality: annual catches and abundance indices are observed with low error (<20% CV) and length/age composition data are numerous (~100 independent observations per year).
+* Data moderate: annual catches and abundance indices are observed with greater error (<30% CV) and length/age composition data are fewer (~40 independent samples per year).
+* Data poor: annual catches and abundance indices are imprecisely observed (<50% CV) and length/age composition data are sparse (~15 independent samples per year).
+
+A description of the observation error model is included in [Carruthers et al (2013)](https://drive.google.com/open?id=1EX6mu9HOb4jwlQF-Co6DQ-FJzwTcO7JP) and a similar model was used by [Carruthers et al. (2015)](https://drive.google.com/open?id=1xvNxp_3oUOhSaLARY_mI2cAiG2qFAgqN). 
+
+
+<br><br>
+
+# The Options Tab
+
+Analysis Type: The Demo mode runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application; The Risk Evaluation mode provides generic risk assessment outputs over a longer projected time period of 100 years; The FIP (Fishery Improvement Project) mode provides MSC-specific guidance to help fisheries progress towards certification: The Certification mode generates a standard calculation and reporting of quantities relevant to MSC certification.
+
+Users can also determine the total number of simulations, projected years and the management update interval (years between management recommendations in the projection)
+
+Other options include selecting a management procedure for Ancillary Indicator analysis, the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)
+Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation (which is much faster but there is no MSE progress bar).
+
+
+# Report on the App or this Document
+
+This report is subject to ongoing testing. If you find a bug or a problem please send a report to <t.carruthers@oceans.ubc.ca> so that it can be fixed or report an issue at www.github.com/DLMtool/DLMtool/issues.  
+
