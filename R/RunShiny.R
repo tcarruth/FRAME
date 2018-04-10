@@ -10,7 +10,7 @@ Shiny <- function(app) {
   temp <- try(class(app), silent=TRUE)
 
   if (class(temp) == "try-error") app <- deparse(substitute(app))
-  Apps <- list.files(system.file("shiny_apps", package = "EDS"))
+  Apps <- list.files(system.file("shiny_apps", package = "FRAME"))
   validAppMsg <- paste0("Valid examples are:\n '", paste(Apps, collapse = "', '"), "'")
   if (missing(app) || !nzchar(app) || !app %in% Apps) {
     stop(
@@ -18,6 +18,6 @@ Shiny <- function(app) {
       validAppMsg,
       call. = FALSE)
   }
-  appDir <- system.file("shiny_apps", app, package = "EDS")
+  appDir <- system.file("shiny_apps", app, package = "FRAME")
   shiny::runApp(appDir, display.mode = "normal",launch.browser = TRUE)
 }
