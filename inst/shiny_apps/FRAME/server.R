@@ -877,7 +877,7 @@ shinyServer(function(input, output, session) {
       params <- list(test = input$Name,
                      set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
                      set_type=switch(input$Analysis_type,
-                                     "Demo"="Demonstration certification analysis",
+                                     "Demo"="Demonstration indicator analysis",
                                      "Cert" = "MSC certification analysis",
                                      "RE" = "Generic risk evaluation analysis",
                                      "FIP" = "Fishery Improvement Project (FIP) analysis"
@@ -2344,7 +2344,7 @@ shinyServer(function(input, output, session) {
     ni<-pp*ntsd
     ind2PPD<-matrix(indPPD[,1:pp,],nrow=ni)
     ind2Data<-matrix(indData[,1:pp],nrow=ni)
-    par(mfrow=c(ni-1,ni-1),mai=rep(0,4),omi=c(0.5,0.75,0,0.05))
+    par(mfrow=c(ni-1,ni-1),mai=rep(0,4),omi=c(0.5,0.75,0.4,0.05))
 
     for(i in 2:ni){
 
@@ -2381,6 +2381,7 @@ shinyServer(function(input, output, session) {
       }
 
     }
+    mtext(paste("Example AI Analysis for",input$AI_MP),3,line=0.1,outer=T)
 
   }
 
@@ -2420,6 +2421,7 @@ shinyServer(function(input, output, session) {
     dist<-mahalanobis_robust(x=obs, center=nullm, cov=nullcov)
     dists<-mahalanobis_robust(x=nullsims, center=nullm, cov=nullcov)
 
+    par(mai=c(1.5,1.5,1.2,0.05))
     dens<-density(dists,from=0,to=quantile(dists,0.99))
     plot(dens,xlab="",main="",col='blue',ylab="")
     thresh<-quantile(dists,0.95)
@@ -2439,7 +2441,10 @@ shinyServer(function(input, output, session) {
     abline(v=dist,lwd=2,col=lcol)
     text(dist+1.2,max(dens$y)-0.02,"Observed M-distance",col=lcol)
     legend('top',legend=leg,text.col=lcol,bty='n')
+    mtext(paste("Example AI Analysis for",input$AI_MP),3,line=0.1)
   }
+
+
 
 
 
