@@ -63,7 +63,11 @@ This is a prototype of an automatic report that describes the results of a demon
 
 # Performance Indicator Table
 
-This table includes probability scores relating to a number of MSC performance indicators. For example, PI111a (P.I.1.1.1) relates to the 'Stock status' component of the standard and the first interpretation (a) relates to the likelihood that in the first 10 years of the MSE projection, biomass is below half of BMSY. 
+The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2), harvest strategy (PI 1.2.1), and harvest control rules and tools (PI 1.2.2).  
+
+The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right. For PI122a, P/F refers to passing or failing the HCR requirement (see below HCR and Tools).
+
+MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or management restrictions (M) controled by management question 1" 
 
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
