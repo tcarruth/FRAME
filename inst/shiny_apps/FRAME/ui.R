@@ -71,7 +71,7 @@ shinyUI(
              h5("fishery risk assessment and method evaluation (v0.93)",style="padding:19px;")
       ),
 
-      column(2,offset=3,style="padding:12px;height:65px",
+      column(2,offset=3,style="padding:14px;height:65px",
              fluidRow(
 
                column(10,

@@ -99,7 +99,7 @@ P2_LTY_plot(params$MSEobj)
 For each MP a 50 year projection is presented showing the possible range of values for spawning biomass relative to MSY levels (B/BMSY) and yield relative to FMSY fishing (Relative yield, Rel. Yd.). The colored region represents the 10th and 90th percentiles, the white line is the median trend and lines for two simulations are included to show the typical degree of variability within a simulation. 
 
 
-```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=8, fig.height=4.5}
+```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=7}
  
  nMPs<-length(params$MSEobj@MPs)
  panelsperplot<-12
@@ -123,7 +123,7 @@ For each MP a 50 year projection is presented showing the possible range of valu
 
 When the 'Calculate' button was pressed, two MSEs were carried out. The first undertook projections for 50 years. The second only projected a few years subject to a range of starting stock levels and with the simulation of perfect data. The motivation behind the second MSE run is to understand whether the MPs have a 'Harvest Control Rule' property that throttles fishing mortality if biomass is below BMSY (ie a positive relationship between fishing mortality rate and biomass when simulations were under BMSY levels). To examine this a linear model was fitted to the fishing rates (obtained by each MP) given a range of biomass levels. Those MPs that could achieve a significant positive trend are highlighted in green. 
 
-```{r HCR,echo=F,warning=F,error=F,message=F,fig.width=12, fig.height=3.5}
+```{r HCR,echo=F,warning=F,error=F,message=F,fig.width=13, fig.height=4.5}
 
  nMPs<-length(params$MSEobj@MPs)
  panelsperplot<-12
@@ -157,14 +157,14 @@ plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
 VOIout<-new('list')
 for(i in 1:length(plots)){
   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
-  VOIout[[i]]<-VOI(MSEobj2,ncomp=17,nbins=6)[[1]]
+  VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
 }
 
 ```
 
 
 
-```{r CCU2,echo=F,warning=F,error=F,message=F,fig.width=12, fig.height=7}
+```{r CCU2,echo=F,warning=F,error=F,message=F,fig.width=15, fig.height=10}
 
 for(i in 1:length(plots)){
   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
