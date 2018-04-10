@@ -647,7 +647,16 @@ shinyUI(
                   column(width = 12,
 
                      column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                     column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2), harvest strategy (PI 1.2.1), and harvest control rules and tools (PI 1.2.2).  The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right")),
+                     column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                        thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2), harvest strategy (PI 1.2.1), and harvest control rules
+                                        and tools (PI 1.2.2).  The MPs are presented in order of projected long-term yield relative to fishing at the FMSY
+                                        reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                        not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                        right. For PI122a, P/F refers to passing or failing the HCR requirement (see below HCR and Tools)")),
+                     column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
+                                        do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
+                                        explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
+                                        management restrictions (M) controled by management question 1")),
                      tableOutput('Ptable')
 
                   ),

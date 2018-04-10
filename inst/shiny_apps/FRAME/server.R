@@ -378,6 +378,7 @@ shinyServer(function(input, output, session) {
       if(pos& Pval<Pcrit)PI.122.a[i]<-1
 
     }
+    PI.122.a <- c("F","P")[PI.122.a+1]
 
     PI.122.b<-round(apply(MSEobj@F_FMSY[,,1:50]>0.5 &  MSEobj@F_FMSY[,,1:50]<1.5,2,mean)*100,rnd)
 
@@ -396,7 +397,7 @@ shinyServer(function(input, output, session) {
 
 
   #                                       11a 11b 12  21a 21a 21b 22  LTY
-  Ptab_formatted<-function(Ptab1,thresh=c(80, 50, 50, 80, 50, 1,  60, 50)){
+  Ptab_formatted<-function(Ptab1,thresh=c(80, 50, 50, 80, 50, "P",  60, 50)){
 
     # save(Ptab1,file="Ptab1")
     MPs<-as.character(Ptab1$MP)
@@ -441,7 +442,7 @@ shinyServer(function(input, output, session) {
     Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
     names(Ptab2)<-c("MP","Type","PI111a","PI111b","PI112","PI121a","PI121b","PI122a","PI122b","LTY")
 
-    PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5] & Ptab2$PI122a >= thresh[6] & Ptab2$PI122b >= thresh[7]
+    PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5] & Ptab2$PI122a == thresh[6] & Ptab2$PI122b >= thresh[7]
     MPcols<-rep('black',length(MPs))
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<-'green'
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<-'red'
@@ -484,7 +485,7 @@ shinyServer(function(input, output, session) {
         PI121b = ifelse(PI121b >= thresh[5],
                         cell_spec(PI121b, "html", color = "green"),
                         cell_spec(PI121b, "html", color = "red")),
-        PI122a = ifelse(PI122a >= thresh[6],
+        PI122a = ifelse(PI122a == thresh[6],
                         cell_spec(PI122a, "html", color = "green"),
                         cell_spec(PI122a, "html", color = "red")),
         PI122b = ifelse(PI122b >= thresh[7],
