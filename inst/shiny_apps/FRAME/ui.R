@@ -683,7 +683,7 @@ shinyUI(
                 column(12,
                      HTML("<br>"),
                      h4("Ancillary Indicators",style = "color:black;"),
-                     column(width=12,h5("In this demonstration version of the ancillary indicators function, an example data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of parameter cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
+                     column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
                      hr(),
                      fluidRow(
                        column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),

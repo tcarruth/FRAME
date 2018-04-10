@@ -649,7 +649,7 @@ shinyServer(function(input, output, session) {
     }else{
       MPs<<-avail('MP')
       cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
-      if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
+      #if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
       MPs<-c('FMSYref',MPs[!cond])
 
     }
@@ -772,9 +772,10 @@ shinyServer(function(input, output, session) {
                      set_title=paste0("Operating Model Specification Report for ",input$Name),
                      set_type=switch(input$Analysis_type,
                                      "Demo"="Demonstration certification analysis",
+                                     "Cert" = "MSC certification analysis",
                                      "RE" = "Generic risk evaluation analysis",
-                                     "FIP" = "Fishery Improvement Project (FIP) analysis",
-                                     "Cert" = "MSC certification analysis"),
+                                     "FIP" = "Fishery Improvement Project (FIP) analysis"
+                                     ),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -811,9 +812,9 @@ shinyServer(function(input, output, session) {
                      set_title=paste0("Evaluation Report for ",input$Name),
                      set_type=switch(input$Analysis_type,
                                      "Demo"="Demonstration certification analysis",
+                                     "Cert" = "MSC certification analysis",
                                      "RE" = "Generic risk evaluation analysis",
-                                     "FIP" = "Fishery Improvement Project (FIP) analysis",
-                                     "Cert" = "MSC certification analysis"),
+                                     "FIP" = "Fishery Improvement Project (FIP) analysis"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -854,9 +855,10 @@ shinyServer(function(input, output, session) {
                      set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
                      set_type=switch(input$Analysis_type,
                                      "Demo"="Demonstration certification analysis",
+                                     "Cert" = "MSC certification analysis",
                                      "RE" = "Generic risk evaluation analysis",
-                                     "FIP" = "Fishery Improvement Project (FIP) analysis",
-                                     "Cert" = "MSC certification analysis"),
+                                     "FIP" = "Fishery Improvement Project (FIP) analysis"
+                                     ),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],

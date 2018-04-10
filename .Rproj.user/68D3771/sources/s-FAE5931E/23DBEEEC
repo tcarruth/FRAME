@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "23DBEEEC",
-    "lastKnownWriteTime" : 1523336816,
-    "last_content_update" : 1523336816845,
+    "lastKnownWriteTime" : 1523342977,
+    "last_content_update" : 1523342977,
     "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/server.R",
     "project_path" : "inst/shiny_apps/FRAME/server.R",
     "properties" : {
-        "cursorPosition" : "2202,7",
-        "scrollLine" : "2188"
+        "cursorPosition" : "238,22",
+        "scrollLine" : "216"
     },
     "relative_order" : 2,
     "source_on_save" : false,
