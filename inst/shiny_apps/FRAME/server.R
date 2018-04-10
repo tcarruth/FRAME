@@ -447,15 +447,15 @@ shinyServer(function(input, output, session) {
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<-'green'
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<-'red'
 
-    available<-rep("",length(MPs))
+    feasible<-rep("",length(MPs))
     condD<-!MPs%in%DFeasible
     condM<-!MPs%in%MFeasible
     condDM<-condD&condM
-    available[condD]<-"D"
-    available[condM]<-"M"
-    available[condDM]<-"D/M"
+    feasible[condD]<-"D"
+    feasible[condM]<-"M"
+    feasible[condDM]<-"D/M"
 
-    Ptab2<-cbind(Ptab2,available)
+    Ptab2<-cbind(Ptab2,feasible)
 
     # Rankings
     rnkscore<-Ptab2$LTY
@@ -494,7 +494,7 @@ shinyServer(function(input, output, session) {
         LTY = ifelse(LTY >= thresh[8],
                      cell_spec(LTY, "html", color = "green"),
                      cell_spec(LTY, "html", color = "red")),
-        available =  cell_spec(available, "html")
+        feasible =  cell_spec(feasible, "html")
 
       )%>%
       #select(everything())%>%
@@ -508,7 +508,7 @@ shinyServer(function(input, output, session) {
       add_header_above(c(" ", " ", "Biomass (yrs 1-10)" = 2, "Biomass (2 MGT)" = 1,
                          "Biomass (yrs 11-50)"=2,"F decrease w B"=1,
                          "Fishing Mortality (yrs 1-50)"=1,
-                         "Yield (yrs 11-50)"=1,"Reason Unavailable"=1))%>%
+                         "Yield (yrs 11-50)"=1,"Reason"=1))%>%
 
       add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
                          "Harvest Strategy"=2,"HCR & Tools"=2,
