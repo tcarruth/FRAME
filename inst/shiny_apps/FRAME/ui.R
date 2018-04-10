@@ -268,7 +268,7 @@ shinyUI(
                                                   actionLink("All_Err","DEFAULT")),
                                  value=3),
 
-                        tabPanel(h4("Options",style = "color:#C6C6C6"),
+                        tabPanel(h4("Options",style = "color:#A8A8A8"),
 
                                  conditionalPanel(width=4,condition="output.Dpanel==0 & output.Fpanel== 0 & output.Mpanel == 0",
                                    HTML("<br>"),
@@ -297,8 +297,8 @@ shinyUI(
                                    column(4,numericInput("nsim", label = "No. Simulations", value=24)),
                                    column(5,numericInput("proyears", label = "No. Projected years", value=50)),
                                    column(2,numericInput("interval", label = "Interval", value=4)),
-                                   column(6,numericInput("AI_MP", label = "MP for AI Analysis", value="AvC")),
-                                   column(6, textInput("Source", "Source custom code", "mysource.r")),
+                                   column(6,selectInput("AI_MP", label = "MP for AI Analysis", choices="AvC",selected="AvC")),
+                                   #column(6, textInput("Source", "Source custom code", "mysource.r")),
                                    column(6,checkboxInput("Ex_Ref_MPs", label = "No reference MPs", value = FALSE)),
                                    column(6,checkboxInput("Parallel", label = "Parallel computation", value = FALSE))
                                  ),
@@ -308,7 +308,7 @@ shinyUI(
 
 
 
-                        tabPanel(h4("Help",style = "color:#C6C6C6"),
+                        tabPanel(h4("Help",style = "color:#A8A8A8"),
                                 # textOutput(
                                  h5("1. Specify fishery, management and data attributes",style = "color:grey"),
                                  h5("2. Save progress",style = "color:grey"),
@@ -556,7 +556,7 @@ shinyUI(
                                 guidance to help fisheries progress towards certification: The Certification mode generates a standard calculation and reporting of quantities relevant to MSC certification.",style = "color:grey"),
                              h5("Users can also determine the total number of simulations, projected years and the management update interval (years between management recommendations in the projection)",style = "color:grey"),
                              h5("Other options include selecting a management procedure for Ancillary Indicator analysis, the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
-                             h5("Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation (which is much faster but there is no MSE progress bar).",style = "color:grey"),
+                             h5("Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).",style = "color:grey"),
                              h5(""),
                              tagList("A more detailed guide to these extended options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"))
                              )

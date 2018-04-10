@@ -17,6 +17,7 @@ shinyServer(function(input, output, session) {
   Dpanel<-reactiveVal(0)
   Calc<-reactiveVal(0)
 
+
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
@@ -125,6 +126,15 @@ shinyServer(function(input, output, session) {
       updateNumericInput(session,'proyears',value="50")
     }
 
+    MPs<<-getMPs()
+    updateSelectInput(session=session,inputId="AI_MP",choices=MPs,selected=MPs[1])
+
+
+  })
+
+  observeEvent(input$nsim, {
+               if(input$nsim<48) shinyjs::disable("Parallel")
+               if(input$nsim>47) shinyjs::enable("Parallel")
   })
 
   namconv<-function(nam){
@@ -151,6 +161,8 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Fcont,{
 
     disable("Analysis_type2")
+    MPs<<-getMPs()
+    updateSelectInput(session=session,inputId="AI_MP",choices=MPs,selected=MPs[1])
     #disable(selector = "[type=Analysis_type][value=FIP]")
     #runjs("$('[type=Analysis][value=FIP]').parent().parent().addClass('disabled').css('opacity', 0.4)")
 
@@ -331,7 +343,7 @@ shinyServer(function(input, output, session) {
 
   }
 
-  Ptab<-function(MSEobj,MSEobj_FB,Eyr=10,rnd=0,Pcrit=0.1){
+  Ptab<-function(MSEobj,MSEobj_FB,Eyr=10,rnd=0,Pcrit=0.2){
 
     # PI 1.1.1
     PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:Eyr]>0.5,2,mean)*100,rnd)
@@ -363,7 +375,7 @@ shinyServer(function(input, output, session) {
       Slope<-stemp$coefficient[2,1]
       pos<-Slope>0
 
-      if(pos&Pval<Pcrit)PI.122.a[i]<-1
+      if(pos& Pval<Pcrit)PI.122.a[i]<-1
 
     }
 
@@ -633,14 +645,7 @@ shinyServer(function(input, output, session) {
 
   }
 
-  observeEvent(input$Calculate,{
-    nsim<<-input$nsim
-    parallel=F
-    if(input$Parallel){
-      setup()
-      if(nsim>47)parallel=T
-    }
-    OM<<-makeOM(PanelState,nsim=nsim)
+  getMPs<-function(){
 
     if(input$Analysis_type=="Demo"){
       MPs<<-c('FMSYref','AvC','DCAC','curE','matlenlim','MRreal','MCD','MCD4010','DD4010')
@@ -653,9 +658,26 @@ shinyServer(function(input, output, session) {
       MPs<-c('FMSYref',MPs[!cond])
 
     }
-    if(input$Ex_Ref_MPs)MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-    #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
+    if(input$Ex_Ref_MPs)MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
+
+    MPs
+  }
+
+
+  observeEvent(input$Calculate,{
+
+    nsim<<-input$nsim
+    parallel=F
+    if(input$Parallel){
+      setup()
+      if(nsim>47)parallel=T
+    }
+    OM<<-makeOM(PanelState,nsim=nsim)
+
+    MPs<<-getMPs()
+
+    #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
     withProgress(message = "Running MSE", value = 0, {
       MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
@@ -674,7 +696,7 @@ shinyServer(function(input, output, session) {
     })
 
     save(MSEobj,file="MSEobj")
-    #save(MSEobj_FB,file="MSEobj_FB")
+    save(MSEobj_FB,file="MSEobj_FB")
 
     # ==== Types of reporting ==========================================================
 
@@ -693,6 +715,7 @@ shinyServer(function(input, output, session) {
       test<-match(input$AI_MP,MPs)
       if(is.na(test))mm<-1
       if(!is.na(test))mm<-test
+
       PPD<-MSEobj@Misc[[mm]]
 
       tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
