@@ -17,7 +17,6 @@ shinyServer(function(input, output, session) {
   Dpanel<-reactiveVal(0)
   Calc<-reactiveVal(0)
 
-
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
