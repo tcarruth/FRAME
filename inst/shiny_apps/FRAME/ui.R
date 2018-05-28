@@ -301,7 +301,7 @@ shinyUI(
 
 
                         tabPanel(h4("Help",style = "color:#A8A8A8"),
-                                # textOutput(
+                                ## textOutput(
                                  h5("1. Specify fishery, management and data attributes",style = "color:grey"),
                                  h5("2. Save progress",style = "color:grey"),
                                  h5("3. Run MSE by selecting CALCULATE (5 minutes)",style = "color:grey"),

@@ -5,14 +5,14 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "0",
+    "hash" : "1479083364",
     "id" : "CCD14F0F",
-    "lastKnownWriteTime" : 1527547108,
-    "last_content_update" : 1527547108293,
+    "lastKnownWriteTime" : 1527547395,
+    "last_content_update" : 1527547395911,
     "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/ui.R",
     "project_path" : "inst/shiny_apps/FRAME/ui.R",
     "properties" : {
-        "cursorPosition" : "300,0",
+        "cursorPosition" : "303,34",
         "scrollLine" : "289"
     },
     "relative_order" : 2,
