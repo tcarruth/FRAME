@@ -290,7 +290,7 @@ shinyUI(
                                    column(4,numericInput("nsim", label = "Simulations", value=24,min=8,max=1000)),
                                    column(4,numericInput("proyears", label = "Projected years", value=50,min=25,max=100)),
                                    column(4,numericInput("interval", label = "Interval", value=4,min=2,max=10)),
-                                   column(4,selectInput("AI_MP", label = "MP for AI Analysis", choices="AvC",selected="AvC")),
+                                   column(5,selectInput("AI_MP", label = "MP for Evaluation", choices="AvC",selected="AvC")),
                                    #column(6, textInput("Source", "Source custom code", "mysource.r")),
                                    column(6,checkboxInput("Ex_Ref_MPs", label = "No reference MPs", value = FALSE)),
                                    column(6,checkboxInput("Parallel", label = "Parallel computation", value = FALSE))
