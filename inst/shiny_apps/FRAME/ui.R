@@ -580,8 +580,8 @@ shinyUI(
                     textAreaInput("Justification", "", "< No reason for selection was provided >", height = "120px")
                   ),
                   conditionalPanel(condition="!((input.tabs1==1 & (output.Fpanel!=0 & output.Fpanel!=undefined))|(input.tabs1==2 & (output.Mpanel!=0 & output.Mpanel!=undefined))|(input.tabs1==3 & (output.Dpanel!=0 & output.Dpanel!=undefined)))",
-                                   HTML("<br>"),
-                                   textAreaInput("blank",h5("",style = "color:grey"), "", height = "120px")
+                    HTML("<br>"),
+                    textAreaInput("blank",h5("",style = "color:grey"), "", height = "120px")
                   )
 
 
@@ -609,7 +609,7 @@ shinyUI(
                     actionButton("Fcont","Next >")
                  ),
                  conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
-                                  actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
+                    actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
                  )
 
                ),
@@ -640,11 +640,11 @@ shinyUI(
 
                      column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
                      column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                        thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2), harvest strategy (PI 1.2.1), and harvest control rules
-                                        and tools (PI 1.2.2).  The MPs are presented in order of projected long-term yield relative to fishing at the FMSY
+                                        thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                        order of projected long-term yield relative to fishing at the FMSY
                                         reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
                                         not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                        right. For PI122a, P/F refers to passing or failing the HCR requirement (see below HCR and Tools)")),
+                                        right.")),
                      column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
                                         do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
                                         explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
@@ -656,16 +656,22 @@ shinyUI(
 
                          column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
                   )       ,
-                  column(width = 6,
+                  column(width = 4,
 
-                     column(width = 12,h5("Stock status vs long term yield performance trade-off",style="color::grey")),
+                     column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
                      plotOutput("P1_LTY",height="auto")
 
                   ),
-                  column(width = 6,
+                  column(width = 4,
 
-                     column(width = 12,h5("Rebuilding vs long term yield performance trade-off",style="color::grey")),
+                     column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
                      plotOutput("P2_LTY",height="auto")
+
+                  ),
+                  column(width = 4,
+
+                     column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
+                     plotOutput("P3_LTY",height="auto")
 
                   )
                 ), # end of fluid row

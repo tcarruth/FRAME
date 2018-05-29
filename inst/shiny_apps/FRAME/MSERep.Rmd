@@ -63,9 +63,9 @@ This is a prototype of an automatic report that describes the results of a demon
 
 # Performance Indicator Table
 
-The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2), harvest strategy (PI 1.2.1), and harvest control rules and tools (PI 1.2.2).  
+The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  
 
-The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right. For PI122a, P/F refers to passing or failing the HCR requirement (see below HCR and Tools).
+The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right.
 
 MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or management restrictions (M) controled by management question 1" 
 
@@ -84,14 +84,21 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 Long term yield (LTY) vs probability biomass is greater than half BMSY in the first 10 years (PI.1.1.1a)
 
 ```{r P1_LTY,echo=F,warning=F,error=F,message=F}
-P1_LTY_plot(params$MSEobj)
+P1_LTY_plot(params$MSEobj,MPcols=params$MPcols)
 
 ```
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
 
 ```{r P2_LTY,echo=F,warning=F,error=F,message=F}
-P2_LTY_plot(params$MSEobj)
+P2_LTY_plot(params$MSEobj,MPcols=params$MPcols)
+
+```
+
+Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
+
+```{r P3_LTY,echo=F,warning=F,error=F,message=F}
+P3_LTY_plot(params$MSEobj,params$MSEobj_reb,MPcols=params$MPcols)
 
 ```
 
@@ -112,7 +119,7 @@ For each MP a 50 year projection is presented showing the possible range of valu
  
  for(i in 1:length(plots)){
    MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
-   Pplot3(MSEobj2)
+   Pplot3(MSEobj2,MPcols=params$MPcols)
  }
 
  
@@ -136,8 +143,8 @@ When the 'Calculate' button was pressed, two MSEs were carried out. The first un
  
  for(i in 1:length(plots)){
    
-   MSEobj_FB2<-Sub(params$MSEobj_FB,MPs=params$MSEobj_FB@MPs[unlist(plots[i])])
-   HCRplot(MSEobj_FB2)
+   #MSEobj_FB2<-Sub(params$MSEobj_FB,MPs=params$MSEobj_FB@MPs[unlist(plots[i])])
+   #HCRplot(MSEobj_FB2)
  }
 
 
@@ -172,7 +179,7 @@ for(i in 1:length(plots)){
 
 for(i in 1:length(plots)){
   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
-  CCU_plot(VOIout[[i]],MSEobj2)
+  CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols)
 }
 
 ```

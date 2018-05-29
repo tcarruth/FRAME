@@ -140,16 +140,16 @@ shinyServer(function(input, output, session) {
     substr(nam,1,15)[[1]]
   }
 
-  observeEvent(input$D1,{
+  #observeEvent(input$D1,{
 
    # if(input$D1[1])
-    temp<-input$D1
-    if("ann_cat"%in%temp)  temp<-c(temp,"ann_cat_R")
-    if("ind"%in%temp)  temp<-c(temp,"ind_R")
-    updateCheckboxGroupInput(session=session,inputId="D1",selected=temp)
-    updateTextInput(session=session,inputId="Debug1", value=input$D1)
+    #temp<-input$D1
+    #if("ann_cat"%in%temp)  temp<-c(temp,"ann_cat_R")
+    #if("ind"%in%temp)  temp<-c(temp,"ind_R")
+    #updateCheckboxGroupInput(session=session,inputId="D1",selected=temp)
+    #updateTextInput(session=session,inputId="Debug1", value=input$D1)
 
-  })
+  #})
 
 
   observeEvent(input$Fcont,{
@@ -337,52 +337,32 @@ shinyServer(function(input, output, session) {
 
   }
 
-  Ptab<-function(MSEobj,MSEobj_FB,Eyr=10,rnd=0,Pcrit=0.2){
+  Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0){
 
     # PI 1.1.1
-    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:Eyr]>0.5,2,mean)*100,rnd)
-    PI.111.b<-round(apply(MSEobj@B_BMSY[,,1:Eyr]>1,2,mean)*100,rnd)
+
+    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:burnin]>0.5,2,mean)*100,rnd)
+    PI.111.b<-round(apply(MSEobj@B_BMSY[,,1:burnin]>1,2,mean)*100,rnd)
 
     # PI 1.1.2
-    #MGT<-((-log(1-MSEobj@OM$L50/MSEobj@OM$Linf))/MSEobj@OM$K)+MSEobj@OM$t0
-    #2*MGT
     MGT2<-ceiling(MSEobj@OM$MGT*2)
-    MGT2[MGT2<3]=3
+    MGT2[MGT2<5]<-5
+    MGT2[MGT2>20]<-20
+
     Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
-    Bmat<-array(MSEobj@B_BMSY[Bind],c(MSEobj@nsim,MSEobj@nMPs))
+    Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
     PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
 
     # PI 1.2.1
     PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
     PI.121.b<-round(apply(MSEobj@B_BMSY[,,11:50]>1,2,mean)*100,rnd)
 
-    # PI 1.2.2
-    PI.122.a<-rep(0,MSEobj@nMPs)
-
-    for(i in 1:MSEobj@nMPs){
-
-      cond<-MSEobj_FB@B_BMSY[,i,1]<1 & MSEobj_FB@B_BMSY[,i,1]>0.1
-      dat<-data.frame(x=MSEobj_FB@B_BMSY[cond,i,1],y=MSEobj_FB@F_FMSY[cond,i,2])
-      temp<-lm(y~x,dat=dat)
-      stemp<-summary(temp)
-      Pval<-stemp$coefficients[2,4]
-      Slope<-stemp$coefficient[2,1]
-      pos<-Slope>0
-
-      if(pos& Pval<Pcrit)PI.122.a[i]<-1
-
-    }
-    PI.122.a <- c("F","P")[PI.122.a+1]
-
-    PI.122.b<-round(apply(MSEobj@F_FMSY[,,1:50]>0.5 &  MSEobj@F_FMSY[,,1:50]<1.5,2,mean)*100,rnd)
-
     # LTY
     refY<-sum(MSEobj@C[,1,11:50])
     LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
     MP<-MSEobj@MPs
 
-    tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,
-                    PI.122.a, PI.122.b, LTY)
+    tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,LTY)
 
     tab<-tab[order(tab$LTY,decreasing=T),]
     tab
@@ -390,8 +370,8 @@ shinyServer(function(input, output, session) {
   }
 
 
-  #                                       11a 11b 12  21a 21a 21b 22  LTY
-  Ptab_formatted<-function(Ptab1,thresh=c(80, 50, 50, 80, 50, "P",  60, 50)){
+  #                                       11a 11b 12  21a 21a  LTY
+  Ptab_formatted<-function(Ptab1,thresh=c(70, 50, 70, 80, 50,  NA),burnin=10){
 
     # save(Ptab1,file="Ptab1")
     MPs<-as.character(Ptab1$MP)
@@ -454,20 +434,20 @@ shinyServer(function(input, output, session) {
 
     Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
     Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
-    names(Ptab2)<-c("MP","Type","PI111a","PI111b","PI112","PI121a","PI121b","PI122a","PI122b","LTY")
+    names(Ptab2)<-c("MP","Type","PI111a","PI111b","PI112","PI121a","PI121b","LTY")
 
-    PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5] & Ptab2$PI122a == thresh[6] & Ptab2$PI122b >= thresh[7]
-    MPcols<-rep('black',length(MPs))
-    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<-'green'
-    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<-'red'
+    PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5]
+    MPcols<<-rep('black',length(MPs))
+    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
+    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
 
-    feasible<-rep("",length(MPs))
+    feasible<<-rep("",length(MPs))
     condD<-!MPs%in%DFeasible
     condM<-!MPs%in%MFeasible
     condDM<-condD&condM
-    feasible[condD]<-"D"
-    feasible[condM]<-"M"
-    feasible[condDM]<-"D/M"
+    feasible[condD]<<-"D"
+    feasible[condM]<<-"M"
+    feasible[condDM]<<-"D/M"
 
     Ptab2<-cbind(Ptab2,feasible)
 
@@ -478,6 +458,9 @@ shinyServer(function(input, output, session) {
     ord<-order(rnkscore,decreasing = T)
     Ptab2<-Ptab2[ord,]
     MPcols<-MPcols[ord]
+
+    dynheader<-c(1,1,2,1,2,1,1)
+    names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")
 
     Ptab2 %>%
       mutate(
@@ -499,15 +482,7 @@ shinyServer(function(input, output, session) {
         PI121b = ifelse(PI121b >= thresh[5],
                         cell_spec(PI121b, "html", color = "green"),
                         cell_spec(PI121b, "html", color = "red")),
-        PI122a = ifelse(PI122a == thresh[6],
-                        cell_spec(PI122a, "html", color = "green"),
-                        cell_spec(PI122a, "html", color = "red")),
-        PI122b = ifelse(PI122b >= thresh[7],
-                        cell_spec(PI122b, "html", color = "green"),
-                        cell_spec(PI122b, "html", color = "red")),
-        LTY = ifelse(LTY >= thresh[8],
-                     cell_spec(LTY, "html", color = "green"),
-                     cell_spec(LTY, "html", color = "red")),
+        LTY =  cell_spec(LTY, "html"),
         feasible =  cell_spec(feasible, "html")
 
       )%>%
@@ -516,44 +491,42 @@ shinyServer(function(input, output, session) {
       kable_styling("striped", full_width = F)%>%
       column_spec(5, width = "3cm") %>%
       add_header_above(c(" ", " ","> 0.5 BMSY" = 1, "> BMSY" = 1,
-                         "> BMSY"=1,"> 0.5 BMSY"=1,"> BMSY"=1,"P/F"=1,
-                         "0.5 - 1.5 FMSY"=1,"vs FMSYref"=1,"not"=1))%>%
+                         "> BMSY"=1,"> 0.5 BMSY"=1,"> BMSY"=1,"vs FMSYref"=1,"not"=1))%>%
 
-      add_header_above(c(" ", " ", "Biomass (yrs 1-10)" = 2, "Biomass (2 MGT)" = 1,
-                         "Biomass (yrs 11-50)"=2,"F decrease w B"=1,
-                         "Fishing Mortality (yrs 1-50)"=1,
-                         "Yield (yrs 11-50)"=1,"Reason"=1))%>%
+      add_header_above(dynheader)%>%
 
       add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
-                         "Harvest Strategy"=2,"HCR & Tools"=2,
+                         "Harvest Strategy"=2,
                          "Long-Term Yield"=1," "=1))
 
   }
 
-  P1_LTY_plot<<-function(MSEobj){
+  P1_LTY_plot<<-function(MSEobj,burnin,MPcols){
 
     Eyr<-10
     rnd<-0
-
-    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:Eyr]>0.5,2,mean)*100,rnd)
+    MPcols[MPcols=='green']<-'darkgreen'
+    #MPcols[feasible!=""]<-makeTransparent(MPcols[feasible!=""],70)
+    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:burnin]>0.5,2,mean)*100,rnd)
     refY<-sum(MSEobj@C[,1,11:50])
     LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
     MP<-MSEobj@MPs
     par(mai=c(0.8,0.8,0.1,0.1))
     ylim<-c(0,max(LTY))
     plot(c(-10,110),ylim,col='white',xlab="",ylab="")
-    mtext("Prob. Biomass > 0.5 BMSY, yrs 1-10 (PI.1.1.1a)",1,line=2.5,cex=1.2)
+    mtext(paste0("Prob. Biomass > 0.5 BMSY, yrs 1-",burnin," (PI.1.1.1a)"),1,line=2.5,cex=1.2)
     mtext("Long term yield",2,line=2.5,cex=1.2)
     abline(v=c(0,100),col="#99999950")
     abline(h=c(0,100),col="#99999950")
 
-    text(PI.111.a,LTY,MSEobj@MPs,col=icol,cex=1.2)
+    text(PI.111.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
 
   }
 
-  P2_LTY_plot<<-function(MSEobj){
+  P2_LTY_plot<<-function(MSEobj,MPcols){
 
     rnd<-0
+    MPcols[MPcols=='green']<-'darkgreen'
     PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
     refY<-sum(MSEobj@C[,1,11:50])
     LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
@@ -566,14 +539,85 @@ shinyServer(function(input, output, session) {
     abline(v=c(0,100),col="#99999950")
     abline(h=c(0,100),col="#99999950")
 
-    text(PI.121.a,LTY,MSEobj@MPs,col=icol,cex=1.2)
+    text(PI.121.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
 
   }
 
-  wormplot_msc<-function(MSEobj){
+  P3_LTY_plot<<-function(MSEobj,MSEobj_reb,MPcols){
 
-    par(mai=c(0.6,0.6,0.01,0.01))
-    wormplot(MSEobj)
+    rnd<-4
+    MPcols[MPcols=='green']<-'darkgreen'
+      MGT2<-ceiling(MSEobj@OM$MGT*2)
+    MGT2[MGT2<5]<-5
+    MGT2[MGT2>20]<-20
+
+    Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
+    Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
+    PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
+
+    refY<-sum(MSEobj@C[,1,11:50])
+    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
+    MP<-MSEobj@MPs
+    par(mai=c(0.8,0.8,0.1,0.1))
+    ylim<-c(0,max(LTY))
+    plot(c(-10,110),ylim,col='white',xlab="",ylab="")
+    mtext("Prob. Rebuilding to BMSY over 2MGT (PI.1.1.2)",1,line=2.5,cex=1.2)
+    mtext("Long term yield",2,line=2.5,cex=1.2)
+    abline(v=c(0,100),col="#99999950")
+    abline(h=c(0,100),col="#99999950")
+
+    text(PI.112,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
+
+  }
+
+  wormplot_msc<-function(MSEobj, Bref = 0.5, LB = 0.25, UB = 0.75, MPcols){
+
+    #par(mai=c(0.6,0.6,0.01,0.01))
+    #wormplot(MSEobj)
+
+    ncol <- ceiling(MSEobj@nMPs^0.3)
+    nrow <- ceiling(MSEobj@nMPs/ncol)
+    par(mfcol = c(nrow, ncol), mar = c(0.1, 0.1, 0.1, 0.1), omi = c(0.6, 0.25, 0.3, 0))
+    Bprob <- apply(MSEobj@B_BMSY > Bref, 2:3, sum)/MSEobj@nsim
+    ind <- order(apply(Bprob, 1, sum), decreasing = T)
+    BLB <- Bprob > LB
+    BUB <- Bprob > UB
+
+    col <- array("red", dim(Bprob))
+    col[BLB & !BUB] = "yellow"
+    col[BUB] = "green"
+
+    for (i in 1:(nrow * ncol)) {
+      if (i < (MSEobj@nMPs + 1)) {
+        MP <- ind[i]
+        plot(c(1, MSEobj@proyears + 2), c(-1, 1), col = "white", axes = F)
+        # abline(h=0)
+
+        for (ys in 1:MSEobj@proyears) {
+          x <- c(ys - 1, ys, ys, ys - 1)
+          y <- c(rep(Bprob[MP, ys], 2), rep(-Bprob[MP, ys], 2))
+          pol <- data.frame(x, y)
+          polygon(pol, col = col[MP, ys], border = NA)
+        }
+
+        legend("top", legend = MSEobj@MPs[MP], bty = "n",text.col=MPcols[MP])
+        if ((i/nrow) == round(i/nrow, 0))
+          axis(1, pretty(1:MSEobj@proyears), pretty(1:MSEobj@proyears))
+
+
+      } else {
+        plot.new()
+      }
+
+      if (i == (nrow * ncol)) {
+        legend("topright", fill = c("green", "red"), legend = c(paste(">",round(UB * 100, 0), "% prob.", sep = ""), paste("<", round(LB * 100, 0), "% prob.", sep = "")), bty = "n")
+      }
+
+    }
+
+    mtext(paste("Probability of biomass above ", round(Bref * 100, 0),"% BMSY for ", deparse(substitute(MSE)), sep = ""), 3, outer = T,line = 0.5)
+    mtext("Projection year", 1, outer = T, line = 2.5)
+    mtext(paste("Fraction of simulations above ", round(Bref * 100, 0),"% BMSY", sep = ""), 2, outer = T, line = 0.25)
 
   }
 
@@ -627,7 +671,74 @@ shinyServer(function(input, output, session) {
 
   }
 
-  CCU_plot<-function(VOIout,MSEobj){
+
+  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9),MPcols){
+
+    if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
+    MPs<-MSEobj@MPs
+    nMPs<-length(MPs)
+    yrs<-curyr+(1:MSEobj@proyears)
+
+    MPcols[MPcols=="green"]<-"darkgreen"
+
+    plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/maxcol))
+
+    nr<-length(plots)*2
+    nc<-maxcol
+
+    mat<-array(0,c(nc,nr*1.5))
+    ind<-floor(0.5+(1:nr)*1.5)
+    mat[,ind]<-1:(nr*nc)
+    mat<-t(mat)
+    ht<-rep(0.2,nr*1.5)
+    ht[ind]<-1
+    layout(mat,heights=ht)
+    par(mai=c(0.3,0.3,0.01,0.01),omi=c(0.5,0.5,0.05,0.05))
+
+    B_BMSY<-MSEobj@B_BMSY
+    Yd<-MSEobj@C/ MSEobj@OM$RefY
+
+    Blims <- c(0,quantile(B_BMSY,0.95))
+    Ylims<- c(0,quantile(Yd,0.95))
+
+    plotquant<-function(x,p=c(0.1,0.9),yrs,qcol,lcol,addline=T){
+      ny<-length(yrs)
+      qs<-apply(x,2,quantile,p=p)
+      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col=qcol)
+
+      if(addline)for(i in 1:2)lines(yrs,x[i,],col=lcol,lty=i)
+      lines(yrs,apply(x,2,quantile,p=0.5),lwd=2,col="white")
+    }
+
+    for(pp in 1:length(plots)){
+
+      toplot<-unlist(plots[pp])
+      nt<-length(toplot)
+
+      for(i in toplot){
+        plot(range(yrs),Blims,col="white")
+        plotquant(B_BMSY[,i,],p=quants,yrs,qcol,lcol)
+        mtext(MSEobj@MPs[i],3,line=0.2,font=2,col=MPcols[i])
+        if(i==toplot[1])mtext("B/BMSY",2,line=2.3)
+      }
+      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
+
+      for(i in toplot){
+        plot(range(yrs),Ylims,col="white")
+        plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
+        if(i==toplot[1])mtext("Rel. Yd.",2,line=2.3)
+      }
+      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
+
+    }
+
+    mtext("Projection Year",1,line=0.7,outer=T)
+
+  }
+
+
+
+  CCU_plot<-function(VOIout,MSEobj,MPcols){
 
     qno<-   c("F2",       "F3",             "F4",       "F6",         "F7",       "F8",          "F9",              "F10",      "F11",             "F12",        "F13",          "F14",
               "M2",       "M3",  "D2",    "D3")
@@ -642,6 +753,8 @@ shinyServer(function(input, output, session) {
     nrow=ceiling(nMPs/ncol)
     par(mfrow=c(nrow,ncol),mai=c(1.8,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
 
+    MPcols[MPcols=="green"]<-'darkgreen'
+
     for(i in 1:MSEobj@nMPs){
       MP<-MSEobj@MPs[i]
       dat<-VOIout[match(MP,VOIout[,1])+0:1,2:18]
@@ -652,7 +765,7 @@ shinyServer(function(input, output, session) {
       dat2<-dat2[order(dat2$x,decreasing=T),]
       labs<-paste(qno,qtext,sep=" - ")
       barplot(dat2[,2],names.arg=labs[match(dat2[,1],qno)], las=2,col=fcol,border=NA,cex.axis=1.4,cex.names=1.3)
-      legend('topright',MP,bty='n',text.font=2,cex=1.6)
+      legend('topright',MP,bty='n',text.font=2,cex=1.6,text.col=MPcols[i])
     }
 
     mtext("Question / operating model characteristic",1,outer=T,line=0.5)
@@ -663,7 +776,7 @@ shinyServer(function(input, output, session) {
   getMPs<-function(){
 
     if(input$Analysis_type=="Demo"){
-      MPs<<-c('FMSYref','AvC','DCAC','curE','matlenlim','MRreal','MCD','MCD4010','DD4010')
+      MPs<<-c('FMSYref','AvC','DCAC','curE75','matlenlim','MRreal','MCD','MCD4010','DD4010')
       #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
 
     }else{
@@ -679,10 +792,14 @@ shinyServer(function(input, output, session) {
     MPs
   }
 
+#############################################################################################################################################################################
+
+#############################################################################################################################################################################
 
   observeEvent(input$Calculate,{
 
     nsim<<-input$nsim
+    burnin<<-input$burnin
     parallel=F
     if(input$Parallel){
       setup()
@@ -698,50 +815,55 @@ shinyServer(function(input, output, session) {
       MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
     })
 
-    OM_FB<-OM
-    OM_FB@cpars$D<-seq(0.05,0.4,length.out=OM@nsim)
-    OM_FB@proyears<-2
-    OM_FB@interval<-1
-    temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
-    OM_FB<-Replace(OM_FB,temp,Sub="Obs")
-    OM_FB<-Replace(OM_FB,temp,Sub="Imp")
+    MGT2<-ceiling(MSEobj@OM$MGT*2)
+    MGT2[MGT2<5]<-5
+    MGT2[MGT2>20]<-20
 
-    withProgress(message = "HCR evaluation", value = 0, {
-      MSEobj_FB<<-runMSE(OM_FB,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
+    OM_reb<-OM
+    OM@proyears<-max(MGT2)+2 # only have to compute to this year
+    OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2 # start from half BMSY
+    temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
+    OM_reb<-Replace(OM_reb,temp,Sub="Obs")
+    OM_reb<-Replace(OM_reb,temp,Sub="Imp")
+
+    withProgress(message = "Rebuilding evaluation", value = 0, {
+      MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
     })
 
     save(MSEobj,file="MSEobj")
-    save(MSEobj_FB,file="MSEobj_FB")
+    save(MSEobj_reb,file="MSEobj_reb")
 
     # ==== Types of reporting ==========================================================
 
-    if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
+    if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
 
-      Ptab1<<-Ptab(MSEobj,MSEobj_FB,Eyr=10,rnd=0)
-      output$Ptable <- function()Ptab_formatted(Ptab1)
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj),height=600,width=600)
-      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj),height=600,width=600)
+      Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+      output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
+      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
+      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
+      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
+
       nMPs<-length(MSEobj@MPs)
-      output$wormplot<-renderPlot(Pplot3(MSEobj), height =ceiling(nMPs/6)*320 , width = 1300)#wormplot_msc(MSEobj))
-      output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/6)*190 , width = 1300)
+      output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)#wormplot_msc(MSEobj))
+      #output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/6)*190 , width = 1300)
       VOIout<<-getVOI(MSEobj)
-      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj),height=ceiling(nMPs/3)*290,width=1300)
+      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
 
       test<-match(input$sel_MP,MPs)
       if(is.na(test))mm<-1
       if(!is.na(test))mm<-test
 
-      PPD<-MSEobj@Misc[[mm]]
+      #PPD<-MSEobj@Misc[[mm]]
 
-      tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-      stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-      res<-6
+      #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+      #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+      #res<-6
 
-      indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
-      indData<-matrix(indPPD[,1,1],ncol=1)
+      #indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
+      #indData<-matrix(indPPD[,1,1],ncol=1)
 
-      output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-      output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+      #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+      #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
 
     } else if(input$Analysis_type=="FIP"){ # FIP presentations
@@ -757,17 +879,23 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$D1,{
     if(input$Calculate>0){
-    if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
+      if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
-      output$Ptable <- function()Ptab_formatted(Ptab1)
+        output$Ptable <- function()Ptab_formatted(Ptab1)
+        output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
+        output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
+        output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
+        output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(length(MPs)/6)*320 , width = 1300)
+        output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(length(MPs)/3)*290,width=1300)
 
-    } else if(input$Analysis_type=="FIP"){ # FIP presentations
+
+      } else if(input$Analysis_type=="FIP"){ # FIP presentations
 
 
-    } else { # leaving just generic risk assessment
+      } else { # leaving just generic risk assessment
 
 
-    }
+      }
     }
 
   })
@@ -777,6 +905,12 @@ shinyServer(function(input, output, session) {
     if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
       output$Ptable <- function()Ptab_formatted(Ptab1)
+      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
+      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
+      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
+      output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(length(MPs)/6)*320 , width = 1300)
+      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(length(MPs)/3)*290,width=1300)
+
 
     } else if(input$Analysis_type=="App"){ # One MP application
 
@@ -792,7 +926,7 @@ shinyServer(function(input, output, session) {
   # OM report
   output$Build_OM <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = paste0(namconv(input$Name),".html"), #"report.html",
+    filename = "OM report.html", #"report.html",
     content = function(file) {
       doprogress("Building OM report",5)
       OM<<-makeOM(PanelState,nsim=nsim)
@@ -813,7 +947,7 @@ shinyServer(function(input, output, session) {
                                      "Eval" = "Evaluation of MPs analysis",
                                      "App" = "Application of an MP",
                                      "Ind" = "Ancillary indicators report"
-                                     ),
+                     ),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -822,8 +956,8 @@ shinyServer(function(input, output, session) {
                      inputnames=inputnames
       )
 
-      out<-render("OMRep.Rmd", params = params)
-      file.rename(out, file)
+      output<-render(input="OMRep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
 
     }
   )
@@ -859,7 +993,8 @@ shinyServer(function(input, output, session) {
                      Des=MSClog[[3]],
                      OM=OM,
                      MSEobj=MSEobj,
-                     MSEobj_FB=MSEobj_FB
+                     MSEobj_reb=MSEobj_reb,
+                     MPcols=MPcols
                      )
 
       out<-render("MSERep.Rmd", params = params)
@@ -2240,67 +2375,6 @@ shinyServer(function(input, output, session) {
   output$plotBeta <- renderPlot(plotBeta())
 
 
-  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9)){
-
-    if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
-    MPs<-MSEobj@MPs
-    nMPs<-length(MPs)
-    yrs<-curyr+(1:MSEobj@proyears)
-
-    plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/maxcol))
-
-    nr<-length(plots)*2
-    nc<-maxcol
-
-    mat<-array(0,c(nc,nr*1.5))
-    ind<-floor(0.5+(1:nr)*1.5)
-    mat[,ind]<-1:(nr*nc)
-    mat<-t(mat)
-    ht<-rep(0.2,nr*1.5)
-    ht[ind]<-1
-    layout(mat,heights=ht)
-    par(mai=c(0.3,0.3,0.01,0.01),omi=c(0.5,0.5,0.05,0.05))
-
-    B_BMSY<-MSEobj@B_BMSY
-    Yd<-MSEobj@C/ MSEobj@OM$RefY
-
-    Blims <- c(0,quantile(B_BMSY,0.95))
-    Ylims<- c(0,quantile(Yd,0.95))
-
-    plotquant<-function(x,p=c(0.1,0.9),yrs,qcol,lcol,addline=T){
-      ny<-length(yrs)
-      qs<-apply(x,2,quantile,p=p)
-      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col=qcol)
-
-      if(addline)for(i in 1:2)lines(yrs,x[i,],col=lcol,lty=i)
-      lines(yrs,apply(x,2,quantile,p=0.5),lwd=2,col="white")
-    }
-
-    for(pp in 1:length(plots)){
-
-      toplot<-unlist(plots[pp])
-      nt<-length(toplot)
-
-      for(i in toplot){
-        plot(range(yrs),Blims,col="white")
-        plotquant(B_BMSY[,i,],p=quants,yrs,qcol,lcol)
-        mtext(MSEobj@MPs[i],3,line=0.2,font=2)
-        if(i==toplot[1])mtext("B/BMSY",2,line=2.3)
-      }
-      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
-
-      for(i in toplot){
-        plot(range(yrs),Ylims,col="white")
-        plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
-        if(i==toplot[1])mtext("Rel. Yd.",2,line=2.3)
-      }
-      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
-
-    }
-
-    mtext("Projection Year",1,line=0.7,outer=T)
-
-  }
 
   # Ancillary indicators functions ================================
 

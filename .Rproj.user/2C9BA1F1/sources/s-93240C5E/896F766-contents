@@ -715,7 +715,7 @@ shinyServer(function(input, output, session) {
 
     # ==== Types of reporting ==========================================================
 
-    if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
+    if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
 
       Ptab1<<-Ptab(MSEobj,MSEobj_FB,Eyr=10,rnd=0)
       output$Ptable <- function()Ptab_formatted(Ptab1)
@@ -731,17 +731,17 @@ shinyServer(function(input, output, session) {
       if(is.na(test))mm<-1
       if(!is.na(test))mm<-test
 
-      PPD<-MSEobj@Misc[[mm]]
+      #PPD<-MSEobj@Misc[[mm]]
 
-      tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-      stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-      res<-6
+      #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+      #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+      #res<-6
 
-      indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
-      indData<-matrix(indPPD[,1,1],ncol=1)
+      #indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
+      #indData<-matrix(indPPD[,1,1],ncol=1)
 
-      output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-      output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+      #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+      #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
 
     } else if(input$Analysis_type=="FIP"){ # FIP presentations
