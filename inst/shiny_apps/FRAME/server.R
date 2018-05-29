@@ -396,21 +396,41 @@ shinyServer(function(input, output, session) {
     # save(Ptab1,file="Ptab1")
     MPs<-as.character(Ptab1$MP)
 
-    # Data Feasibility
-    cond<-unlist(PanelState[[3]][1]) # cond=rep(T,9)
+    # Proper Data Feasibility based on complex fease analysis by MP
+    tempdat<-tempdat0<-DLMtool::SimulatedData
+    tempdat@Cat<-array(NA,dim(tempdat0@Cat))
+    tempdat@Ind<-array(NA,dim(tempdat0@Ind))
+    tempdat@CAL<-array(NA,dim(tempdat0@CAL))
+    tempdat@CAA<-array(NA,dim(tempdat0@CAA))
+    tempdat@vbK<-rep(NA,length(tempdat0@vbK))
+    tempdat@Abun<-rep(NA,length(tempdat0@Abun))
+
+    ndaty<-dim(tempdat@Cat)[2]
+    cond<-unlist(PanelState[[3]][1]) # cond=rep(T,9) cond=c(F,T,F,T,F,T,F,F,F)
     FeasePos<-c("Catch","Catch","Index","Index","Index","Catch_at_length","Catch_at_age","Growth","Abundance")
-    pot_slots<-unique(FeasePos)
-    got_slots<-unique(FeasePos[cond])
-    not_slots<-pot_slots[!pot_slots%in%got_slots]
-    tempFease<-new('Fease')
-    if(length(not_slots)>0)for(i in 1:length(not_slots))slot(tempFease,not_slots[i])<-0
-    DFeasible<-Fease(tempFease,1)
-    # MPs%in%DFeasible
+    Datslot<-c("Cat","Cat","Ind","Ind","Ind","CAL","CAA","vbK","Abun")
+    yrrange<-c(ndaty, 5,  ndaty,  5,    ndaty,        2,                2, NA, NA)
+
+    for(i in 1:length(Datslot)){
+      if(cond[i]){ # if user has specified that data are available
+        if(!is.na(yrrange[i])){ # it not a vector of values
+          ndim<-length(dim(slot(tempdat0,Datslot[i])))
+          if(ndim==2){ # is a matrix
+            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
+          }else{ # is a 3D array
+            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
+          }
+        }else{
+         slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
+        }
+      }
+    }
+
+    DFeasible<-Fease(tempdat)
 
     # TAC TAE Feasibility
     cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
-    Data <- DLMtool::SimulatedData
-    runMPs <- applyMP(Data, MPs, reps = 2, nsims=1, silent=TRUE)
+    runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
     recs <- runMPs[[1]]
     type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
     for (mm in seq_along(recs)) {
