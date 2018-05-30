@@ -34,9 +34,12 @@ shinyServer(function(input, output, session) {
 
   # Some useful things
   USERID<-Sys.getenv()[names(Sys.getenv())=="USERNAME"]
-  output$SessionID<-renderText(paste0(USERID,"-",strsplit(as.character(Sys.time())," ")[[1]][1],"-",strsplit(as.character(Sys.time())," ")[[1]][2]))
+  SessionID<-paste0(USERID,"-",strsplit(as.character(Sys.time())," ")[[1]][1],"-",strsplit(as.character(Sys.time())," ")[[1]][2])
+  output$SessionID<-renderText(SessionID)
+
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
+  FRAMEversion<<-"1.0"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -79,7 +82,7 @@ shinyServer(function(input, output, session) {
   MSCsave_auto<-function(){
 
     MSClog<-list(PanelState, Just, Des)
-    saveRDS(MSClog,file=paste0(USERID,"_autosave.msc"))
+    saveRDS(MSClog,file=paste0(USERID,"_autosave.frame"))
 
   }
 
@@ -97,11 +100,11 @@ shinyServer(function(input, output, session) {
 
   output$Save<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".msc"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+    filename = paste0(namconv(input$Name),".frame"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
 
     content=function(file){
 
-      updateTextAreaInput(session,"Debug1",value=file)
+
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
       doprogress("Saving")
@@ -116,12 +119,29 @@ shinyServer(function(input, output, session) {
     if(input$Analysis_type=='Demo'){
       updateNumericInput(session,'nsim',value="24")
       updateNumericInput(session,'interval',value="8")
+
     }else if(input$Analysis_type=='Eval'){
       updateNumericInput(session,'nsim',value="96")
       updateNumericInput(session,'interval',value="4")
+
     }else{
       updateNumericInput(session,'nsim',value="192")
       updateNumericInput(session,'interval',value="4")
+
+    }
+
+    MPs<<-getMPs()
+    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
+
+    if(input$Analysis_type%in%c("Demo","Eval")){
+      shinyjs::disable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
+      shinyjs::enable("ntop")
+
+    }else{
+      shinyjs::enable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
+      shinyjs::disable("ntop")
     }
 
   })
@@ -181,17 +201,7 @@ shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$Analysis_type, {
-    MPs<<-getMPs()
-    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
 
-    if(input$Analysis_type%in%c("Demo","Eval")){
-      shinyjs::disable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
-
-    }else{
-      shinyjs::enable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
-    }
 
   })
 
@@ -411,10 +421,13 @@ shinyServer(function(input, output, session) {
   }
 
   #                                       11a 11b 12  21a 21a
-  Ptab_formatted<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10){
+  Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
 
     # save(Ptab1,file="Ptab1")
     MPs<-as.character(Ptab1$MP)
+    if(is.na(ntop))ntop<-nrow(Ptab1)
+    if(ntop>nrow(Ptab1))ntop<-nrow(Ptab1)
+    if(ntop<1)ntop<-1
 
     # Proper Data Feasibility based on complex fease analysis by MP
     tempdat<-tempdat0<-DLMtool::SimulatedData
@@ -471,7 +484,6 @@ shinyServer(function(input, output, session) {
     MP_Type[type[,4]==1]<-"MPA"
     MP_Type[totneeded>1]<-"Mixed"
 
-
     Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
     Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
     names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
@@ -480,6 +492,7 @@ shinyServer(function(input, output, session) {
     MPcols<<-rep('black',length(MPs))
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
+
 
     feasible<<-rep("",length(MPs))
     condD<-!MPs%in%DFeasible
@@ -496,8 +509,13 @@ shinyServer(function(input, output, session) {
     rnkscore[MPcols=="green"]=rnkscore[MPcols=="green"]+2000
     rnkscore[MPcols=="red"]=rnkscore[MPcols=="red"]+1000
     ord<-order(rnkscore,decreasing = T)
-    Ptab2<-Ptab2[ord,]
-    MPcols<-MPcols[ord]
+    Ptab2<-Ptab2[ord[1:ntop],]
+    MPcols<<-MPcols[ord[1:ntop]]
+    Ptab2
+
+  }
+
+  Ptab_formatted<-function(Ptab2){
 
     dynheader<-c(1,1,2,1,2,1,1)
     names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")
@@ -538,6 +556,7 @@ shinyServer(function(input, output, session) {
       add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
                          "Harvest Strategy"=2,
                          "Long-Term Yield"=1," "=1))
+
 
   }
 
@@ -697,14 +716,14 @@ shinyServer(function(input, output, session) {
   }
 
 
-  getVOI<-function(MSEobj){
+  getVOI<-function(MSEobj_top){
 
     opt1<-  c("M",        "Depletion",      "hs",      "Esd",          "LFS",        "Vmaxlen",  "DR",          "PRM",             "procsd",   "qinc",            "Frac_area_1","Prob_staying",
               "TACFrac", "TACSD","Cbias","betas")
 
     opt2<-  c(rep("",12),"TAEFrac", "TAESD","","","RefY")
 
-    MSEtemp<-MSEobj
+    MSEtemp<-MSEobj_top
     MSEtemp@OM<-cbind(MSEtemp@OM,betas=MSEtemp@Obs$betas,Cbias=MSEtemp@Obs$Cbias)
     MSEtemp@OM<-MSEtemp@OM[,names(MSEtemp@OM)%in%opt1 | names(MSEtemp@OM)%in%opt2]
     VOI(MSEtemp,ncomp=17,nbins=6)[[1]]
@@ -836,6 +855,12 @@ shinyServer(function(input, output, session) {
 
 #############################################################################################################################################################################
 
+  observeEvent(input$ntop,{
+    if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
+       redoEval()
+    }
+  })
+
   observeEvent(input$Calculate,{
 
     nsim<<-input$nsim
@@ -877,18 +902,7 @@ shinyServer(function(input, output, session) {
 
     if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
 
-      Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-      output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
-      output$threshtable<-function()Thresh_tab()
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
-      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
-      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
-
-      nMPs<-length(MSEobj@MPs)
-      output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)#wormplot_msc(MSEobj))
-      #output$HCR<-renderPlot(HCRplot(MSEobj_FB),height =ceiling(nMPs/6)*190 , width = 1300)
-      VOIout<<-getVOI(MSEobj)
-      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
+     redoEval()
 
     } else if(input$Analysis_type=="Assess"){ # FIP presentations
 
@@ -915,16 +929,28 @@ shinyServer(function(input, output, session) {
 
   })
 
+  redoEval<-function(){
+    Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
+    MSEobj_top<-Sub(MSEobj,MPs=Ptab2$MP)
+    MSEobj_reb_top<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+    updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
+    output$Ptable <- function()Ptab_formatted(Ptab2)
+    output$threshtable<-function()Thresh_tab()
+    output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
+    output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
+    output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
+    output$wormplot<-renderPlot(Pplot3(MSEobj_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
+    nMPs<-length(MSEobj_top@MPs)
+    VOIout<<-getVOI(MSEobj_top)
+    output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
+  }
+
   observeEvent(input$D1,{
     if(input$Calculate>0){
       if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
-        output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
-        output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
-        output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
-        output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
-        output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(length(MPs)/6)*320 , width = 1300)
-        output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(length(MPs)/3)*290,width=1300)
+        redoEval()
 
 
       } else if(input$Analysis_type=="FIP"){ # FIP presentations
@@ -942,12 +968,7 @@ shinyServer(function(input, output, session) {
     if(input$Calculate>0){
     if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
-      output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
-      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
-      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
-      output$wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols), height =ceiling(length(MPs)/6)*320 , width = 1300)
-      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(length(MPs)/3)*290,width=1300)
+      redoEval()
 
 
     } else if(input$Analysis_type=="App"){ # One MP application
@@ -980,18 +1001,20 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Operating Model Specification Report for ",input$Name),
-                     set_type=switch(input$Analysis_type,
+                     set_type=paste0(switch(input$Analysis_type,
                                      "Demo"="Demonstration evaluation analysis",
                                      "Eval" = "Evaluation of MPs analysis",
                                      "App" = "Application of an MP",
-                                     "Ind" = "Ancillary indicators report"
-                     ),
+                                     "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
                      OM=OM,
-                     inputnames=inputnames
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
       )
 
       output<-render(input="OMRep.Rmd",output_format="html_document", params = params)
@@ -1020,11 +1043,11 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Evaluation Report for ",input$Name),
-                     set_type=switch(input$Analysis_type,
-                                     "Demo"="Demonstration evaluation analysis",
-                                     "Eval" = "Evaluation of MPs analysis",
-                                     "App" = "Application of an MP",
-                                     "Ind" = "Ancillary indicators report"),
+                     set_type=paste0(switch(input$Analysis_type,
+                                            "Demo"="Demonstration evaluation analysis",
+                                            "Eval" = "Evaluation of MPs analysis",
+                                            "App" = "Application of an MP",
+                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -1033,7 +1056,10 @@ shinyServer(function(input, output, session) {
                      MSEobj=MSEobj,
                      MSEobj_reb=MSEobj_reb,
                      MPcols=MPcols,
-                     burnin=burnin
+                     ntop=input$ntop,
+                     burnin=burnin,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
                      )
 
       out<-render("MSERep.Rmd", params = params)
@@ -1065,12 +1091,11 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
-                     set_type=switch(input$Analysis_type,
-                                     "Demo"="Demonstration evaluation analysis",
-                                     "Eval" = "Evaluation of MPs analysis",
-                                     "App" = "Application of an MP",
-                                     "Ind" = "Ancillary indicators report"
-                                     ),
+                     set_type=paste0(switch(input$Analysis_type,
+                                            "Demo"="Demonstration evaluation analysis",
+                                            "Eval" = "Evaluation of MPs analysis",
+                                            "App" = "Application of an MP",
+                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -1079,7 +1104,10 @@ shinyServer(function(input, output, session) {
                      inputnames=inputnames,
                      MSEobj=MSEobj,
                      mm=mm,
-                     burnin=burnin
+                     ntop=input$ntop,
+                     burnin=burnin,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
       )
 
       out<-render("AIRep.Rmd", params = params)
@@ -1309,7 +1337,28 @@ shinyServer(function(input, output, session) {
 
   )
 
-  # ======================= Calculation ========================================
+  # ======================= Reports ========================================
+
+
+  Qtab<<-function(Answer,selected){
+
+    scol<-"#b9e8f9"
+    Qtable<-data.frame(Answer)
+
+    Qtable %>%
+      mutate(
+        Answer = ifelse(selected,
+                        color_bar(color = scol)(Answer),
+                        color_bar(color = "white")(Answer))
+      )%>%
+      select(everything())%>%
+      knitr::kable("html", escape = F,align = "c") %>%
+      kable_styling("hover", full_width = F)%>%
+      column_spec(1, width = "3cm")
+
+  }
+
+
 
 
 
@@ -1327,7 +1376,7 @@ shinyServer(function(input, output, session) {
 
   plotM <- function(dummy=1){
 
-    par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par( mar=c(3,3,0.05,0.01), cex.main = 1.5, cex.lab=1.35 )
     M_nams<-unlist(M_list)#c("M_60", "M_40_60","M_20_40","M_10_20","M_05_10","M_05")
 
     cond<-M_nams%in%input$M

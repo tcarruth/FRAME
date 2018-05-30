@@ -45,13 +45,13 @@ pre { /* Code block */
 
 
 
-<br>
+<br clear="both"/>
 
 # About this document
 
 This is a prototype of an automatic report that documents how the user specified the operating model and their various justifications.  
 
-<br>
+<br clear="both"/>
 
 ```{r labs,echo=F,warning=F,error=F,results='asis'}
 
@@ -71,179 +71,172 @@ if(Just[[1]][1]!="No introduction / general comments were provided"){
 
 ```
 
-
+<br clear="both"/>
 
 # Fishery Characteristics
 
-```{r cars, echo=FALSE, results='asis',fig.width=7, fig.height=4}
+```{r cars, echo=FALSE, results='asis',fig.width=7, fig.height=3.5,tidy=FALSE}
+
+
+doQJust<-function(Answered,Selected,Justification){
+  
+    Qtable<-data.frame(Answered)
+    
+    x<-Qtable %>%
+        mutate(
+          Answered = ifelse(Selected,
+                          cell_spec(Answered,"html",color = "black",font_size=15),
+                          cell_spec(Answered,"html",color = "#a6a6a6",font_size=14))
+        )%>%
+        select(everything())%>%
+        knitr::kable("html", escape = F,align = "l") %>%
+        kable_styling(bootstrap_options=c("hover"),full_width=F,position='float_left')
+    #%>%
+        #column_spec(1, width = "5cm")
+    print(x)
+    
+    Jtable<-Justification
+    names(Jtable)="Justification"
+    x<-Jtable %>%
+        mutate(
+          Justification = cell_spec(Justification, "html", color = "darkgrey",font_size=14)
+        )%>%
+        select(everything())%>%
+        knitr::kable("html", escape = F,align = "l") %>%
+        kable_styling(bootstrap_options=c("hover"),full_width=F,position='float_right')#%>%
+        #column_spec(1, width = "5cm")
+    print(x)
+}
+  
+
+
 for(ff in 2:14){
   cat('\n')
   cat(paste0("## ",Flabs[ff]))
   cat('\n')
-  cond<-unlist(PanelState[[1]][ff-1])
-  types<-names(unlist(get(Flists[ff])))[cond]
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n")
-  cat(Just[[1]][ff])
-  cat("\n\n")
-
+ 
+  Answer=names(unlist(get(Flists[ff])))
+  selected=unlist(PanelState[[1]][ff-1])
+  Justification=data.frame(Just[[1]][ff])
+  doQJust(Answer,selected,Justification)
+  cat("\\newpage")
   temp<-as.character(unlist(params$inputnames[[1]][ff-1]))
   cat("\n")
   do.call(paste0("plot",temp),args=list(dummy="1"))
   cat("\n\n")
   
+  
 }
 ```
 
-<br>
+<br clear="both"/>
 
 # Management Characteristics
 
 ## Types of fishery management that are possible
 
-```{r M1_TAC_TAE, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[2]][1])
-  types<-c("TAC (Total Allowable Catch): a catch limit","TAE (Total Allowable Effort): an effort limit", "Size limit","Time-area closures (a marine reserve)")[cond]
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[2]][1])
+```{r M1_TAC_TAE, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=c("TAC (Total Allowable Catch): a catch limit","TAE (Total Allowable Effort): an effort limit", "Size limit","Time-area closures (a marine reserve)")
+  selected=unlist(PanelState[[2]][1])
+  Justification=data.frame(Just[[2]][1])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
 
 ```
 
+<br clear="both"/>
+
 ## Implementation uncertainty: consistent overages/underages
 
-```{r M2_IB, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[2]][2])
-  types<-names(unlist(IB_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[2]][2])
-  cat("\n\n")  
+```{r M2_IB, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IB_list))
+  selected=unlist(PanelState[[2]][2])
+  Justification=data.frame(Just[[2]][2])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
   plotIB()
 
 ```
 
+<br clear="both"/>
+
 ## Implementation uncertainty: variability
 
-```{r M3_IV, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[2]][3])
-  types<-names(unlist(IV_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[2]][3])
-  cat("\n\n")
+```{r M3_IV, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IV_list))
+  selected=unlist(PanelState[[2]][3])
+  Justification=data.frame(Just[[2]][3])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
   plotIV()
 
 ```
 
-<br>
+<br clear="both"/>
 
 # Data Characteristics
 
 ## Available data types
 
-```{r D1_Data_types, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[3]][1])
-  types<-names(unlist(D1_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[3]][1])
+```{r D1_Data_types, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+
+  Answer=names(unlist(D1_list))
+  selected=unlist(PanelState[[3]][1])
+  Justification=data.frame(Just[[3]][1])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
 
 ```
 
-<br>
+<br clear="both"/>
 
 ## Catch reporting bias
 
-```{r D2_CB, echo=FALSE, results='asis',fig.width=7, fig.height=4}
+```{r D2_CB, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
   
-  cond<-unlist(PanelState[[3]][2])
-  types<-names(unlist(CB_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[3]][2])
-  cat("\n\n")
+  Answer=names(unlist(CB_list))
+  selected=unlist(PanelState[[3]][2])
+  Justification=data.frame(Just[[3]][2])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
   plotCB()
 
 ```
 
-<br>
+<br clear="both"/>
 
 ## Hyperstability in indices
 
-```{r D3_Beta, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[3]][3])
-  types<-names(unlist(Beta_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n\n")
-  cat(Just[[3]][3])
-  cat("\n\n")  
+```{r D3_Beta, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(Beta_list))
+  selected=unlist(PanelState[[3]][3])
+  Justification=data.frame(Just[[3]][3])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
   plotBeta()
 
 ```
 
-<br>
+<br clear="both"/>
 
 ## Available data types
 
-```{r D4_Quality, echo=FALSE, results='asis',fig.width=7, fig.height=4}
-  cond<-unlist(PanelState[[3]][4])
-  types<-names(unlist(Err_list)[cond])
-  cat('Selected:')
-  cat("\n")
-  for(i in 1:length(types)){
-    cat("\n")
-    cat(paste("*",types[i]))
-    cat("\n")
-  }
-  cat("\n")
-  cat(Just[[3]][1])
+```{r D4_Quality, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+
+  Answer=names(unlist(Err_list))
+  selected=unlist(PanelState[[3]][4])
+  Justification=data.frame(Just[[3]][4])
+  doQJust(Answer,selected,Justification)
+  cat(" \n") 
+ 
 
 ```
 
-<br>
+<br clear="both"/>
 
 
 
@@ -251,4 +244,18 @@ for(ff in 2:14){
 
 The package is subject to ongoing testing. If you find a bug or a problem please send a report to <t.carruthers@oceans.ubc.ca> so that it can be fixed!  
 
+<br clear="both"/>
+<br clear="both"/>
+<br clear="both"/>
 
+<hr />
+```{r copyright, results='asis',echo=FALSE, size="tiny"}
+
+  
+  cat(params$SessionID)
+  cat("\n\n")
+  cat(params$copyright)
+ 
+
+```
+<hr />

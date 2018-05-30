@@ -297,7 +297,8 @@ shinyUI(
                                    column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
                                    column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
                                    column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
-                                   column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)))
+                                   column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0))),
+                                   column(3,numericInput("ntop", label = "N top MPs", value=16,min=1,max=80))
                                  ),
 
                                 value=5),
@@ -629,8 +630,8 @@ shinyUI(
 
                       )
                ),
-               column(width=5),
-               column(2,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=300))
+               column(width=2),
+               column(4,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=300))
 
 
              )

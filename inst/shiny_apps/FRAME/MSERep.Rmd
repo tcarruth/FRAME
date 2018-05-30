@@ -72,7 +72,10 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
  Ptab1<-Ptab(params$MSEobj,params$MSEobj_reb,burnin=params$burnin,rnd=0)
- Ptab_formatted(Ptab1)
+ Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=params$ntop)
+ MSEobj_top<-Sub(params$MSEobj,MPs=Ptab2$MP)
+ MSEobj_reb_top<-Sub(params$MSEobj_reb,MPs=Ptab2$MP)
+ Ptab_formatted(Ptab2)
  Thresh_tab()
 
 ```
@@ -85,21 +88,21 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 Long term yield (LTY) vs probability biomass is greater than half BMSY in the first 10 years (PI.1.1.1a)
 
 ```{r P1_LTY,echo=F,warning=F,error=F,message=F}
-P1_LTY_plot(params$MSEobj,MPcols=params$MPcols,burnin=params$burnin)
+P1_LTY_plot(MSEobj_top,MPcols=params$MPcols,burnin=params$burnin)
 
 ```
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
 
 ```{r P2_LTY,echo=F,warning=F,error=F,message=F}
-P2_LTY_plot(params$MSEobj,MPcols=params$MPcols)
+P2_LTY_plot(MSEobj_top,MPcols=params$MPcols)
 
 ```
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
 
 ```{r P3_LTY,echo=F,warning=F,error=F,message=F}
-P3_LTY_plot(params$MSEobj,params$MSEobj_reb,MPcols=params$MPcols)
+P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=params$MPcols)
 
 ```
 
@@ -113,13 +116,13 @@ For each MP a 50 year projection is presented showing the possible range of valu
 
 ```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=7}
  
- nMPs<-length(params$MSEobj@MPs)
+ nMPs<-length(MSEobj_top@MPs)
  panelsperplot<-12
  nplots<-ceiling(nMPs/panelsperplot)
  plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
  
  for(i in 1:length(plots)){
-   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+   MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
    Pplot3(MSEobj2,MPcols=params$MPcols)
  }
 
@@ -162,13 +165,13 @@ When answering questions in the Fishery, Management and Data panels above, you m
 
 
 ```{r CCU1,echo=F,warning=F,error=F,message=F,include=F}
-nMPs<-length(params$MSEobj@MPs)
+nMPs<-length(MSEobj_top@MPs)
 panelsperplot<-6
 nplots<-ceiling(nMPs/panelsperplot)
 plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
 VOIout<-new('list')
 for(i in 1:length(plots)){
-  MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+  MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
   VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
 }
 
@@ -180,7 +183,7 @@ for(i in 1:length(plots)){
 
 
 for(i in 1:length(plots)){
-  MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+  MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
   CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
 }
 
