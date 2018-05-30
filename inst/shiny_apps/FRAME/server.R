@@ -515,7 +515,7 @@ shinyServer(function(input, output, session) {
 
   }
 
-  Ptab_formatted<-function(Ptab2){
+  Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50)){
 
     dynheader<-c(1,1,2,1,2,1,1)
     names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")
@@ -934,6 +934,7 @@ shinyServer(function(input, output, session) {
     Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
     MSEobj_top<-Sub(MSEobj,MPs=Ptab2$MP)
     MSEobj_reb_top<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+    nMPs<-length(MSEobj_top@MPs)
     updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
     output$Ptable <- function()Ptab_formatted(Ptab2)
     output$threshtable<-function()Thresh_tab()
@@ -941,7 +942,6 @@ shinyServer(function(input, output, session) {
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
     output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
     output$wormplot<-renderPlot(Pplot3(MSEobj_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
-    nMPs<-length(MSEobj_top@MPs)
     VOIout<<-getVOI(MSEobj_top)
     output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
   }
