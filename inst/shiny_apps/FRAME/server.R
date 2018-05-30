@@ -115,7 +115,7 @@ shinyServer(function(input, output, session) {
 
     if(input$Analysis_type=='Demo'){
       updateNumericInput(session,'nsim',value="24")
-      updateNumericInput(session,'interval',value="6")
+      updateNumericInput(session,'interval',value="8")
     }else if(input$Analysis_type=='Eval'){
       updateNumericInput(session,'nsim',value="96")
       updateNumericInput(session,'interval',value="4")
@@ -157,7 +157,40 @@ shinyServer(function(input, output, session) {
     if(Fpanel()==0 & Mpanel()==0 & Dpanel()==0){
       MPs<<-getMPs()
       updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
+      selectedMP<<-MPs[2]
+      shinyjs::disable("LTL")
+    }
+
+  })
+
+  observeEvent(input$Ex_Ref_MPs, {
+    MPs<<-getMPs()
+    if(input$Ex_Ref_MPs){
+      MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
       selectedMP<<-MPs[1]
+    }
+    if(input$Analysis_type%in%c("Demo","Eval")){
+      shinyjs::disable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
+
+    }else{
+      shinyjs::enable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
+    }
+
+  })
+
+  observeEvent(input$Analysis_type, {
+    MPs<<-getMPs()
+    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
+
+    if(input$Analysis_type%in%c("Demo","Eval")){
+      shinyjs::disable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
+
+    }else{
+      shinyjs::enable("sel_MP")
+      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
     }
 
   })
@@ -166,17 +199,6 @@ shinyServer(function(input, output, session) {
     if(input$Analysis_type%in%c("App","Ind"))  selectedMP<<-input$sel_MP
   })
 
-  observeEvent(input$Analysis_type, {
-    if(input$Analysis_type%in%c("Demo","Eval")){
-      shinyjs::disable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",selected=character(0))
-
-    }else{
-      shinyjs::enable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",selected=selectedMP)
-    }
-
-  })
 
   observeEvent(input$Load,{
 
@@ -369,9 +391,27 @@ shinyServer(function(input, output, session) {
 
   }
 
+  Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
 
-  #                                       11a 11b 12  21a 21a  LTY
-  Ptab_formatted<-function(Ptab1,thresh=c(70, 50, 70, 80, 50,  NA),burnin=10){
+    Ptab2<-as.data.frame(matrix(thresh,nrow=1))
+    names(Ptab2)<-c("PI.111a","PI.111b","PI.112","PI.121a","PI.121b")
+
+    Ptab2 %>%
+      mutate(
+        PI.111a =   cell_spec(PI.111a, "html", color = "black"),
+        PI.111b =   cell_spec(PI.111b, "html", color = "black"),
+        PI.112 = cell_spec(PI.112, "html", color = "black"),
+        PI.121a = cell_spec(PI.121a, "html", color = "black"),
+        PI.121b =  cell_spec(PI.121b, "html", color = "black")
+      )%>%
+      knitr::kable("html", escape = F,align = "c") %>%
+      kable_styling("striped", full_width = F)%>%
+      column_spec(5, width = "3cm")  %>%
+      add_header_above(c("Thresholds" = 5))
+  }
+
+  #                                       11a 11b 12  21a 21a
+  Ptab_formatted<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10){
 
     # save(Ptab1,file="Ptab1")
     MPs<-as.character(Ptab1$MP)
@@ -434,9 +474,9 @@ shinyServer(function(input, output, session) {
 
     Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
     Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
-    names(Ptab2)<-c("MP","Type","PI111a","PI111b","PI112","PI121a","PI121b","LTY")
+    names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
 
-    PIsmet<-Ptab2$PI111a >= thresh[1] & Ptab2$PI111b >= thresh[2] & Ptab2$PI112 >= thresh[3] & Ptab2$PI121a >= thresh[4] & Ptab2$PI121b >= thresh[5]
+    PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
     MPcols<<-rep('black',length(MPs))
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
     MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
@@ -467,21 +507,21 @@ shinyServer(function(input, output, session) {
         #MP = row.names(.),
         MP =  cell_spec(MP, "html", color = MPcols),
         Type =  cell_spec(Type, "html"),
-        PI111a = ifelse(PI111a >= thresh[1],
-                        cell_spec(PI111a, "html", color = "green"),
-                        cell_spec(PI111a, "html", color = "red")),
-        PI111b = ifelse(PI111b >= thresh[2],
-                        cell_spec(PI111b, "html", color = "green"),
-                        cell_spec(PI111b, "html", color = "red")),
-        PI112 = ifelse(PI112 >= thresh[3],
-                       cell_spec(PI112, "html", color = "green"),
-                       cell_spec(PI112, "html", color = "red")),
-        PI121a = ifelse(PI121a >= thresh[4],
-                        cell_spec(PI121a, "html", color = "green"),
-                        cell_spec(PI121a, "html", color = "red")),
-        PI121b = ifelse(PI121b >= thresh[5],
-                        cell_spec(PI121b, "html", color = "green"),
-                        cell_spec(PI121b, "html", color = "red")),
+        PI.111a = ifelse(PI.111a >= thresh[1],
+                        cell_spec(PI.111a, "html", color = "green"),
+                        cell_spec(PI.111a, "html", color = "red")),
+        PI.111b = ifelse(PI.111b >= thresh[2],
+                        cell_spec(PI.111b, "html", color = "green"),
+                        cell_spec(PI.111b, "html", color = "red")),
+        PI.112 = ifelse(PI.112 >= thresh[3],
+                       cell_spec(PI.112, "html", color = "green"),
+                       cell_spec(PI.112, "html", color = "red")),
+        PI.121a = ifelse(PI.121a >= thresh[4],
+                        cell_spec(PI.121a, "html", color = "green"),
+                        cell_spec(PI.121a, "html", color = "red")),
+        PI.121b = ifelse(PI.121b >= thresh[5],
+                        cell_spec(PI.121b, "html", color = "green"),
+                        cell_spec(PI.121b, "html", color = "red")),
         LTY =  cell_spec(LTY, "html"),
         feasible =  cell_spec(feasible, "html")
 
@@ -738,7 +778,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  CCU_plot<-function(VOIout,MSEobj,MPcols){
+  CCU_plot<-function(VOIout,MSEobj,MPcols,maxrow=1){
 
     qno<-   c("F2",       "F3",             "F4",       "F6",         "F7",       "F8",          "F9",              "F10",      "F11",             "F12",        "F13",          "F14",
               "M2",       "M3",  "D2",    "D3")
@@ -751,7 +791,7 @@ shinyServer(function(input, output, session) {
     nMPs<-MSEobj@nMPs
     ncol=3
     nrow=ceiling(nMPs/ncol)
-    par(mfrow=c(nrow,ncol),mai=c(1.8,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
+    par(mfrow=c(max(maxrow,nrow),ncol),mai=c(1.8,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
 
     MPcols[MPcols=="green"]<-'darkgreen'
 
@@ -839,6 +879,7 @@ shinyServer(function(input, output, session) {
 
       Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
       output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
+      output$threshtable<-function()Thresh_tab()
       output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
       output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
       output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
@@ -849,9 +890,12 @@ shinyServer(function(input, output, session) {
       VOIout<<-getVOI(MSEobj)
       output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
 
-      test<-match(input$sel_MP,MPs)
-      if(is.na(test))mm<-1
-      if(!is.na(test))mm<-test
+    } else if(input$Analysis_type=="Assess"){ # FIP presentations
+
+
+
+
+    } else { # leaving just generic risk assessment
 
       #PPD<-MSEobj@Misc[[mm]]
 
@@ -866,12 +910,6 @@ shinyServer(function(input, output, session) {
       #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
 
-    } else if(input$Analysis_type=="FIP"){ # FIP presentations
-
-
-    } else { # leaving just generic risk assessment
-
-
     }
     Calc(1)
 
@@ -881,7 +919,7 @@ shinyServer(function(input, output, session) {
     if(input$Calculate>0){
       if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
-        output$Ptable <- function()Ptab_formatted(Ptab1)
+        output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
         output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
         output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
         output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
@@ -904,7 +942,7 @@ shinyServer(function(input, output, session) {
     if(input$Calculate>0){
     if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
 
-      output$Ptable <- function()Ptab_formatted(Ptab1)
+      output$Ptable <- function()Ptab_formatted(Ptab1,burnin=burnin)
       output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj,burnin,MPcols=MPcols),height=400,width=400)
       output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj,MPcols=MPcols),height=400,width=400)
       output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj,MSEobj_reb,MPcols=MPcols),height=400,width=400)
@@ -994,7 +1032,8 @@ shinyServer(function(input, output, session) {
                      OM=OM,
                      MSEobj=MSEobj,
                      MSEobj_reb=MSEobj_reb,
-                     MPcols=MPcols
+                     MPcols=MPcols,
+                     burnin=burnin
                      )
 
       out<-render("MSERep.Rmd", params = params)
@@ -1039,7 +1078,8 @@ shinyServer(function(input, output, session) {
                      OM=OM,
                      inputnames=inputnames,
                      MSEobj=MSEobj,
-                     mm=mm
+                     mm=mm,
+                     burnin=burnin
       )
 
       out<-render("AIRep.Rmd", params = params)

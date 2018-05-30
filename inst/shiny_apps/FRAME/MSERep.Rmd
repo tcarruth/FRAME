@@ -71,8 +71,9 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
- Ptab1<-Ptab(params$MSEobj,params$MSEobj_FB,Eyr=10,rnd=0)
+ Ptab1<-Ptab(params$MSEobj,params$MSEobj_reb,burnin=params$burnin,rnd=0)
  Ptab_formatted(Ptab1)
+ Thresh_tab()
 
 ```
 
@@ -84,7 +85,7 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 Long term yield (LTY) vs probability biomass is greater than half BMSY in the first 10 years (PI.1.1.1a)
 
 ```{r P1_LTY,echo=F,warning=F,error=F,message=F}
-P1_LTY_plot(params$MSEobj,MPcols=params$MPcols)
+P1_LTY_plot(params$MSEobj,MPcols=params$MPcols,burnin=params$burnin)
 
 ```
 
@@ -177,9 +178,10 @@ for(i in 1:length(plots)){
 
 ```{r CCU2,echo=F,warning=F,error=F,message=F,fig.width=15, fig.height=10}
 
+
 for(i in 1:length(plots)){
   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
-  CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols)
+  CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
 }
 
 ```

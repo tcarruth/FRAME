@@ -12,7 +12,8 @@ shinyUI(
                       h5 { font-size:13px;}
                       h6 { font-size:11px;}
                       textarea{ font-size:13px;}
-                      button{ font-size:13px;}
+                      button{ font-size:13px}
+                      input{ font-size:13px;}
                       title{ font-size:13px;}
                       caption{ font-size:13px;font-weight:normal}
                       label{ font-size:13px;}
@@ -24,8 +25,9 @@ shinyUI(
                       output{ font-size:13px;}
                       tbody{ font-size:13px;}
                       style{ font-size:13px;}
+
                       [type = 'number'] {font-size:13px;height:30px;}
-                      [type = 'text'] {font-size:13px;height:20px;}
+                      [type = 'text'] {font-size:13px;}
                       [type = 'textArea'] {font-size:13px;}
                       #Fpanelout{font-size: 13px;}
                       #Dpanelout{font-size: 13px;}
@@ -41,7 +43,7 @@ shinyUI(
                       #Build_Eval{font-size: 13px;}
                       #Build_AI{font-size: 13px;}
                       #Save{font-size: 13px;}
-                      #Load{font-size: 13px; height:20px;}
+                      #Load{font-size: 13px; height:10px;}
                       #Justification{font-size: 13px;}
                       #SessionID{font-size:11px;}
 
@@ -289,12 +291,13 @@ shinyUI(
                                    column(12,style="height:15px"),
                                    column(3,numericInput("nsim", label = "Sims", value=24,min=8,max=1000)),
                                    column(3,numericInput("proyears", label = "Proj. yrs", value=50,min=25,max=100)),
-                                   column(3,numericInput("interval", label = "Interval", value=6,min=2,max=10)),
-                                   column(3,numericInput("burnin", label = "Burn-in", value=5,min=2,max=20)),
-                                   column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0))),
+                                   column(3,numericInput("interval", label = "Interval", value=8,min=2,max=10)),
+                                   column(3,numericInput("burnin", label = "Burn-in", value=10,min=5,max=20)),
                                    #column(6, textInput("Source", "Source custom code", "mysource.r")),
-                                   column(6,checkboxInput("Ex_Ref_MPs", label = "No reference MPs", value = FALSE)),
-                                   column(6,checkboxInput("Parallel", label = "Parallel computation", value = FALSE))
+                                   column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
+                                   column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
+                                   column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
+                                   column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)))
                                  ),
 
                                 value=5),
@@ -311,8 +314,8 @@ shinyUI(
                                  h5("6. Monitor ancillary indicators",style = "color:grey"),
                                  HTML("<br>"),
                                  h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
-                                 HTML("<br>"),
                                  h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
+                                 h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
                                  value=4)
                       )
 
@@ -554,14 +557,16 @@ shinyUI(
 
                       conditionalPanel(condition="input.tabs1==5 & (output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)",
                            column(12,
-                             h5("Analysis Type: The Demo mode runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application;
-                                The Risk Evaluation mode provides generic risk assessment outputs over a longer projected time period of 100 years; The FIP (Fishery Improvement Project) mode provides MSC-specific
-                                guidance to help fisheries progress towards certification: The Certification mode generates a standard calculation and reporting of quantities relevant to MSC certification.",style = "color:grey"),
-                             h5("Users can also determine the total number of simulations, projected years and the management update interval (years between management recommendations in the projection)",style = "color:grey"),
-                             h5("Other options include selecting a management procedure for Ancillary Indicator analysis, the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
-                             h5("Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).",style = "color:grey"),
+                             h5("Analysis Type: 'Demo' runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application;
+                                'Evaluation' provides summary performance for a large number of possible management procedures. 'Application' provides an in-depth account of the performance of a single management procedure.
+                                'Indicator' evaluates the power of various data types to detect unforseen changes in fishery system dynamics and allows users to upload their own data to detect such changes.",style = "color:grey"),
+                             h5("Users can also determine the total number of simulations, the number of projected years and the management update interval (years between management recommendations in the projection).
+                                 The burn-in is intended to represent a duration over which an MP has already been used. Burn-in is the number of initial projected years correponding to some stock status performance indicators. ",style = "color:grey"),
+                             h5("Users can also choose to exclude reference management procdures (e.g. zero catches, fishing at FMSY), activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).
+                                Users may also select Low Trophic Level (LTL) species type for an alternative performance evaluation for such species",style = "color:grey"),
+                             h5("Assessment and Indicator modes require the selection of a single MP. Other options include the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
                              h5(""),
-                             h5("A more detailed guide to these extended options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey")
+                             h5("A more detailed guide to these options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey")
                              )
                       )
 
@@ -630,124 +635,128 @@ shinyUI(
 
              )
         ),
-        column(12,style="height:30px"),
-        column(12,
-              h4("Results",style = "color:black"),
-              hr(),
-              conditionalPanel(condition="output.Calc==1",
-                fluidRow(
-                  column(width = 12,
-
-                     column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                     column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                        thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                        order of projected long-term yield relative to fishing at the FMSY
-                                        reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
-                                        not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                        right.")),
-                     column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
-                                        do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
-                                        explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
-                                        management restrictions (M) controled by management question 1")),
-                     tableOutput('Ptable')
-
-                  ),
-                  column(width = 12,
-
-                         column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
-                  )       ,
-                  column(width = 4,
-
-                     column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
-                     plotOutput("P1_LTY",height="auto")
-
-                  ),
-                  column(width = 4,
-
-                     column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
-                     plotOutput("P2_LTY",height="auto")
-
-                  ),
-                  column(width = 4,
-
-                     column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
-                     plotOutput("P3_LTY",height="auto")
-
-                  )
-                ), # end of fluid row
-                fluidRow(
-                   column(width = 12,h5("B/BMSY and Relative Yield projection plots",style="font-weight:bold")),
-                   column(width=12,h5("Projections of biomass and yield relative to MSY levels. The light blue region represents the 90% probability interval, the white solid line is the median and the dark blue lines are two example simulations")),
-                   plotOutput("wormplot",height="auto"),
-                   column(width = 12,h5("HCR and Tools, change in fishing mortaliy rate as biomass drops below BMSY",style="font-weight:bold")),
-                   column(width=12,h5("A separate MSE analysis was conducted to reveal whether (given all other parameters the same) each MP should theoretically reduce fishing mortality rate as biomass declines below BMSY. Here positive relationships reveal throttling and a p-value of 0.2 is used as the threshold")),
-                   plotOutput("HCR",height="auto"),
-                   column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
-                   column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
-                   plotOutput("CCU",height="auto")
-                ), # end of fluid row
-
-                column(12,
-                     HTML("<br>"),
-                     h4("Ancillary Indicators",style = "color:black;"),
-                     column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
-                     hr(),
-                     fluidRow(
-                       column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
-                       column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
-                       column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
-                       column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
-
-                       plotOutput("CC",height="auto"),
-                       column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
-                       plotOutput("MahD",height="auto")
-
-                     )
-
-                )
-              ) # end of conditional panel
+        column(12,style="height:45px"),
 
 
-        ), # end of results
-        column(12,style="height:30px"),
-        column(12,style="height:40px",
-             h4("Reporting",style = "color:black"),
-             hr()
-        ),
+        column(6,style="height:40px",
+          h4("Reporting",style = "color:black"),
+          hr(),
 
-        column(12,style="height:50px",
-             HTML("<br>"),
-             downloadButton("Build_OM","Build operating model report")
-        ),
 
-        conditionalPanel(condition="output.Calc>0",
           column(12,style="height:50px",
-                 HTML("<br>"),
-                 downloadButton("Build_Eval","Build evaluation report")
+               HTML("<br>"),
+               downloadButton("Build_OM","Build operating model report")
           ),
 
-          column(12,style="height:50px",
-                 HTML("<br>"),
-                 downloadButton("Build_AI","Build ancillary indicators report")
+          conditionalPanel(condition="output.Calc>0",
+            column(12,style="height:50px",
+                HTML("<br>"),
+                downloadButton("Build_Eval","Build evaluation report")
+            ),
+
+            column(12,style="height:50px",
+                HTML("<br>"),
+                downloadButton("Build_AI","Build ancillary indicators report")
+            )
+
+
           )
-
-
         ),
-
-        column(12,style="height:60px"),
-
-        column(12,style="height:160px",
+        column(6,style="height:160px",
              h4("File",style = "color:black"),
              hr(),
-             column(3,style="padding:10px;",
+             column(6,style="padding:10px",
                     fileInput("Load","Load a previous session")),
 
-             column(3,
+             column(6,
                     h5("Save progress",style="font-weight:bold"),
                     downloadButton("Save","",width=70))
             # column(8,textInput("File", "File name:", "myStock.msc"))
         ),
         column(12,style="height:100px"),
+        column(12,
+
+             conditionalPanel(condition="output.Calc==1",
+                    h4("Results",style = "color:black"),
+                    hr(),
+                    fluidRow(
+                      column(width = 12,
+
+                             column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
+                             column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                order of projected long-term yield relative to fishing at the FMSY
+                                                reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                right.")),
+                             column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
+                                                do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
+                                                explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
+                                                management restrictions (M) controled by management question 1")),
+                             tableOutput('Ptable'),
+                             tableOutput('threshtable')
+
+                             ),
+                      column(width = 12,
+
+                             column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
+                      )       ,
+                      column(width = 4,
+
+                             column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
+                             plotOutput("P1_LTY",height="auto")
+
+                      ),
+                      column(width = 4,
+
+                             column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
+                             plotOutput("P2_LTY",height="auto")
+
+                      ),
+                      column(width = 4,
+
+                             column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
+                             plotOutput("P3_LTY",height="auto")
+
+                      )
+                             ), # end of fluid row
+                    fluidRow(
+                      column(width = 12,h5("B/BMSY and Relative Yield projection plots",style="font-weight:bold")),
+                      column(width=12,h5("Projections of biomass and yield relative to MSY levels. The light blue region represents the 90% probability interval, the white solid line is the median and the dark blue lines are two example simulations")),
+                      plotOutput("wormplot",height="auto"),
+                      column(width = 12,h5("HCR and Tools, change in fishing mortaliy rate as biomass drops below BMSY",style="font-weight:bold")),
+                      column(width=12,h5("A separate MSE analysis was conducted to reveal whether (given all other parameters the same) each MP should theoretically reduce fishing mortality rate as biomass declines below BMSY. Here positive relationships reveal throttling and a p-value of 0.2 is used as the threshold")),
+                      plotOutput("HCR",height="auto"),
+                      column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
+                      column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
+                      plotOutput("CCU",height="auto")
+                    ), # end of fluid row
+
+                    column(12,
+                           HTML("<br>"),
+                           h4("Ancillary Indicators",style = "color:black;"),
+                           column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
+                           hr(),
+                           fluidRow(
+                             column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
+                             column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
+                             column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
+                             column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
+
+                             plotOutput("CC",height="auto"),
+                             column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
+                             plotOutput("MahD",height="auto")
+
+                           )
+
+                    )
+           ) # end of conditional panel
+
+
+        ), # end of results
+
+      column(12,style="height:30px"),
+
         column(8,style="height:40px"),
         column(2,style="height:40px; padding:9px",textOutput("SessionID")),
         column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
