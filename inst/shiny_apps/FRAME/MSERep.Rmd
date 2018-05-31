@@ -87,21 +87,21 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in the first 10 years (PI.1.1.1a)
 
-```{r P1_LTY,echo=F,warning=F,error=F,message=F}
+```{r P1_LTY,echo=F,warning=F,error=F,message=F,fig.width=10, fig.height=10}
 P1_LTY_plot(MSEobj_top,MPcols=params$MPcols,burnin=params$burnin)
 
 ```
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
 
-```{r P2_LTY,echo=F,warning=F,error=F,message=F}
+```{r P2_LTY,echo=F,warning=F,error=F,message=F,fig.width=10, fig.height=10}
 P2_LTY_plot(MSEobj_top,MPcols=params$MPcols)
 
 ```
 
 Long term yield (LTY) vs probability biomass is greater than half BMSY in years 11-50 (PI.1.2.1a)
 
-```{r P3_LTY,echo=F,warning=F,error=F,message=F}
+```{r P3_LTY,echo=F,warning=F,error=F,message=F,fig.width=10, fig.height=10}
 P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=params$MPcols)
 
 ```
@@ -114,16 +114,16 @@ P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=params$MPcols)
 For each MP a 50 year projection is presented showing the possible range of values for spawning biomass relative to MSY levels (B/BMSY) and yield relative to FMSY fishing (Relative yield, Rel. Yd.). The colored region represents the 10th and 90th percentiles, the white line is the median trend and lines for two simulations are included to show the typical degree of variability within a simulation. 
 
 
-```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=7}
+```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
  nMPs<-length(MSEobj_top@MPs)
- panelsperplot<-12
+ panelsperplot<-8
  nplots<-ceiling(nMPs/panelsperplot)
  plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
  
  for(i in 1:length(plots)){
    MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
-   Pplot3(MSEobj2,MPcols=params$MPcols)
+   Pplot3(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=4,maxrow=4)
  }
 
  
@@ -132,32 +132,6 @@ For each MP a 50 year projection is presented showing the possible range of valu
 
 
 <br>
-
-
-# Harvest Control Rules and Tools: PI.1.2.2.a
-
-When the 'Calculate' button was pressed, two MSEs were carried out. The first undertook projections for 50 years. The second only projected a few years subject to a range of starting stock levels and with the simulation of perfect data. The motivation behind the second MSE run is to understand whether the MPs have a 'Harvest Control Rule' property that throttles fishing mortality if biomass is below BMSY (ie a positive relationship between fishing mortality rate and biomass when simulations were under BMSY levels). To examine this a linear model was fitted to the fishing rates (obtained by each MP) given a range of biomass levels. Those MPs that could achieve a significant positive trend are highlighted in green. 
-
-```{r HCR,echo=F,warning=F,error=F,message=F,fig.width=13, fig.height=4.5}
-
- nMPs<-length(params$MSEobj@MPs)
- panelsperplot<-12
- nplots<-ceiling(nMPs/panelsperplot)
- plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
- 
- for(i in 1:length(plots)){
-   
-   #MSEobj_FB2<-Sub(params$MSEobj_FB,MPs=params$MSEobj_FB@MPs[unlist(plots[i])])
-   #HCRplot(MSEobj_FB2)
- }
-
-
-
-```
-
-
-<br>
-
 
 # Cost of Current Uncertainties
 
@@ -195,3 +169,18 @@ for(i in 1:length(plots)){
 
 The package is subject to ongoing testing. If you find a bug or a problem please send a report to <t.carruthers@oceans.ubc.ca> so that it can be fixed!  
 
+<br clear="both"/>
+<br clear="both"/>
+<br clear="both"/>
+
+<hr />
+```{r copyright, results='asis',echo=FALSE, size="tiny"}
+
+  
+  cat(params$SessionID)
+  cat("\n\n")
+  cat(params$copyright)
+ 
+
+```
+<hr />

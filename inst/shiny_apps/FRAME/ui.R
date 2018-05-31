@@ -677,9 +677,12 @@ shinyUI(
         column(12,style="height:100px"),
         column(12,
 
-             conditionalPanel(condition="output.Calc==1",
-                    h4("Results",style = "color:black"),
-                    hr(),
+             conditionalPanel(condition="output.Calc>0",
+                h4("Results",style = "color:black"),
+                hr(),
+
+                conditionalPanel(condition="output.Calc==1&(input.Analysis_type=='Demo'|input.Analysis_type=='Eval')",
+
                     fluidRow(
                       column(width = 12,
 
@@ -720,7 +723,7 @@ shinyUI(
                              plotOutput("P3_LTY",height="auto")
 
                       )
-                             ), # end of fluid row
+                    ), # end of fluid row
                     fluidRow(
                       column(width = 12,h5("B/BMSY and Relative Yield projection plots",style="font-weight:bold")),
                       column(width=12,h5("Projections of biomass and yield relative to MSY levels. The light blue region represents the 90% probability interval, the white solid line is the median and the dark blue lines are two example simulations")),
@@ -731,26 +734,39 @@ shinyUI(
                       column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
                       column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
                       plotOutput("CCU",height="auto")
-                    ), # end of fluid row
+                    ) # end of fluid row
 
-                    column(12,
-                           HTML("<br>"),
-                           h4("Ancillary Indicators",style = "color:black;"),
-                           column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
-                           hr(),
-                           fluidRow(
-                             column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
-                             column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
-                             column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
-                             column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
 
-                             plotOutput("CC",height="auto"),
-                             column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
-                             plotOutput("MahD",height="auto")
+                ), # end of Evaluation results
+                conditionalPanel(condition="input.Analysis_type=='App'&output.Calc==2",
 
-                           )
+                   column(width = 12,h5("Application test",style="color::grey")),
+                   plotOutput("MSC_PMs",height="auto")
 
-                    )
+                ),    # end of Application results
+                conditionalPanel(condition="input.Analysis_type=='Ind'&output.Calc==3",
+
+                   column(12,
+                          HTML("<br>"),
+                          h4("Ancillary Indicators",style = "color:black;"),
+                          column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
+                          hr(),
+                          fluidRow(
+                            column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
+                            column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
+                            column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
+                            column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
+
+                            plotOutput("CC",height="auto"),
+                            column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
+                            plotOutput("MahD",height="auto")
+
+                          )
+
+                   )
+
+                )     # end of Indicator results
+
            ) # end of conditional panel
 
 

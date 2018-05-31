@@ -731,7 +731,7 @@ shinyServer(function(input, output, session) {
   }
 
 
-  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.1,0.9),MPcols){
+  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.05,0.25,0.75,0.95),MPcols,maxrow=NA){
 
     if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
     MPs<-MSEobj@MPs
@@ -743,6 +743,7 @@ shinyServer(function(input, output, session) {
     plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/maxcol))
 
     nr<-length(plots)*2
+    if(!is.na(maxrow))nr=max(nr,maxrow)
     nc<-maxcol
 
     mat<-array(0,c(nc,nr*1.5))
@@ -755,15 +756,18 @@ shinyServer(function(input, output, session) {
     par(mai=c(0.3,0.3,0.01,0.01),omi=c(0.5,0.5,0.05,0.05))
 
     B_BMSY<-MSEobj@B_BMSY
-    Yd<-MSEobj@C/ MSEobj@OM$RefY
+    Yd<-MSEobj@C/ array(rep(MSEobj@C[,,1],MSEobj@proyears),dim(MSEobj@C))#MSEobj@OM$RefY
+    Yd[is.na(Yd)]<-0
 
     Blims <- c(0,quantile(B_BMSY,0.95))
     Ylims<- c(0,quantile(Yd,0.95))
 
-    plotquant<-function(x,p=c(0.1,0.9),yrs,qcol,lcol,addline=T){
+    plotquant<-function(x,p=c(0.05,0.25,0.75,0.95),yrs,qcol,lcol,addline=T){
       ny<-length(yrs)
-      qs<-apply(x,2,quantile,p=p)
-      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col=qcol)
+      qs<-apply(x,2,quantile,p=p[c(1,4)])
+      qsi<-apply(x,2,quantile,p=p[2:3])
+      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col='#b3ecff')
+      polygon(c(yrs,yrs[ny:1]),c(qsi[1,],qsi[2,ny:1]),border=NA,col=qcol)
 
       if(addline)for(i in 1:2)lines(yrs,x[i,],col=lcol,lty=i)
       lines(yrs,apply(x,2,quantile,p=0.5),lwd=2,col="white")
@@ -785,7 +789,7 @@ shinyServer(function(input, output, session) {
       for(i in toplot){
         plot(range(yrs),Ylims,col="white")
         plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
-        if(i==toplot[1])mtext("Rel. Yd.",2,line=2.3)
+        if(i==toplot[1])mtext("Yield relative to today",2,line=2.3)
       }
       if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
 
@@ -838,7 +842,7 @@ shinyServer(function(input, output, session) {
       MPs<<-c('FMSYref','AvC','DCAC','curE75','matlenlim','MRreal','MCD','MCD4010','DD4010')
       #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
 
-    }else{
+    }else {
       MPs<<-avail('MP')
       cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
       #if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
@@ -872,7 +876,11 @@ shinyServer(function(input, output, session) {
     }
     OM<<-makeOM(PanelState,nsim=nsim)
 
-    MPs<<-getMPs()
+    if(input$Analysis_type%in%c("Demo","Eval")){
+       MPs<<-getMPs()
+    }else{
+       MPs<<-input$sel_MP
+    }
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
@@ -901,31 +909,29 @@ shinyServer(function(input, output, session) {
     # ==== Types of reporting ==========================================================
 
     if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
-
      redoEval()
-
-    } else if(input$Analysis_type=="Assess"){ # FIP presentations
-
-
-
-
+      Calc(1)
+    } else if(input$Analysis_type=="App"){ # FIP presentations
+     redoApp()
+      Calc(2)
     } else { # leaving just generic risk assessment
+     redoInd()
+      Calc(3)
 
-      #PPD<-MSEobj@Misc[[mm]]
+      PPD<-MSEobj@Misc[[1]]
+      tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+      stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+      res<-burnin
 
-      #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-      #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-      #res<-6
+      indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
+      indData<-matrix(indPPD[,1,1],ncol=1)
 
-      #indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
-      #indData<-matrix(indPPD[,1,1],ncol=1)
-
-      #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-      #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+      output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+      output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
 
     }
-    Calc(1)
+
 
   })
 
@@ -946,40 +952,40 @@ shinyServer(function(input, output, session) {
     output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
   }
 
+  redoApp<-function(){
+
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj),height=800,width=900)
+
+  }
+
+  redoInd<-function(){
+
+
+
+  }
+
   observeEvent(input$D1,{
     if(input$Calculate>0){
       if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-
         redoEval()
-
-
-      } else if(input$Analysis_type=="FIP"){ # FIP presentations
-
-
+      } else if(input$Analysis_type=="App"){ # FIP presentations
+        redoApp()
       } else { # leaving just generic risk assessment
-
-
-      }
+        redoInd()
+     }
     }
-
   })
 
   observeEvent(input$M1,{
     if(input$Calculate>0){
     if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-
       redoEval()
-
-
     } else if(input$Analysis_type=="App"){ # One MP application
-
-
+      redoApp()
     } else { # leaving just ancilliary indicators
-
-
+      redoInd()
     }
     }
-
   })
 
   # OM report
@@ -1152,6 +1158,8 @@ shinyServer(function(input, output, session) {
     UpJust()
     Des<<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
     MSCsave_auto()
+    #getMPs()
+    selectedMP<<-MPs[2]
   })
 
   observeEvent(input$Fback,{
@@ -1359,9 +1367,6 @@ shinyServer(function(input, output, session) {
   }
 
 
-
-
-
   # ======================= Explanatory Plots ===================================
 
   # -------------- Scheme --------------------
@@ -1471,7 +1476,6 @@ shinyServer(function(input, output, session) {
       #text(mina+(maxa-mina)/2,0.81,paste(M_max, "> M >",M_min),col='orange')
       mtext("Year",1,line=1,outer=T)
       mtext("Spawn. bio. relative to unfished (D)",2,line=0,outer=T)
-
 
     }else{
       par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
@@ -1749,7 +1753,6 @@ shinyServer(function(input, output, session) {
       text(1.75,0.5,"< Unspecified >",col="grey")
     }
 
-
   }
 
   output$plotdome <- renderPlot(plotdome())
@@ -1772,7 +1775,6 @@ shinyServer(function(input, output, session) {
     if(reflect)xs=1-xs
     xs<-(xs-0.5)*scale+x
     ys<-(ys-0.5)*scale+y
-
 
     polygon(xs,ys,col=col,border=border,lwd=lwd)
 
@@ -2622,6 +2624,96 @@ shinyServer(function(input, output, session) {
     mtext(paste("Example AI Analysis for",input$sel_MP),3,line=0.1)
   }
 
+  MSC_PMs<-function(MSEobj,curyr=2018){
+
+    layout(matrix(c(1,2,1,3,1,4),nrow=2),heights=c(1,0.7))
+
+    par(mai=c(0.7,0.3,0.1,0.1),omi=c(0.05,0.4,0.01,0.01))
+    yrs<-curyr+(1:MSEobj@proyears)
+
+    Brel<-MSEobj@B_BMSY[,1,]*100
+    ylim<-c(0,quantile(Brel,0.97))
+    matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent(fcol,50),lty=1,lwd=2,ylim=ylim,yaxs="i",xlab="",ylab="")
+
+    MGTline=mean(MSEobj@OM$MGT)*2
+    abline(v=curyr+1+c(burnin,MGTline,50),lwd=3,lty=1,col="#99999980")
+    abline(h=c(50,100),lwd=3,lty=1,col="#99999980")
+    yra<-array(rep(yrs,each=MSEobj@nsim),c(MSEobj@nsim,MSEobj@proyears))
+
+    col1<-'blue'
+    col2<-'red'
+    col3<-'green'
+
+    cond1<-Brel>50 & yra < (curyr+burnin)
+    cond2<-Brel>100 & yra < (curyr+burnin)
+    points(yra[cond2],Brel[cond2],pch=3,cex=1.4,col=col2)
+    points(yra[cond1],Brel[cond1],pch=19,cex=0.88,col=col1)
+
+    cond3<-Brel>100 & yra < curyr+1.5+MGTline & yra > curyr+0.5+MGTline
+    cond4=Brel>50 & yra > (curyr+burnin)
+    cond5<-Brel>100 & yra > (curyr+burnin)
+    points(yra[cond5],Brel[cond5],pch=4,cex=1.4,col=col2)
+    points(yra[cond4],Brel[cond4],cex=1,col=col1)
+    points(yra[cond3],Brel[cond3],pch=17,cex=1.7,col=col3)
+
+    text(curyr+5,5,paste0("Burn-in yrs (",burnin,")"),col='dark grey',font=2,cex=1.2)
+    text(curyr+MGTline-2.5,25,"2MGT",col='dark grey',font=2,cex=1.2)
+    text(curyr+47,5,"Year 50",col='dark grey',font=2,cex=1.2)
+
+    P111a<-round(100*sum(cond1)/(burnin*MSEobj@nsim),0)
+    P111b<-round(100*sum(cond2)/(burnin*MSEobj@nsim),0)
+    P112<-round(100*sum(cond3)/MSEobj@nsim,0)
+    P121a<-round(100*sum(cond4)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
+    P121b<-round(100*sum(cond5)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
+
+
+    legend('topright',legend=c(paste0("1.1.1a (",P111a,"%)"),
+                                  paste0("1.1.1b (",P111b,"%)"),
+                                  paste0("1.1.2 (",P112,"%)"),
+                                  paste0("1.2.1a (",P121a,"%)"),
+                                  paste0("1.2.1b (",P121b,"%)")),
+                           col=c(col1,col2,col3,col1,col2),text.col=c(col1,col2,col3,col1,col2),bty='n',pch=c(19,3,17,1,4),text.font=2)
+    mtext("Biomass relative to BMSY (%)",2,line=2.8)
+    mtext("MSE Projection Year",1,line=2.8)
+
+    dens<-density(Brel[,1:burnin],from=0)
+    plot(dens,main="",xlab="",ylab="")
+    abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
+    subdens<-getsegment(dens,50,lower=F)
+    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
+    subdens<-getsegment(dens,100,lower=F)
+    polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
+    lines(dens)
+    mtext("Posterior density",2,line=2.8)
+    legend('topright',legend=c("1.1.1a","1.1.1b"),text.col=c("blue","red"),bty='n',text.font=2)
+    legend('top',legend=paste0("Burn-in yrs (",burnin,")"),cex=1.2,text.col='dark grey',text.font=2,bty='n')
+
+
+    dens<-density(Brel[,burnin],from=0)
+    plot(dens,main="",xlab="",ylab="")
+    abline(v=100,lwd=2,lty=1,col="#99999980")
+    subdens<-getsegment(dens,100,lower=F)
+    polygon(y=subdens$x,x=subdens$y,col="green",border=NA)
+    lines(dens)
+    mtext("Biomass relative to BMSY",1,line=2.8)
+    legend('topright',legend="1.1.2",text.col="green",bty='n',text.font=2)
+    legend('top',legend="Burn-in year",cex=1.2,text.col='dark grey',text.font=2,bty='n')
+
+
+    dens<-density(Brel[,(burnin+1):MSEobj@proyears],from=0)
+    plot(dens,main="",xlab="",ylab="")
+    abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
+    subdens<-getsegment(dens,50,lower=F)
+    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
+    subdens<-getsegment(dens,100,lower=F)
+    polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
+    legend('topright',legend=c("1.2.1a","1.2.1b"),text.col=c("blue","red"),bty='n',text.font=2)
+    legend('top',legend=paste0("Years ",burnin,"-",MSEobj@proyears),cex=1.2,text.col='dark grey',text.font=2,bty='n')
+
+    lines(dens)
+
+   # mtext("(a)",3,adj=0.01,line=0.3)
+  }
 
 
 
