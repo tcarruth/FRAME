@@ -97,9 +97,12 @@ doQJust<-function(Answered,Selected,Justification){
     
     Jtable<-Justification
     names(Jtable)="Justification"
+    justtext<-as.character(Justification[1,1])
     x<-Jtable %>%
         mutate(
-          Justification = cell_spec(Justification, "html", color = "darkgrey",font_size=14)
+          Justification = ifelse(grepl("No justification",justtext),
+                                 cell_spec(Justification, "html", color = "red",font_size=14),
+                                 cell_spec(Justification, "html", color = "black",font_size=14))
         )%>%
         select(everything())%>%
         knitr::kable("html", escape = F,align = "l") %>%

@@ -11,18 +11,43 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
+  # -------------------------------------------------------------
+  # Explanatory figures
+  source("./Fishery_figs.R",local=TRUE)
+  source("./Management_figs.R",local=TRUE)
+  source("./Data_figs.R",local=TRUE)
+
+  # Presentation of results
+  source("./Analysis_results.R",local=TRUE)
+  source("./AI_results.R",local=TRUE)
+  source("./Performance_table.R",local=TRUE)
+  source("./Trade_off_plots.R",local=TRUE)
+  source("./VOI.R",local=TRUE)
+  source("./MSC_source.R",local=TRUE)
+
+  # OM construction / translation
+  source("./makeOM.R",local=TRUE)
+
+  # Reporting
+  source("./OM_report.R",local=TRUE)
+
+  # Miscellaneous
+  source("./Misc.R",local=TRUE)
+  source('./modSampCpars.R',local=TRUE)
+  assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
+
+  # --------------------------------------------------------------
+
   Fpanel<-reactiveVal(0)
   Mpanel<-reactiveVal(0)
   Dpanel<-reactiveVal(0)
   Calc<-reactiveVal(0)
-  #selectedMP<-reactiveText(character(0))
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
   output$Calc   <- reactive({ Calc()})
 
-  #vals <- reactiveValues(Fpanel = 0,Mpanel=0,Dpanel=0)
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Dpanel",suspendWhenHidden=FALSE)
@@ -79,31 +104,14 @@ shinyServer(function(input, output, session) {
 
   })
 
-  MSCsave_auto<-function(){
-
-    MSClog<-list(PanelState, Just, Des)
-    saveRDS(MSClog,file=paste0(USERID,"_autosave.frame"))
-
-  }
 
   # == File I/O =================
-
-  doprogress<-function(message,duration=1,n=20){
-    withProgress(message = message, value = 0, {
-      inc<-duration/n
-      for (i in 1:n) {
-        incProgress(1/n, detail = round(i*(100/n)))
-        Sys.sleep(inc)
-      }
-    })
-  }
 
   output$Save<- downloadHandler(
 
     filename = paste0(namconv(input$Name),".frame"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
 
     content=function(file){
-
 
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
@@ -131,6 +139,7 @@ shinyServer(function(input, output, session) {
     }
 
     MPs<<-getMPs()
+
     if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
 
     if(input$Analysis_type%in%c("Demo","Eval")){
@@ -150,27 +159,6 @@ shinyServer(function(input, output, session) {
     if(input$nsim<48) shinyjs::disable("Parallel")
     if(input$nsim>47) shinyjs::enable("Parallel")
   })
-
-
-
-  namconv<-function(nam){
-    nam<-gsub(" ","_",nam)
-    nam<-gsub("[.]","",nam)
-    nam<-gsub(",","",nam)
-    substr(nam,1,15)[[1]]
-  }
-
-  #observeEvent(input$D1,{
-
-   # if(input$D1[1])
-    #temp<-input$D1
-    #if("ann_cat"%in%temp)  temp<-c(temp,"ann_cat_R")
-    #if("ind"%in%temp)  temp<-c(temp,"ind_R")
-    #updateCheckboxGroupInput(session=session,inputId="D1",selected=temp)
-    #updateTextInput(session=session,inputId="Debug1", value=input$D1)
-
-  #})
-
 
   observeEvent(input$Fcont,{
 
@@ -197,11 +185,6 @@ shinyServer(function(input, output, session) {
       shinyjs::enable("sel_MP")
       updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
     }
-
-  })
-
-  observeEvent(input$Analysis_type, {
-
 
   })
 
@@ -259,611 +242,17 @@ shinyServer(function(input, output, session) {
 
   })
 
-  getminmax<-function(panel,parameter,PanelState){
-    loc<-match(parameter,inputnames[[panel]])
-    mins<-get(paste0(parameter,"_mins"))
-    maxs<-get(paste0(parameter,"_maxes"))
-    cond<-unlist(PanelState[[panel]][loc])
-    range(mins[cond],maxs[cond])
-  }
-
-  makeOM<-function(PanelState,nsim=48){
-
-    OM<-testOM
-    OM@R0<-100000
-    OM@nsim<-nsim
-
-    OM@Linf<-c(3,3)
-    OM@L50<-c(1.3,2.4)
-    OM@L50_95<-c(0.2,0.2)
-    OM@isRel<-"FALSE"
-
-    OM@Name<-input$Name
-    OM@Species<-input$Species
-    OM@Region<-input$Region
-    OM@Agency<-input$Agency
-    if(is.na(as.integer(input$nyears))){
-      OM@nyears<-68
-    }else{
-      OM@nyears<-as.integer(input$nyears)
-    }
-    nyears<-OM@nyears
-
-    OM@Source<-input$Author
-    OM@interval<-input$interval
-    OM@proyears<-input$proyears
-
-    #save(OM,file="OM.Rdata")  # debug
-
-    loc<-match("Err",inputnames[[3]])
-    cond<-as.vector(unlist(PanelState[[3]][loc]))
-    Dquality<-as.vector(unlist(Err_list)[cond])
-
-
-    if(Dquality=="Err_perf"){
-      temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
-    }else if(Dquality=="Err_good"){
-      temp<-new('OM',Albacore,Generic_Fleet,Precise_Unbiased,Perfect_Imp)
-    }else if(Dquality=="Err_mod"){
-      temp<-new('OM',Albacore,Generic_Fleet,Generic_obs,Perfect_Imp)
-    }else{
-      temp<-new('OM',Albacore,Generic_Fleet,Imprecise_Biased,Perfect_Imp)
-    }
-    OM<-Replace(OM,temp,Sub="Obs")
-
-    # Fishery characteristics -------
-    OM@M<-getminmax(1,"M",PanelState)
-    OM@D<-getminmax(1,"D",PanelState)
-    OM@h<-getminmax(1,"h",PanelState)
-
-    # Ftrend and error
-    loc<-match("FP",inputnames[[1]])
-    cond<-(1:length(unlist(PanelState[[1]][loc])))[unlist(PanelState[[1]][loc])]
-    Ftype<<-sample(cond,nsim,replace=T)
-    M1sim<-M1s[Ftype]
-    M2sim<-M2s[Ftype]
-    sd1sim<-sd1s[Ftype]
-    sd2sim<-sd2s[Ftype]
-    h2sim<-h2s[Ftype]
-    Find<-array(NA,c(nsim,nyears))
-    for(i in 1:nsim)Find[i,]<-Ftrendfunc(M1sim[i],M2sim[i],sd1sim[i],sd2sim[i],h2sim[i],nyears)
-    Esd<-getminmax(1,"F",PanelState)
-    Esd_max<-Esd[2]
-    Esd_min<-Esd[1]
-    Esdrand<-runif(nsim,Esd_min,Esd_max)
-    Emu<-(-0.5*Esdrand^2)
-    Esdarray<-array(exp(rnorm(nsim*nyears,Emu,Esdrand)),c(nsim,nyears))
-    Find<-Find*Esdarray
-
-    # --- Selectivity -----------------------
-    Sel50<-getminmax(1,"sel",PanelState)
-    Sel50sim<-runif(nsim,Sel50[1],Sel50[2])
-    L5<-Sel50sim*0.8
-    LFS<-Sel50sim*1.2
-
-    OM@Vmaxlen<-getminmax(1,"dome",PanelState)
-    OM@DR<-getminmax(1,"DR",PanelState)
-    OM@Fdisc<-getminmax(1,"PRM",PanelState)
-    OM@Perr<-getminmax(1,"sigR",PanelState)
-    OM@qinc<-getminmax(1,"q",PanelState)
-    Arng<-getminmax(1,"A",PanelState)
-    Size_area_1<-Frac_area_1<-runif(nsim,Arng[1],Arng[2])
-    OM@Prob_staying<-1-getminmax(1,"V",PanelState)[2:1]
-
-    # Management parameters
-    OM@TACFrac<-OM@TAEFrac<-getminmax(2,"IB",PanelState)
-    OM@TACSD<-OM@TAESD<-getminmax(2,"IV",PanelState)
-
-    # Data parameters
-    CB_rng<-getminmax(3,"CB",PanelState)
-    Cbias<-runif(nsim,CB_rng[1],CB_rng[2])
-
-    OM@beta<-getminmax(3,"Beta",PanelState)
-
-    # Custom parameters
-    OM@cpars<-list(Find=Find, L5=L5, LFS = LFS,Size_area_1=Size_area_1,
-                   Frac_area_1=Frac_area_1,Cbias=Cbias)
-
-    saveRDS(OM,"OM_autosave.rda")
-    OM
-
-  }
-
-  Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0){
-
-    # PI 1.1.1
-
-    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:burnin]>0.5,2,mean)*100,rnd)
-    PI.111.b<-round(apply(MSEobj@B_BMSY[,,1:burnin]>1,2,mean)*100,rnd)
-
-    # PI 1.1.2
-    MGT2<-ceiling(MSEobj@OM$MGT*2)
-    MGT2[MGT2<5]<-5
-    MGT2[MGT2>20]<-20
-
-    Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
-    Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
-    PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
-
-    # PI 1.2.1
-    PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
-    PI.121.b<-round(apply(MSEobj@B_BMSY[,,11:50]>1,2,mean)*100,rnd)
-
-    # LTY
-    refY<-sum(MSEobj@C[,1,11:50])
-    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
-    MP<-MSEobj@MPs
-
-    tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,LTY)
-
-    tab<-tab[order(tab$LTY,decreasing=T),]
-    tab
-
-  }
-
-  Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
-
-    Ptab2<-as.data.frame(matrix(thresh,nrow=1))
-    names(Ptab2)<-c("PI.111a","PI.111b","PI.112","PI.121a","PI.121b")
-
-    Ptab2 %>%
-      mutate(
-        PI.111a =   cell_spec(PI.111a, "html", color = "black"),
-        PI.111b =   cell_spec(PI.111b, "html", color = "black"),
-        PI.112 = cell_spec(PI.112, "html", color = "black"),
-        PI.121a = cell_spec(PI.121a, "html", color = "black"),
-        PI.121b =  cell_spec(PI.121b, "html", color = "black")
-      )%>%
-      knitr::kable("html", escape = F,align = "c") %>%
-      kable_styling("striped", full_width = F)%>%
-      column_spec(5, width = "3cm")  %>%
-      add_header_above(c("Thresholds" = 5))
-  }
-
-  #                                       11a 11b 12  21a 21a
-  Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
-
-    # save(Ptab1,file="Ptab1")
-    MPs<-as.character(Ptab1$MP)
-    if(is.na(ntop))ntop<-nrow(Ptab1)
-    if(ntop>nrow(Ptab1))ntop<-nrow(Ptab1)
-    if(ntop<1)ntop<-1
-
-    # Proper Data Feasibility based on complex fease analysis by MP
-    tempdat<-tempdat0<-DLMtool::SimulatedData
-    tempdat@Cat<-array(NA,dim(tempdat0@Cat))
-    tempdat@Ind<-array(NA,dim(tempdat0@Ind))
-    tempdat@CAL<-array(NA,dim(tempdat0@CAL))
-    tempdat@CAA<-array(NA,dim(tempdat0@CAA))
-    tempdat@vbK<-rep(NA,length(tempdat0@vbK))
-    tempdat@Abun<-rep(NA,length(tempdat0@Abun))
-
-    ndaty<-dim(tempdat@Cat)[2]
-    cond<-unlist(PanelState[[3]][1]) # cond=rep(T,9) cond=c(F,T,F,T,F,T,F,F,F)
-    FeasePos<-c("Catch","Catch","Index","Index","Index","Catch_at_length","Catch_at_age","Growth","Abundance")
-    Datslot<-c("Cat","Cat","Ind","Ind","Ind","CAL","CAA","vbK","Abun")
-    yrrange<-c(ndaty, 5,  ndaty,  5,    ndaty,        2,                2, NA, NA)
-
-    for(i in 1:length(Datslot)){
-      if(cond[i]){ # if user has specified that data are available
-        if(!is.na(yrrange[i])){ # it not a vector of values
-          ndim<-length(dim(slot(tempdat0,Datslot[i])))
-          if(ndim==2){ # is a matrix
-            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
-          }else{ # is a 3D array
-            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
-          }
-        }else{
-         slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
-        }
-      }
-    }
-
-    DFeasible<-Fease(tempdat)
-
-    # TAC TAE Feasibility
-    cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
-    runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
-    recs <- runMPs[[1]]
-    type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
-    for (mm in seq_along(recs)) {
-      type[mm,1] <- as.integer(length(recs[[mm]]$TAC) > 0)
-      type[mm,2] <- as.integer(length(recs[[mm]]$Effort)>0)
-      type[mm,3] <- as.integer(length(recs[[mm]]$LR5)>0)
-      type[mm,4] <- as.integer(!is.na(recs[[mm]]$Spatial[1,1]))
-    }
-
-    DFeasible<-unique(c(DFeasible,MPs[(type[,4]==1|type[,3]==1) & apply(type,1,sum)==1])) # Size limits and area closures might not need data
-    totneeded<-apply(type,1,sum)
-    speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
-    MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
-
-    MP_Type<-rep("TAC",length(MPs))
-    MP_Type[type[,2]==1]<-"TAE"
-    MP_Type[type[,3]==1]<-"SzLim"
-    MP_Type[type[,4]==1]<-"MPA"
-    MP_Type[totneeded>1]<-"Mixed"
-
-    Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
-    Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
-    names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
-
-    PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
-    MPcols<<-rep('black',length(MPs))
-    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
-    MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
-
-
-    feasible<<-rep("",length(MPs))
-    condD<-!MPs%in%DFeasible
-    condM<-!MPs%in%MFeasible
-    condDM<-condD&condM
-    feasible[condD]<<-"D"
-    feasible[condM]<<-"M"
-    feasible[condDM]<<-"D/M"
-
-    Ptab2<-cbind(Ptab2,feasible)
-
-    # Rankings
-    rnkscore<-Ptab2$LTY
-    rnkscore[MPcols=="green"]=rnkscore[MPcols=="green"]+2000
-    rnkscore[MPcols=="red"]=rnkscore[MPcols=="red"]+1000
-    ord<-order(rnkscore,decreasing = T)
-    Ptab2<-Ptab2[ord[1:ntop],]
-    MPcols<<-MPcols[ord[1:ntop]]
-    Ptab2
-
-  }
-
-  Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50)){
-
-    dynheader<-c(1,1,2,1,2,1,1)
-    names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")
-
-    Ptab2 %>%
-      mutate(
-        #MP = row.names(.),
-        MP =  cell_spec(MP, "html", color = MPcols),
-        Type =  cell_spec(Type, "html"),
-        PI.111a = ifelse(PI.111a >= thresh[1],
-                        cell_spec(PI.111a, "html", color = "green"),
-                        cell_spec(PI.111a, "html", color = "red")),
-        PI.111b = ifelse(PI.111b >= thresh[2],
-                        cell_spec(PI.111b, "html", color = "green"),
-                        cell_spec(PI.111b, "html", color = "red")),
-        PI.112 = ifelse(PI.112 >= thresh[3],
-                       cell_spec(PI.112, "html", color = "green"),
-                       cell_spec(PI.112, "html", color = "red")),
-        PI.121a = ifelse(PI.121a >= thresh[4],
-                        cell_spec(PI.121a, "html", color = "green"),
-                        cell_spec(PI.121a, "html", color = "red")),
-        PI.121b = ifelse(PI.121b >= thresh[5],
-                        cell_spec(PI.121b, "html", color = "green"),
-                        cell_spec(PI.121b, "html", color = "red")),
-        LTY =  cell_spec(LTY, "html"),
-        feasible =  cell_spec(feasible, "html")
-
-      )%>%
-      #select(everything())%>%
-      knitr::kable("html", escape = F,align = "c") %>%
-      kable_styling("striped", full_width = F)%>%
-      column_spec(5, width = "3cm") %>%
-      add_header_above(c(" ", " ","> 0.5 BMSY" = 1, "> BMSY" = 1,
-                         "> BMSY"=1,"> 0.5 BMSY"=1,"> BMSY"=1,"vs FMSYref"=1,"not"=1))%>%
-
-      add_header_above(dynheader)%>%
-
-      add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
-                         "Harvest Strategy"=2,
-                         "Long-Term Yield"=1," "=1))
-
-
-  }
-
-  P1_LTY_plot<<-function(MSEobj,burnin,MPcols){
-
-    Eyr<-10
-    rnd<-0
-    MPcols[MPcols=='green']<-'darkgreen'
-    #MPcols[feasible!=""]<-makeTransparent(MPcols[feasible!=""],70)
-    PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:burnin]>0.5,2,mean)*100,rnd)
-    refY<-sum(MSEobj@C[,1,11:50])
-    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
-    MP<-MSEobj@MPs
-    par(mai=c(0.8,0.8,0.1,0.1))
-    ylim<-c(0,max(LTY))
-    plot(c(-10,110),ylim,col='white',xlab="",ylab="")
-    mtext(paste0("Prob. Biomass > 0.5 BMSY, yrs 1-",burnin," (PI.1.1.1a)"),1,line=2.5,cex=1.2)
-    mtext("Long term yield",2,line=2.5,cex=1.2)
-    abline(v=c(0,100),col="#99999950")
-    abline(h=c(0,100),col="#99999950")
-
-    text(PI.111.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-
-  }
-
-  P2_LTY_plot<<-function(MSEobj,MPcols){
-
-    rnd<-0
-    MPcols[MPcols=='green']<-'darkgreen'
-    PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
-    refY<-sum(MSEobj@C[,1,11:50])
-    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
-    MP<-MSEobj@MPs
-    par(mai=c(0.8,0.8,0.1,0.1))
-    ylim<-c(0,max(LTY))
-    plot(c(-10,110),ylim,col='white',xlab="",ylab="")
-    mtext("Prob. Biomass > 0.5 BMSY, yrs 11-50 (PI.1.2.1a)",1,line=2.5,cex=1.2)
-    mtext("Long term yield",2,line=2.5,cex=1.2)
-    abline(v=c(0,100),col="#99999950")
-    abline(h=c(0,100),col="#99999950")
-
-    text(PI.121.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-
-  }
-
-  P3_LTY_plot<<-function(MSEobj,MSEobj_reb,MPcols){
-
-    rnd<-4
-    MPcols[MPcols=='green']<-'darkgreen'
-      MGT2<-ceiling(MSEobj@OM$MGT*2)
-    MGT2[MGT2<5]<-5
-    MGT2[MGT2>20]<-20
-
-    Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
-    Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
-    PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
-
-    refY<-sum(MSEobj@C[,1,11:50])
-    LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
-    MP<-MSEobj@MPs
-    par(mai=c(0.8,0.8,0.1,0.1))
-    ylim<-c(0,max(LTY))
-    plot(c(-10,110),ylim,col='white',xlab="",ylab="")
-    mtext("Prob. Rebuilding to BMSY over 2MGT (PI.1.1.2)",1,line=2.5,cex=1.2)
-    mtext("Long term yield",2,line=2.5,cex=1.2)
-    abline(v=c(0,100),col="#99999950")
-    abline(h=c(0,100),col="#99999950")
-
-    text(PI.112,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-
-  }
-
-  wormplot_msc<-function(MSEobj, Bref = 0.5, LB = 0.25, UB = 0.75, MPcols){
-
-    #par(mai=c(0.6,0.6,0.01,0.01))
-    #wormplot(MSEobj)
-
-    ncol <- ceiling(MSEobj@nMPs^0.3)
-    nrow <- ceiling(MSEobj@nMPs/ncol)
-    par(mfcol = c(nrow, ncol), mar = c(0.1, 0.1, 0.1, 0.1), omi = c(0.6, 0.25, 0.3, 0))
-    Bprob <- apply(MSEobj@B_BMSY > Bref, 2:3, sum)/MSEobj@nsim
-    ind <- order(apply(Bprob, 1, sum), decreasing = T)
-    BLB <- Bprob > LB
-    BUB <- Bprob > UB
-
-    col <- array("red", dim(Bprob))
-    col[BLB & !BUB] = "yellow"
-    col[BUB] = "green"
-
-    for (i in 1:(nrow * ncol)) {
-      if (i < (MSEobj@nMPs + 1)) {
-        MP <- ind[i]
-        plot(c(1, MSEobj@proyears + 2), c(-1, 1), col = "white", axes = F)
-        # abline(h=0)
-
-        for (ys in 1:MSEobj@proyears) {
-          x <- c(ys - 1, ys, ys, ys - 1)
-          y <- c(rep(Bprob[MP, ys], 2), rep(-Bprob[MP, ys], 2))
-          pol <- data.frame(x, y)
-          polygon(pol, col = col[MP, ys], border = NA)
-        }
-
-        legend("top", legend = MSEobj@MPs[MP], bty = "n",text.col=MPcols[MP])
-        if ((i/nrow) == round(i/nrow, 0))
-          axis(1, pretty(1:MSEobj@proyears), pretty(1:MSEobj@proyears))
-
-
-      } else {
-        plot.new()
-      }
-
-      if (i == (nrow * ncol)) {
-        legend("topright", fill = c("green", "red"), legend = c(paste(">",round(UB * 100, 0), "% prob.", sep = ""), paste("<", round(LB * 100, 0), "% prob.", sep = "")), bty = "n")
-      }
-
-    }
-
-    mtext(paste("Probability of biomass above ", round(Bref * 100, 0),"% BMSY for ", deparse(substitute(MSE)), sep = ""), 3, outer = T,line = 0.5)
-    mtext("Projection year", 1, outer = T, line = 2.5)
-    mtext(paste("Fraction of simulations above ", round(Bref * 100, 0),"% BMSY", sep = ""), 2, outer = T, line = 0.25)
-
-  }
-
-  HCRplot<-function(MSEobj,Pcrit=0.2){
-
-    nMPs<-MSEobj@nMPs
-    ncol=6
-    nrow=ceiling(nMPs/ncol)
-    par(mfrow=c(nrow,ncol),mai=c(0.4,0.4,0.01,0.01),omi=c(0.3,0.3,0.01,0.01))
-
-    for(i in 1:MSEobj@nMPs){
-
-      cond<-MSEobj_FB@B_BMSY[,i,1]<1 & MSEobj_FB@B_BMSY[,i,1]>0.1
-      plot(MSEobj_FB@B_BMSY[,i,1],MSEobj_FB@F_FMSY[,i,2],col="white",pch=19,xlim=c(0,1.6),xlab="",ylab="",cex.axis=1.5)
-      points(MSEobj_FB@B_BMSY[!cond,i,1],MSEobj_FB@F_FMSY[!cond,i,2],col="#99999998",pch=19)
-
-      dat<-data.frame(x=MSEobj_FB@B_BMSY[cond,i,1],y=MSEobj_FB@F_FMSY[cond,i,2])
-      temp<-lm(y~x,dat=dat)
-      stemp<-summary(temp)
-      pred<-predict(temp,newdata=data.frame(x=seq(0.1,1,length.out=20)))
-      Pval<-stemp$coefficients[2,4]
-      Slope<-stemp$coefficient[2,1]
-      pos<-Slope>0
-
-      col<-'red'
-      if(pos & Pval<Pcrit)col="green"
-      points(MSEobj_FB@B_BMSY[cond,i,1],MSEobj_FB@F_FMSY[cond,i,2],col=col,pch=19)
-      lines(seq(0.1,1,length.out=20),pred,col=col)
-      legend('bottomright',legend=c(paste("pval=",round(Pval,3)),paste("slope=",round(Slope,3))),bty='n',cex=1.3)
-      legend('top',MSEobj@MPs[i],bty='n',text.font=2,cex=1.5)
-
-    }
-
-    mtext("F/FMSY",2,line=0.3,outer=T)
-    mtext("B/BMSY",1,line=0.3,outer=T)
-
-  }
-
-
-  getVOI<-function(MSEobj_top){
-
-    opt1<-  c("M",        "Depletion",      "hs",      "Esd",          "LFS",        "Vmaxlen",  "DR",          "PRM",             "procsd",   "qinc",            "Frac_area_1","Prob_staying",
-              "TACFrac", "TACSD","Cbias","betas")
-
-    opt2<-  c(rep("",12),"TAEFrac", "TAESD","","","RefY")
-
-    MSEtemp<-MSEobj_top
-    MSEtemp@OM<-cbind(MSEtemp@OM,betas=MSEtemp@Obs$betas,Cbias=MSEtemp@Obs$Cbias)
-    MSEtemp@OM<-MSEtemp@OM[,names(MSEtemp@OM)%in%opt1 | names(MSEtemp@OM)%in%opt2]
-    VOI(MSEtemp,ncomp=17,nbins=6)[[1]]
-
-  }
-
-
-  Pplot3<-function(MSEobj,maxcol=6,qcol=rgb(0.4,0.8,0.95), lcol= "dodgerblue4",curyr=2018,quants=c(0.05,0.25,0.75,0.95),MPcols,maxrow=NA){
-
-    if(is.na(maxcol))maxcol=ceiling(length(MSEobj@MPs)/0.5) # defaults to portrait 1:2
-    MPs<-MSEobj@MPs
-    nMPs<-length(MPs)
-    yrs<-curyr+(1:MSEobj@proyears)
-
-    MPcols[MPcols=="green"]<-"darkgreen"
-
-    plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/maxcol))
-
-    nr<-length(plots)*2
-    if(!is.na(maxrow))nr=max(nr,maxrow)
-    nc<-maxcol
-
-    mat<-array(0,c(nc,nr*1.5))
-    ind<-floor(0.5+(1:nr)*1.5)
-    mat[,ind]<-1:(nr*nc)
-    mat<-t(mat)
-    ht<-rep(0.2,nr*1.5)
-    ht[ind]<-1
-    layout(mat,heights=ht)
-    par(mai=c(0.3,0.3,0.01,0.01),omi=c(0.5,0.5,0.05,0.05))
-
-    B_BMSY<-MSEobj@B_BMSY
-    Yd<-MSEobj@C/ array(rep(MSEobj@C[,,1],MSEobj@proyears),dim(MSEobj@C))#MSEobj@OM$RefY
-    Yd[is.na(Yd)]<-0
-
-    Blims <- c(0,quantile(B_BMSY,0.95))
-    Ylims<- c(0,quantile(Yd,0.95))
-
-    plotquant<-function(x,p=c(0.05,0.25,0.75,0.95),yrs,qcol,lcol,addline=T){
-      ny<-length(yrs)
-      qs<-apply(x,2,quantile,p=p[c(1,4)])
-      qsi<-apply(x,2,quantile,p=p[2:3])
-      polygon(c(yrs,yrs[ny:1]),c(qs[1,],qs[2,ny:1]),border=NA,col='#b3ecff')
-      polygon(c(yrs,yrs[ny:1]),c(qsi[1,],qsi[2,ny:1]),border=NA,col=qcol)
-
-      if(addline)for(i in 1:2)lines(yrs,x[i,],col=lcol,lty=i)
-      lines(yrs,apply(x,2,quantile,p=0.5),lwd=2,col="white")
-    }
-
-    for(pp in 1:length(plots)){
-
-      toplot<-unlist(plots[pp])
-      nt<-length(toplot)
-
-      for(i in toplot){
-        plot(range(yrs),Blims,col="white")
-        plotquant(B_BMSY[,i,],p=quants,yrs,qcol,lcol)
-        mtext(MSEobj@MPs[i],3,line=0.2,font=2,col=MPcols[i])
-        if(i==toplot[1])mtext("B/BMSY",2,line=2.3)
-      }
-      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
-
-      for(i in toplot){
-        plot(range(yrs),Ylims,col="white")
-        plotquant(Yd[,i,],p=quants,yrs,qcol,lcol)
-        if(i==toplot[1])mtext("Yield relative to today",2,line=2.3)
-      }
-      if(nt<maxcol)for(i in 1:(maxcol-nt))plot(NULL, xlim=c(0,1), ylim=c(0,1), ylab="y label", xlab="x lablel",axes=F)
-
-    }
-
-    mtext("Projection Year",1,line=0.7,outer=T)
-
-  }
-
-
-
-  CCU_plot<-function(VOIout,MSEobj,MPcols,maxrow=1){
-
-    qno<-   c("F2",       "F3",             "F4",       "F6",         "F7",       "F8",          "F9",              "F10",      "F11",             "F12",        "F13",          "F14",
-              "M2",       "M3",  "D2",    "D3")
-    qtext<- c("Longevity","Stock depletion","Resilence","Exploit. Var.","Selectivity","Dome Sel.","Discard rate","Post. Rel. Mort.","Rec. Var.","Fish. efficiency","MPA size",   "Mixing",
-              "Imp. over/under",  "Imp. Var.", "Cat. Rep. Bias.","Hyperstability")
-    opt1<-  c("M",        "Depletion",      "hs",      "Esd",          "LFS",        "Vmaxlen",  "DR",          "PRM",             "procsd",   "qinc",            "Frac_area_1","Prob_staying",
-              "TACFrac", "TACSD","Cbias","betas")
-    opt2<-  c(rep("",12),"TAEFrac", "TAESD","","","RefY")
-
-    nMPs<-MSEobj@nMPs
-    ncol=3
-    nrow=ceiling(nMPs/ncol)
-    par(mfrow=c(max(maxrow,nrow),ncol),mai=c(1.8,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
-
-    MPcols[MPcols=="green"]<-'darkgreen'
-
-    for(i in 1:MSEobj@nMPs){
-      MP<-MSEobj@MPs[i]
-      dat<-VOIout[match(MP,VOIout[,1])+0:1,2:18]
-      lab1<-qno[match(as.factor(unlist(dat[1,])),opt1)]
-      lab2<-qno[match(as.factor(unlist(dat[1,])),opt2)]
-      lab1[is.na(lab1)]<-lab2[is.na(lab1)]
-      dat2<-aggregate(as.numeric(as.character(unlist(dat[2,]))),by=list(lab1),max)
-      dat2<-dat2[order(dat2$x,decreasing=T),]
-      labs<-paste(qno,qtext,sep=" - ")
-      barplot(dat2[,2],names.arg=labs[match(dat2[,1],qno)], las=2,col=fcol,border=NA,cex.axis=1.4,cex.names=1.3)
-      legend('topright',MP,bty='n',text.font=2,cex=1.6,text.col=MPcols[i])
-    }
-
-    mtext("Question / operating model characteristic",1,outer=T,line=0.5)
-    mtext("Variability in Long Term Yield (% LTY)",2,outer=T,line=0.5)
-
-  }
-
-  getMPs<-function(){
-
-    if(input$Analysis_type=="Demo"){
-      MPs<<-c('FMSYref','AvC','DCAC','curE75','matlenlim','MRreal','MCD','MCD4010','DD4010')
-      #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
-
-    }else {
-      MPs<<-avail('MP')
-      cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
-      #if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
-      MPs<-c('FMSYref',MPs[!cond])
-
-    }
-
-    if(input$Ex_Ref_MPs)MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-
-    MPs
-  }
-
-#############################################################################################################################################################################
-
-#############################################################################################################################################################################
-
   observeEvent(input$ntop,{
     if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
-       redoEval()
+      redoEval()
     }
   })
+
+
+#############################################################################################################################################################################
+
+#############################################################################################################################################################################
+
 
   observeEvent(input$Calculate,{
 
@@ -894,10 +283,12 @@ shinyServer(function(input, output, session) {
 
     OM_reb<-OM
     OM@proyears<-max(MGT2)+2 # only have to compute to this year
-    OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2 # start from half BMSY
-    temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
-    OM_reb<-Replace(OM_reb,temp,Sub="Obs")
-    OM_reb<-Replace(OM_reb,temp,Sub="Imp")
+    OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
+
+    #temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
+    #OM_reb<-Replace(OM_reb,temp,Sub="Obs")
+    #OM_reb<-Replace(OM_reb,temp,Sub="Imp")
+
 
     withProgress(message = "Rebuilding evaluation", value = 0, {
       MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
@@ -929,17 +320,17 @@ shinyServer(function(input, output, session) {
       output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
       output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
-
     }
-
 
   })
 
   redoEval<-function(){
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
     Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
-    MSEobj_top<-Sub(MSEobj,MPs=Ptab2$MP)
-    MSEobj_reb_top<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+    MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+    MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+    save(MSEobj_top,file="MSEobj_top")
+    save(MSEobj_reb_top,file="MSEobj_reb_top")
     nMPs<-length(MSEobj_top@MPs)
     updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
     output$Ptable <- function()Ptab_formatted(Ptab2)
@@ -948,18 +339,25 @@ shinyServer(function(input, output, session) {
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
     output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
     output$wormplot<-renderPlot(Pplot3(MSEobj_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
+    output$wormplot2<-renderPlot(Rplot(MSEobj_reb_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
+    output$PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_top,MPcols=MPcols,maxMPs=MSEobj_top@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =ceiling(nMPs/6)*250 , width = 1100)
     VOIout<<-getVOI(MSEobj_top)
     output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
   }
 
   redoApp<-function(){
-
-    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj),height=800,width=900)
+    Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
+    output$App_Ptable <- function()Ptab_formatted(Ptab2)
+    output$App_threshtable<-function()Thresh_tab()
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj,MSEobj_reb),height=800,width=900)
+    output$App_wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
+    output$App_wormplot2<-renderPlot(Pplot4(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
+    output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
 
   }
 
   redoInd<-function(){
-
 
 
   }
@@ -991,9 +389,10 @@ shinyServer(function(input, output, session) {
   # OM report
   output$Build_OM <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = "OM report.html", #"report.html",
+    filename = paste0(namconv(input$Name),"_OM.html"), #"report.html",
+
     content = function(file) {
-      doprogress("Building OM report",5)
+      doprogress("Building OM report",20)
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OMRep.Rmd')
 
@@ -1033,18 +432,64 @@ shinyServer(function(input, output, session) {
   # MSE report
   output$Build_Eval <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = paste0(namconv(input$Name),"Eval.html"), #"report.html",
+    filename = paste0(namconv(input$Name),"_Eval.html"), #"report.html",
 
     content = function(file) {
 
-      src <- normalizePath('MSERep.Rmd')
-      doprogress("Building evaluation report",4)
+      src <- normalizePath('EvalRep.Rmd')
+      doprogress("Building evaluation report",8)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      file.copy(src, 'MSERep.Rmd', overwrite = TRUE)
+      file.copy(src, 'EvalRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Evaluation Report for ",input$Name),
+                     set_type=paste0(switch(input$Analysis_type,
+                                            "Demo"="Demonstration evaluation analysis",
+                                            "Eval" = "Evaluation of MPs analysis",
+                                            "App" = "Application of an MP",
+                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
+
+                     PanelState=MSClog[[1]],
+                     Just=MSClog[[2]],
+                     Des=MSClog[[3]],
+                     OM=OM,
+                     MSEobj=MSEobj,
+                     MSEobj_reb=MSEobj_reb,
+                     MSEobj_top=MSEobj_top,
+                     MSEobj_reb_top=MSEobj_reb_top,
+                     MPcols=MPcols,
+                     ntop=input$ntop,
+                     burnin=burnin,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+                     )
+
+      out<-render("EvalRep.Rmd", params = params)
+      file.rename(out, file)
+
+    }
+
+  )
+  # Application report
+  output$Build_App <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_App.html"), #"report.html",
+
+    content = function(file) {
+
+      src <- normalizePath('AppRep.Rmd')
+      doprogress("Building evaluation report",8)
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'AppRep.Rmd', overwrite = TRUE)
 
       library(rmarkdown)
       params <- list(test = input$Name,
@@ -1066,22 +511,21 @@ shinyServer(function(input, output, session) {
                      burnin=burnin,
                      SessionID=SessionID,
                      copyright="copyright (c) NRDC 2018"
-                     )
+      )
 
-      out<-render("MSERep.Rmd", params = params)
+      out<-render("AppRep.Rmd", params = params)
       file.rename(out, file)
 
     }
 
   )
 
-
   output$Build_AI <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_AI.html"), #"report.html",
     content = function(file) {
-      doprogress("Building AI report",3)
-      src <- normalizePath('AIRep.Rmd')
+      doprogress("Building AI report",6)
+      src <- normalizePath('IndRep.Rmd')
 
       test<-match(input$sel_MP,MPs)
       if(is.na(test))mm<-1
@@ -1092,7 +536,7 @@ shinyServer(function(input, output, session) {
 
       owd <- setwd(tempdir())
       on.exit(setwd(owd))
-      file.copy(src, 'AIRep.Rmd', overwrite = TRUE)
+      file.copy(src, 'IndRep.Rmd', overwrite = TRUE)
 
       library(rmarkdown)
       params <- list(test = input$Name,
@@ -1116,7 +560,7 @@ shinyServer(function(input, output, session) {
                      copyright="copyright (c) NRDC 2018"
       )
 
-      out<-render("AIRep.Rmd", params = params)
+      out<-render("IndRep.Rmd", params = params)
       file.rename(out, file)
 
     }
@@ -1124,30 +568,6 @@ shinyServer(function(input, output, session) {
 
 
   # Fishery panel reactions ============================================================================================================
-
-  UpJust<-function(){
-
-    if(input$tabs1==1){
-      updateTextAreaInput(session,"Justification",value=Just[[1]][Fpanel()])
-    }else if(input$tabs1==2){
-      updateTextAreaInput(session,"Justification",value=Just[[2]][Mpanel()])
-    }else if(input$tabs1==3){
-      updateTextAreaInput(session,"Justification",value=Just[[3]][Dpanel()])
-    }
-
-  }
-
-  RecJust<-function(){
-
-    if(input$tabs1==1 & Fpanel()>0 & Fpanel()<14){
-      Just[[1]][Fpanel()]<<-input$Justification
-    }else if(input$tabs1==2 & Mpanel()>0 & Mpanel()<4){
-      Just[[2]][Mpanel()]<<-input$Justification
-    }else if(input$tabs1==3 & Dpanel()>0 & Dpanel()<5){
-      Just[[3]][Dpanel()]<<-input$Justification
-    }
-
-  }
 
   observeEvent(input$Justification,{
     RecJust()
@@ -1345,1377 +765,35 @@ shinyServer(function(input, output, session) {
 
   )
 
-  # ======================= Reports ========================================
-
-
-  Qtab<<-function(Answer,selected){
-
-    scol<-"#b9e8f9"
-    Qtable<-data.frame(Answer)
-
-    Qtable %>%
-      mutate(
-        Answer = ifelse(selected,
-                        color_bar(color = scol)(Answer),
-                        color_bar(color = "white")(Answer))
-      )%>%
-      select(everything())%>%
-      knitr::kable("html", escape = F,align = "c") %>%
-      kable_styling("hover", full_width = F)%>%
-      column_spec(1, width = "3cm")
-
-  }
-
-
   # ======================= Explanatory Plots ===================================
-
-  # -------------- Scheme --------------------
-
+  # Scheme
   fcol = rgb(0.4,0.8,0.95)#"#0299f"
   fcol2 = "dark grey"
   icol <- "dodgerblue4"
   maxcol="cadetblue"
   mincol="dark grey"
 
-  # -------------- Fishery -------------------
-
-  plotM <- function(dummy=1){
-
-    par( mar=c(3,3,0.05,0.01), cex.main = 1.5, cex.lab=1.35 )
-    M_nams<-unlist(M_list)#c("M_60", "M_40_60","M_20_40","M_10_20","M_05_10","M_05")
-
-    cond<-M_nams%in%input$M
-
-    if(sum(cond)>0){
-
-      M_max<-max(M_maxes[cond])
-      M_min<-min(M_mins[cond])
-
-      maxa<- -log(0.02)/M_min
-      mina<- -log(0.02)/M_max
-      maxage<-floor(maxa*1.1)
-      UB<-exp(-M_min*((1:maxage)-1))
-      LB<-exp(-M_max*((1:maxage)-1))
-
-      plot(c(1,maxage),c(0,1),col="white",xlab="",ylab="")
-      mtext("Age",1,line=2)
-      mtext("Survival",2,line=2)
-      polygon(c(1:maxage,maxage:1),c(LB,UB[maxage:1]),border=NA,col=fcol)
-      abline(v=c(mina,maxa),lty=2,col=icol)
-
-      text(mina+(maxa-mina)/2,0.95," Range max age ",col=icol)
-      text(mina+(maxa-mina)/2,0.88,paste(round(mina,1), "-",round(maxa,1),"years"),col=icol)
-      text(mina+(maxa-mina)/2,0.81,paste(M_max, "> M >",M_min),col=icol)
-
-
-    }else{
-
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >",col="grey")
-
-    }
-
-  }
-
+  # Fishery
   output$plotM <- renderPlot(plotM())
-
-  plotD <- function(dummy=1){
-
-    D_nams<-unlist(D_list)#c("D_10", "D_10_20","D_20_30","D_30_60","D_60_80","D_80")
-
-    cond<-D_nams%in%input$D
-
-    if(sum(cond)>0){
-      par(mfrow=c(1,2),mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.18,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
-      D_max<-max(D_maxes[cond])
-      D_min<-min(D_mins[cond])
-
-      set.seed(1)
-
-      ts1<-(2+(cos((-0:60)/10.18))/3)*exp(rnorm(61,0,0.2))
-      ts1<-ts1/mean(ts1[1:5])
-
-      ts2<-(2+(cos((10:40)/4.18)/4))*exp(rnorm(31,0,0.1))
-      ts2<-ts2/mean(ts2[1:5])
-
-      # plot TS1
-      yrs<-2017-(length(ts1):1)-1
-      ny<-length(yrs)
-
-      Dmaxs<-seq(1,D_max,length.out=ny)
-      Dmins<-seq(1,D_min,length.out=ny)
-
-      UB<-Dmaxs*ts1
-      LB<-Dmins*ts1
-
-      plot(yrs[c(1,ny)],c(0,1.2),col="white",xlab="",ylab="")
-      abline(h=c(D_max,D_min),lty=2,col=icol)
-      abline(h=1)
-      polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=fcol)
-
-      mtext("Example 1",3,line=0.8)
-
-      # plot TS2
-      yrs<-2017-(length(ts2):1)-1
-      ny<-length(yrs)
-
-      Dmaxs<-seq(1,D_max,length.out=ny)
-      Dmins<-seq(1,D_min,length.out=ny)
-
-      UB<-Dmaxs*ts2
-      LB<-Dmins*ts2
-
-      plot(yrs[c(1,ny)],c(0,1.2),col="white",xlab="",ylab="")
-      abline(h=c(D_max,D_min),lty=2,col=icol)
-      abline(h=1)
-      polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=fcol)
-
-      mtext("Example 2",3,line=0.8)
-      #text(mina+(maxa-mina)/2,0.95," Range max age ",col='orange')
-      #text(mina+(maxa-mina)/2,0.88,paste(round(mina,1), "-",round(maxa,1)),col='orange')
-      #text(mina+(maxa-mina)/2,0.81,paste(M_max, "> M >",M_min),col='orange')
-      mtext("Year",1,line=1,outer=T)
-      mtext("Spawn. bio. relative to unfished (D)",2,line=0,outer=T)
-
-    }else{
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >", col="grey")
-
-    }
-
-  }
-
   output$plotD <- renderPlot(plotD())
-
-  ploth <- function(dummy=1){
-
-    par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-    h_nams<-unlist(h_list)#c("h_30", "h_30_50","h_50_70","h_70_90","h_90")
-
-    cond<-h_nams%in%input$h
-
-    if(sum(cond)>0){
-
-      h_max<-max(h_maxes[cond])
-      h_min<-min(h_mins[cond])
-
-      np<-100
-      D<-seq(0,1,length.out=np)
-      UB<-(0.8*h_max*D)/(0.2*(1-h_max)+(h_max-0.2)*D)
-      LB<-(0.8*h_min*D)/(0.2*(1-h_min)+(h_min-0.2)*D)
-
-      plot(c(0,1),c(0,1),col="white",xlab="",ylab="")
-      mtext("Stock depletion (spawning biomass relative to unfished)",1,line=2)
-      mtext("Fraction of unfished recruitment",2,line=2)
-      polygon(c(D,D[np:1]),c(LB,UB[np:1]),border=NA,col=fcol)
-      abline(v=0.2,col=icol)
-      abline(h=c(h_min,h_max),col=icol,lty=2)
-
-    }else{
-
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >",col="grey")
-
-    }
-
-  }
-
   output$ploth <- renderPlot(ploth())
-
-  Ftrendfunc<-function(M1=0.2,M2=1.2,sd1=0.1,sd2=0.3,h2=2,ny=68,plot=F){
-
-    E<-rep(NA,ny)
-    ind1<-1:floor(M1*ny)
-    d1<-dnorm(ind1,M1*ny,sd1*ny)
-    E[ind1]<-d1/max(d1)
-    ind12<-(floor(M1*ny)+1):ceiling(M2*ny)
-    ind12<-ind12[ind12<=ny]
-    E[ind12]<-1
-    d2<-dnorm(ind12,M2*ny,sd2*ny)
-    E[ind12]<-E[ind12]+(d2/max(d2))*h2
-
-    ind2<-(ceiling(M2*ny)+1):ny
-    if(ind2[1]<ind2[2]){
-      E[ind2]<-dnorm(ind2,M2*ny,sd2*ny)
-      E[ind2]<-E[ind2]/max(E[ind2])*max(E[ind12])
-    }
-
-    E<-E/mean(E)
-    if(plot)plot(E,ylim=c(0,max(E)*1.05),type="l")
-    E
-
-  }
-
-  plotFP <-function(dummy=1){
-
-    par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-    FP_nams<-unlist(FP_list)#c("FP_s", "FP_gr","FP_bb","FP_gi","FP_ri","FP_rd")
-    ny=60
-
-    trends<-array(NA,c(6,ny))
-    # par(mfrow=c(3,2),mar=rep(0.1,4))
-    for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],ny=ny)
-    cols<-rep(c(fcol,'black','dark grey'),2)
-    ltys<-rep(c(1,2),each=3)
-
-    cond<-FP_nams%in%input$FP
-    trends[!cond,]<-NA
-
-    if(sum(cond)>0){
-
-      plot(c(0,ny),c(0,max(trends,na.rm=T)),col="white",xlab="",ylab="",axes=F)
-      axis(2)
-      axis(1,c(-10e6,10e6),c(-10e6,10e6))
-      mtext("Historical year",1,line=2)
-      mtext("Relative exploitation rate (Effort)",2,line=2)
-      for(i in (1:6)[cond])lines(trends[i,],col=cols[i],lty=ltys[i])
-      legend('topleft',legend=names(FP_list)[cond],text.col=cols[cond],lty=ltys[cond],col=cols[cond],bty='n',cex=0.8)
-
-    }else{
-
-      plot(c(1,ny),c(0,2),col="white",axes=FALSE,xlab="",ylab="")
-      text(ny/2,1,"< unspecified >",col="grey")
-
-    }
-
-  }
-
   output$plotFP <- renderPlot(plotFP())
-
-  plotF <- function(dummy=1){
-
-    FP_nams<-unlist(FP_list)#c("FP_s", "FP_gr","FP_bb","FP_gi","FP_ri","FP_rd")
-
-    ny=60
-
-    trends<-array(NA,c(6,ny))
-    # par(mfrow=c(3,2),mar=rep(0.1,4))
-    for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],ny=ny)
-    cond<-FP_nams%in%input$FP
-
-    F_nams<-unlist(F_list)#c("F_10", "F_10_25","F_25_50")
-
-    cond2<-F_nams%in%input$F
-
-    if(sum(cond)>0&sum(cond2)>0){
-      par(mfrow=c(1,2),mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.4,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
-
-      #trends<-trends[cond,]
-      simbyt<-100
-      nsim<-simbyt*6
-
-      Esd_max<-max(F_maxes[cond2])
-      Esd_min<-min(F_mins[cond2])
-      Esdrand<-runif(nsim,Esd_min,Esd_max)
-      Emu<-(-0.5*Esdrand^2)
-      Esdarray<-array(exp(rnorm(nsim*ny,Emu,Esdrand)),c(nsim,ny))
-      Eind<-as.matrix(expand.grid(1:nsim,1:ny))
-      Tind<-cbind(rep(1:6,each=simbyt),Eind[,2])
-      stochtrends<-array(NA,c(nsim,ny))
-      stochtrends[Eind]<-Esdarray[Eind]*trends[Tind]
-      stochtrends<-stochtrends/apply(stochtrends,1,mean)
-
-      plot(c(1,ny),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
-      B90s<-apply(stochtrends[rep(cond,each=simbyt),],2,quantile,p=c(0.05,0.95))
-      B50s<-apply(stochtrends[rep(cond,each=simbyt),],2,quantile,p=c(0.25,0.75))
-
-      #med<-apply(stochtrends,2,quantile,p=0.5)
-      #matplot(t(stochtrends),col="#99999920",type="l")
-      polygon(c(1:ny,ny:1),c(B90s[1,],B90s[2,ny:1]),border=NA,col=fcol)
-      polygon(c(1:ny,ny:1),c(B50s[1,],B50s[2,ny:1]),border=NA,col=icol)
-      #lines(1:ny,med,col='white',lwd=2)
-      legend('topleft',legend=c('90% PI',"50% PI"),fill=c(fcol,icol),bty='n',border='white')
-      mtext("Historical year",1,line=0.45,outer=T)
-      mtext("Relative exploitation (Effort)",2,line=2)
-      mtext("Simulated range",3,line=0.8)
-
-      # Example plots
-      maxind<-(((0:5)*100)+aggregate(Esdrand,by=list(rep(1:6,each=simbyt)),which.max)$x)[cond]
-      minind<-(((0:5)*100)+aggregate(Esdrand,by=list(rep(1:6,each=simbyt)),which.min)$x)[cond]
-
-      cols<-rep(c(fcol,'black','dark grey'),2)
-      ltys<-rep(c(1,2),each=3)
-
-      plot(c(1,ny),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
-      if(sum(cond)==1){
-        lines(1:ny,stochtrends[maxind,],col=cols[cond],lty=ltys[cond])
-        lines(1:ny,stochtrends[minind,],col=cols[cond],lty=ltys[cond])
-      }else{
-        matplot(1:ny,t(stochtrends[maxind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
-        matplot(1:ny,t(stochtrends[minind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
-      }
-
-      mtext("",1,line=2)
-      mtext("",2,line=2)
-
-      #legend('topleft',legend=names(FP_list)[cond],text.col=cols[cond],lty=ltys[cond],col=cols[cond],bty='n',cex=0.8)
-      mtext("Examples",3,line=0.8)
-
-    }else{
-      plot(c(1,ny),c(0,2),col="white",axes=FALSE,xlab="",ylab="")
-      if(sum(cond)==0){
-        text(ny/2,1,"< Answer question 4 >",col="grey")
-      }else{
-        text(ny/2,1,"< Unspecified >",col="grey")
-      }
-
-    }
-
-  }
-
   output$plotF <- renderPlot(plotF())
-
-  plotsel <- function(dummy=1){
-
-    par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-    sel_nams<-unlist(sel_list)#c("sel_50", "sel_50_75","sel_75_125","sel_125_150","sel_150_200")
-    cond<-sel_nams%in%input$sel
-
-    if(sum(cond)>0){
-
-      sel_max<-max(sel_maxes[cond])
-      sel_min<-min(sel_mins[cond])
-      lengths<-seq(0.05,3.5,length.out=100)
-
-      mat<-1/(1+exp(-((lengths-1)/0.1)))
-
-      sel1<-1/(1+exp(-((lengths-sel_min)/(sel_min*0.1))))
-      sel2<-1/(1+exp(-((lengths-sel_max)/(sel_max*0.1))))
-
-      par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-
-      plot(c(0,3.5),c(0,1),col="white",xlab="",ylab="")
-      polygon(c(lengths,lengths[100:1]),c(sel1,sel2[100:1]),border=NA,col=fcol)
-      abline(h=0.5)
-
-      lines(lengths,mat,col=icol)
-      mtext("Length relative to length at 50% maturity (S)",1,line=2)
-      mtext("Selectivity",2,line=2)
-      legend('bottomright',legend=c("Selectivity","Maturity"),fill=c(fcol,icol),bty='n',cex=0.8,border='white')
-      abline(v=c(sel_min,sel_max),col=fcol,lty=2)
-      abline(v=1,col=icol,lty=2)
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-    }
-
-  }
-
   output$plotsel <- renderPlot(plotsel())
-
-  dnormal<-function(lens,lfs,sl,sr){
-    cond<-lens<=lfs
-    sel<-rep(NA,length(lens))
-    sel[cond]<-2.0^-((lens[cond]-lfs)/sl*(lens[cond]-lfs)/sl)
-    sel[!cond]<-2.0^-((lens[!cond]-lfs)/sr*(lens[!cond]-lfs)/sr)
-    sel
-  }
-
-  getsel<-function(lens,lenmax,sl,Vmaxlen){
-    sr<-(max(lens)-lenmax)/((-log(Vmaxlen,2))^0.5) # upper standard deviation of double log normal
-    dnormal(lens,lenmax,sl,sr)
-  }
-
-
-  plotdome <- function(dummy=1){
-
-    par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-    dome_nams<-unlist(dome_list)#c("dome_100", "dome_75_100","dome_25_75","dome_25")
-    cond<-dome_nams%in%input$dome
-
-    if(sum(cond)>0){
-
-      dome_max<-max(dome_maxes[cond])
-      dome_min<-min(dome_mins[cond])
-      lens<-seq(0.05,3.5,length.out=100)
-
-      sel1<-getsel(lens,1,0.1,dome_min)
-      sel2<-getsel(lens,1,0.1,dome_max)
-
-      par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-
-      plot(c(0,3.5),c(0,1),col="white",xlab="",ylab="",axes=F)
-      axis(2)
-      axis(1,c(-10,10),c(-10,10))
-      polygon(c(lens,lens[100:1]),c(sel1,sel2[100:1]),border=NA,col=fcol)
-      lines(lens,sel1)
-      lines(lens,sel2)
-
-      mtext("Length",1,line=2)
-      mtext("Selectivity of oldest length (SL)",2,line=2)
-      abline(h=c(dome_min,dome_max),col=icol,lty=2)
-
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-    }
-
-  }
-
   output$plotdome <- renderPlot(plotdome())
-
-  fishy<-function(x=0,y=0,scale=1,res=20,border="black",col='white',lwd=1,dead=F,reflect=F){
-
-    x1<-seq(0,0.4,length.out=res)
-    x2<-seq(0.41,0.8,length.out=res)
-    x3t<-seq(-0.5,0,length.out=res)
-    x3<-(x3t)*0.4+1
-    x4<-((x3/3)+0.6666)[res:1]
-    tf<-((1/(1+10*(0.4-x1)^4))*(3/2)-0.692)
-    bf<-1-tf
-    tr<-((1/(1+10*(x2-0.4)^2)))*(0.48)+0.326
-    br<-1-tr
-    tt<-(-(x3t)^2)*1.3+0.835
-    bt<-1-tt
-    xs=c(x1,x2,x3,x4,x4[res:1],x3[res:1],x2[res:1],x1[res:1])
-    ys=c(tf,tr,tt,tt[res:1],bt,bt[res:1],br[res:1],bf[res:1])
-    if(reflect)xs=1-xs
-    xs<-(xs-0.5)*scale+x
-    ys<-(ys-0.5)*scale+y
-
-    polygon(xs,ys,col=col,border=border,lwd=lwd)
-
-  }
-
-  boaty<-function(x,y,scale=1,res=20,border="black",col="white",lwd=1){
-
-    x1<-seq(0,0.3,length.out=res)
-    bf<-1+0.53-(1/(1+10*(0.4-x1)^4))*1.3
-
-    x2<-c(0,   0.2,0.25,0.5,0.5,1,  1,0.3)
-    rest<-c(0.5,0.5,0.7, 0.7,0.5,0.5,0.23,0.23)
-
-    xs<-c(x2,x1[res:1])
-    ys<-c(rest,bf[res:1])
-
-    xs<-(xs-0.5)*scale+x
-    ys<-(ys-0.5)*scale+y
-
-    polygon(xs,ys,col=col,border=border,lwd=lwd)
-
-  }
-
-  fishgrid<-function(xlim,ylim,nfish,col="green",border="green",lwd=2){
-
-    xl<-seq(xlim[1],xlim[2],length.out=7)[2:6]
-    yl<-seq(ylim[1],ylim[2],length.out=4)[2:3]
-    ind<-expand.grid(1:5,1:2)
-    for(i in 1:nfish)fishy(xl[ind[i,1]],yl[ind[i,2]],scale=0.075,col=col,border=border)
-
-  }
-
-  DRplot<-function(DR){
-
-    dfish<-floor(DR*10)
-    cfish<-10-dfish#ceiling((1-DM)*10)
-
-    plot(c(-0.5,0.5),c(-0.5,0.5),col='white',axes=F,xlab="",ylab="")
-    abline(h=0.25)
-    boaty(-0.1,0.38,0.8,col="white",border="black")
-    fishgrid(c(-0.35,0.35),c(0.12,0.42),cfish,col=icol,border=icol)
-
-    if(dfish>0){ #fishgrid(c(-0.6,0.05),c(-0.3,0.0),dfish,col=icol,border=icol)
-
-      xs<-c(0.3, 0.45, 0.2, 0.25, 0.18, 0.16, 0.21,  0.29, 0.35, 0.41)+0.03
-      ys<-c(-0.3,-0.45,-0.25,-0.1,-0.45, -0.28,-0.35, -0.2, -0.1, -0.4)
-      ref<-c(F,F,F,T,T,F,T,F,T,F)
-      plotf<-sample(1:10,dfish)
-      for(i in plotf){
-        fishy(xs[i],ys[i],scale=0.075,col=fcol,border=fcol,reflect=ref[i])
-      }
-
-    }
-
-    arrows(x0=0.1,x1=0.2,y0=0.12,y1=-0.03,col=fcol,lwd=2,length=0.1)
-    text(0.31,0.08,"DR",font=2,col=fcol)
-
-    #arrows(x0=0.13,x1=0.01,y0=-0.28,y1=-0.25,col='black',lwd=2,length=0.1)
-    #text(0.0,-0.4,"PRM",font=2)
-
-  }
-
-
-  PRMplot<-function(PRM){
-
-    dfish<-floor(PRM*10)
-    cfish<-10-dfish#ceiling((1-DM)*10)
-
-    plot(c(-0.5,0.5),c(-0.5,0.5),col='white',axes=F,xlab="",ylab="")
-    abline(h=0.25)
-    boaty(-0.1,0.38,0.8,col="white",border="black")
-    #fishgrid(c(-0.35,0.35),c(0.12,0.42),cfish,col=icol,border=icol)
-    fishgrid(c(-0.6,0.05),c(-0.3,0.0),dfish,col=icol,border=icol)
-    if(cfish>0){
-
-      xs<-c(0.3, 0.45, 0.2, 0.25, 0.18, 0.16, 0.21,  0.29, 0.35, 0.41)+0.03
-      ys<-c(-0.3,-0.45,-0.25,-0.1,-0.45, -0.28,-0.35, -0.2, -0.1, -0.4)
-      ref<-c(F,F,F,T,T,F,T,F,T,F)
-      plotf<-sample(1:10,cfish)
-      for(i in plotf){
-        fishy(xs[i],ys[i],scale=0.075,col=fcol,border=fcol,reflect=ref[i])
-      }
-
-    }
-
-    arrows(x0=0.1,x1=0.2,y0=0.12,y1=-0.03,col=fcol,lwd=2,length=0.1)
-    text(0.31,0.08,"DR",font=2,col=fcol)
-
-    arrows(x0=0.13,x1=0.01,y0=-0.28,y1=-0.25,col='black',lwd=2,length=0.1)
-    text(0.0,-0.4,"PRM",font=2,col=icol)
-
-  }
-
-
-
-  plotDR <- function(dummy=1){
-
-    DR_nams<-unlist(DR_list)#c("DM_1", "DM_1_10","DM_10_30","DM_30_50","DM_50_70")
-
-    cond<-DR_nams%in%input$DR
-
-    if(sum(cond)>0){
-
-      par(mfrow=c(1,2),mai=c(0.01,0.2,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
-
-      DR_max<-max(DR_maxes[cond])
-      DR_min<-min(DR_mins[cond])
-
-      DRplot(DR_min)
-      mtext(paste0("Lowest rate = ",round(DR_min*100),"%"),3,line=2)
-      DRplot(DR_max)
-      mtext(paste0("Highest rate = ",round(DR_max*100),"%"),3,line=2)
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-      #text(1.75,0.25,input$DR,col="grey")
-      #text(1.75,0.75,DR_nams,col="grey")
-    }
-
-  }
-
   output$plotDR <- renderPlot(plotDR())
-
-  plotPRM <- function(dummy=1){
-
-    PRM_nams<-unlist(PRM_list)#c("PRM_1", "PRM_1_10","PRM_10_30","PRM_30_50","PRM_50_70")
-
-    cond<-PRM_nams%in%input$PRM
-
-    if(sum(cond)>0){
-
-      par(mfrow=c(1,2),mai=c(0.01,0.2,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
-
-      PRM_max<-max(PRM_maxes[cond])
-      PRM_min<-min(PRM_mins[cond])
-
-      PRMplot(PRM_min)
-      mtext(paste0("Lowest rate = ",round(PRM_min*100),"%"),3,line=2)
-      PRMplot(PRM_max)
-      mtext(paste0("Highest rate = ",round(PRM_max*100),"%"),3,line=2)
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-      #text(1.75,0.25,input$DM,col="grey")
-      #text(1.75,0.75,DM_nams,col="grey")
-    }
-
-  }
-
   output$plotPRM <- renderPlot(plotPRM())
-
-  plotsigR <- function(dummy=1){
-
-    sigR_nams<- unlist(sigR_list)#c("sigR_10", "sigR_10_30","sigR_30_60","sigR_60_90","sigR_90")
-
-    cond<-sigR_nams%in%input$sigR
-
-    if(sum(cond)>0){
-
-      layout(matrix(c(1,2,3),nrow=1),widths=c(2,2,1))
-      par(mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
-      maxcol<-fcol
-      mincol<-icol
-      mucol<-"black"
-      pch=19
-      ny<-40
-      yord<-order(runif(ny))
-      sigR_max<-max(sigR_maxes[cond])
-      sigR_min<-min(sigR_mins[cond])
-      hh<-0.45
-      D<-seq(0,1,length.out=ny)
-      murec<-(0.8*hh*D)/(0.2*(1-hh)+(hh-0.2)*D)
-      muR_max<--0.5*sigR_max^2
-      muR_min<--0.5*sigR_min^2
-      ld_max<-rnorm(ny,muR_max,sigR_max)
-      ld_min<-rnorm(ny,muR_min,sigR_min)
-      rd_max<-exp(ld_max)
-      rd_min<-exp(ld_min)
-      recs_max<-rd_max*murec
-      recs_min<-rd_min*murec
-
-      plot(D,murec,ylim=c(0,quantile(c(rd_max,rd_min),0.95)),type="l",lwd=2,xlab="",ylab="",col=mucol,axes=F)
-      axis(1)
-      axis(2)
-      mtext("SSB relative to unfished",1,line=2.5)
-      mtext("Recruitment relative to unfished",2,line=2.5)
-      points(D,recs_max,col=maxcol,pch=pch)
-      points(D,recs_min,col=mincol,pch=pch)
-      legend('topleft',legend=c("Highest","Lowest","Mean"),text.col=c(fcol,icol,"black"),text.font=2,bty="n")
-
-      ylim<-c(-1,1)*max(abs(range(c(ld_max,ld_min))))
-      plot(c(0.5,ny),ylim,col='white',axes=F,xlab="",ylab="")
-      abline(h=0,lwd=2,col=mucol)
-      points(ld_max[yord]-muR_max,col=maxcol,pch=pch)
-      points(ld_min[yord]-muR_min,col=mincol,pch=pch)
-      axis(2)
-      axis(1,c(-100,100),c(-100,100))
-      mtext("Year",1,line=2.1)
-      mtext("Recruitment deviation",2,line=2)
-
-      d_max<-density(rnorm(10000,muR_max,sigR_max))
-      d_min<-density(rnorm(10000,muR_min,sigR_min))
-
-      scale<-max(d_min$y)
-
-      plot(c(0,1),ylim,axes=F,xlab="",ylab="",col="white")
-
-      polygon(x=d_max$y/scale,y=d_max$x-muR_max,col=maxcol,border=maxcol)
-      polygon(x=d_min$y/scale,y=d_min$x-muR_min,col=mincol,border=mincol)
-      legend('topright',legend=c(sigR_max,sigR_min),text.font=2,text.col=c(fcol,icol),bty='n')
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-      #text(1.75,0.25,input$DM,col="grey")
-      #text(1.75,0.75,DM_nams,col="grey")
-    }
-
-  }
-
   output$plotsigR <- renderPlot(plotsigR())
-
-  plotq <- function(dummy=1){
-
-    q_nams<-unlist(q_list)#c("q_d3_d2","q_d2_d1","q_d1_1","q_1_2","q_2_3")
-    cond<-q_nams%in%input$q
-
-    if(sum(cond)>0){
-
-      ny<-75
-      maxcol<-fcol2
-      mincol<-icol
-      q_max<-max(q_maxes[cond])
-      q_min<-min(q_mins[cond])
-      qy_max<-(1+q_max/100)^(1:ny)
-      qy_min<-(1+q_min/100)^(1:ny)
-
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-
-      plot(c(0.5,ny)+2018,c(0,2.5),col="white",xlab="",ylab="")
-      polygon(2018+c(1:ny,ny:1),c(qy_max,qy_min[ny:1]),border=NA,col=fcol)
-      lines((1:ny)+2018,qy_max,col=maxcol)
-      lines((1:ny)+2018,qy_min,col=mincol)
-      hmin<-hmax<-0.5
-      if(q_max>0)hmax<-2
-      if(q_min>0)hmin<-2
-
-      abline(h=1)
-      abline(h=c(hmax,hmin),col=c(maxcol,mincol),lty=2)
-      vmax<-log(hmax,1+q_max/100)
-      vmin<-log(hmin,1+q_min/100)
-      abline(v=2018+c(vmax,vmin),col=c(maxcol,mincol),lty=2)
-
-      mtext("Year",1,line=2)
-      mtext("Catchability relative to today (q)",2,line=2)
-      text(vmax-10+2018,0.03,paste(round(vmax),"years"),col=maxcol)
-      text(vmin-10+2018,0.24,paste(round(vmin),"years"),col=mincol)
-      legend('topleft',legend=c(paste("Highest = ",q_max,"%"),paste("Lowest = ",q_min,"%")),text.col=c(maxcol,mincol),bty='n',text.font=1)
-
-
-    }else{
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-    }
-
-  }
-
   output$plotq <- renderPlot(plotq())
-
-  fishgrid2<-function(nfish,fcol="red",mpacol="green"){
-
-    nfish2<-floor(nfish/5)
-    xlim<-c(0,1)
-    ylim<-c(0,1)
-    xl<-seq(xlim[1],xlim[2],length.out=6)[2:5]
-    yl<-seq(ylim[1],ylim[2],length.out=7)[2:6]
-    ind<-expand.grid(1:4,1:5)
-    cols<-rep(fcol,20)
-    cols[0:nfish2]<-mpacol
-
-    for(i in 1:20)fishy(xl[ind[i,1]],yl[ind[i,2]],scale=0.09,col=cols[i],border=cols[i])
-
-  }
-
-  plotA <- function(dummy=1){
-
-    A_nams<-unlist(A_list)#c("A_1", "A_1_5", "A_5_10", "A_10_20", "A_20_30", "A_30_40", "A_40_50")
-    cond<-A_nams%in%input$A
-
-    if(sum(cond)>0){
-
-      Amax<-max(A_maxes[cond])*100
-      Amin<-min(A_mins[cond])*100
-
-      par(mfrow=c(1,2),mai=c(0.01,0.2,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(0,1),c(0,1),col="white",axes=F)
-      fishgrid2(Amin,fcol=icol,mpacol=fcol)
-      mtext("Smallest",3,line=0.4)
-      plot(c(0,1),c(0,1),col="white",axes=F)
-      fishgrid2(Amax,fcol=icol,mpacol=fcol)
-      mtext("Largest",3,line=0.4)
-
-
-    }else{
-
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-
-    }
-
-  }
-
   output$plotA <- renderPlot(plotA())
-
-
-  fishgrid3<-function(Prob,fcol="red",mpacol="green"){
-
-    nfish<-floor(Prob*100)
-    xlim<-c(0,1)
-    ylim<-c(0,1)
-    xl<-seq(xlim[1],xlim[2],length.out=22)[2:21]
-    yl<-seq(ylim[1],ylim[2],length.out=22)[2:21]
-    ind<-expand.grid(1:20,1:20)
-    cols<-array(fcol,c(20,20))
-    cols[1:10,1:10]<-mpacol
-
-    indmpa<-as.matrix(expand.grid(1:10,1:10))
-    inds1<-indmpa[sample(1:100,nfish),]
-    cols[inds1]<-fcol
-
-    indf<-as.matrix(rbind(expand.grid(11:20,1:20),expand.grid(1:10,11:20)))
-    inds2<-indf[sample(1:300,nfish),]
-    cols[inds2]<-mpacol
-
-    indall<-as.matrix(expand.grid(1:20,1:20))
-
-    for(i in 1:400)fishy(xl[indall[i,1]],yl[indall[i,2]],scale=0.035,col=cols[indall[i,1],indall[i,2]],border=cols[indall[i,1],indall[i,2]])
-
-  }
-
-
-  plotV <- function(dummy=1){
-
-    V_nams<-unlist(V_list)#c("P_1", "P_1_5", "P_5_10", "P_10_20", "P_20")
-    cond<-V_nams%in%input$V
-
-    if(sum(cond)>0){
-
-      Vmax<-max(V_maxes[cond])
-      Vmin<-min(V_mins[cond])
-
-      par(mfrow=c(1,2),mai=c(0.01,0.01,0.01,0.01), omi=c(0.01,0.01,0.5,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(0,1),c(0,1),axes=F,col="white")
-      text(0.25,0.25,"MPA",cex=2.7,font=2,col="grey78")
-      fishgrid3(Vmin,fcol=icol,mpacol=fcol)
-      polygon(c(0.02,0.5,0.5,0.02),c(0.02,0.02,0.5,0.5),col=NA,border='black')
-      mtext("Lowest mixing",3,line=0.4)
-      plot(c(0,1),c(0,1),axes=F,col="white")
-      text(0.25,0.25,"MPA",cex=2.7,font=2,col="grey78")
-      fishgrid3(Vmax,fcol=icol,mpacol=fcol)
-      mtext("Highest mixing",3,line=0.4)
-      polygon(c(0.02,0.5,0.5,0.02),c(0.02,0.02,0.5,0.5),col=NA, border='black')
-
-
-
-    }else{
-
-      plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(1.75,0.5,"< Unspecified >",col="grey")
-
-    }
-
-  }
-
   output$plotV <- renderPlot(plotV())
 
-  plotIB <- function(dummy=1){
-    #IB_list<<-list("Large underages" = "IB_n30", "Underages" = "IB_n30_n10","Slight underages" = "IB_n10_0",
-    #               "Taken exactly"="IB_n5_5","Slight overages"="IB_0_10","Overages"="IB_10_30","Large overages"="IB_30")
-
-    IB_nams<-unlist(IB_list)#c("IB_n30", "IB_n30_n10","IB_n10_0","IB_n5_5","IB_0_10","IB_10_30","IB_30")
-
-    cond<-IB_nams%in%input$IB
-
-    if(sum(cond)>0){
-
-      par(mfrow=c(1,2),mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.4,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
-      IB_max<-max(IB_maxes[cond])
-      IB_min<-min(IB_mins[cond])
-
-      set.seed(1)
-
-      ts1<-c(1:20,c(41:50)/2,rep(25.5,10),(51:30)/2)
-      ny1<-length(ts1)
-      ts1<-ts1*exp(rnorm(ny1,0,0.2))
-      ts1<-ts1/mean(ts1)*8
-
-      ts2<-c(1:10,rep(10.5,25),(6:20)*2,seq(40,1,length.out=10))
-      ny2<-length(ts2)
-      ts2<-ts2*exp(rnorm(ny2,0,0.4))
-      ts2<-ts2/mean(ts2)
-
-      cols<-colsbox<-c(fcol,"black",icol)
-      colsbox[2]<-'white'
-
-      # plot TS2
-      yrs<-2017-(ny2:1)-1
-      ny<-length(yrs)
-      UB<- IB_max*ts2
-      LB<- IB_min*ts2
-      plot(yrs,ts2,col="white",ylim=c(0,max(UB,ts2)),xlab="",ylab="",type='l')
-      if(IB_max<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=cols[3])
-      }else if(IB_min<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,ts2[ny:1]),border=NA,col=cols[3])
-      }
-      if(IB_min>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,LB[ny:1]),border=NA,col=cols[1])
-      }else if(IB_max>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,ts2[ny:1]),border=NA,col=cols[1])
-      }
-      lines(yrs,ts2,col=cols[2],lwd=1)
-      mtext("Example 1",3,line=0.8)
-
-      legend('topleft',legend=c("Overages","TAC","Underages"),
-             fill=colsbox,border='white',col=cols,lty=c(NA,1,NA),bty='n',cex=0.8)
-
-      # plot TS1
-      yrs<-2017-(ny1:1)-1
-      ny<-length(yrs)
-      UB<- IB_max*ts1
-      LB<- IB_min*ts1
-      plot(yrs,ts1,col="white",ylim=c(0,max(UB,ts1)),xlab="",ylab="",type='l')
-      if(IB_max<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=cols[3])
-      }else if(IB_min<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,ts1[ny:1]),border=NA,col=cols[3])
-      }
-      if(IB_min>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,LB[ny:1]),border=NA,col=cols[1])
-      }else if(IB_max>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,ts1[ny:1]),border=NA,col=cols[1])
-      }
-      lines(yrs,ts1,col=cols[2],lwd=1)
-      mtext("Example 2",3,line=0.8)
-      mtext("Year",1,line=1,outer=T)
-      mtext("Catches (thousand tonnes)",2,line=0.7,outer=T)
-
-
-    }else{
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >", col="grey")
-
-    }
-
-
-  }
-
+  # Management
   output$plotIB <- renderPlot(plotIB())
-
-  plotIV <- function(){
-
-    IB_nams<-c("IB_n30", "IB_n30_n10","IB_n10_0","IB_n5_5","IB_0_10","IB_10_30","IB_30")
-
-    cond<-IB_nams%in%input$IB
-
-    IV_nams<-unlist(IV_list)#c("IV_1","IV_1_5","IV_5_10","IV_10_20","IV_20_40")
-    cond2<-IV_nams%in%input$IV
-
-    if(sum(cond)>0){
-
-      if(sum(cond2)>0){
-
-        IB_max<-max(IB_maxes[cond])
-        IB_min<-min(IB_mins[cond])
-
-        set.seed(1)
-
-        # plot TS2
-        par(mai=c(0.4,0.65,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
-        layout(matrix(c(1,2),nrow=1),widths=c(2,1))
-
-        pch=19
-        ny<-40
-        yrs<-2018+(1:ny)
-
-        maxcol<-icol
-        mincol<-fcol
-
-        gen_ts<-function(sig,ny=40)exp(rnorm(ny,-0.5*sig^2,sig))
-        sigI_max<-max(IV_maxes[cond2])
-        sigI_min<-min(IV_mins[cond2])
-
-        IU_max<-IB_max*gen_ts(sigI_max,ny)
-        IU_min<-IB_max*gen_ts(sigI_min,ny)
-        IL_max<-IB_min*gen_ts(sigI_max,ny)
-        IL_min<-IB_min*gen_ts(sigI_min,ny)
-        ylim=c(min(c(IU_max,IU_min,IL_max,IL_min))-0.5,quantile(c(IU_max,IU_min,IL_max,IL_min),0.97))
-
-        plot(yrs,rep(1,ny),col="black",ylim=ylim,xlab="",ylab="",type='l',lwd=2)
-        #abline(h=0,col='light grey')
-        mtext("Year",1,line=2.5)
-        mtext("Implemented / Recommended",2,line=2.5)
-        lines(yrs,IU_max,col=maxcol)
-        lines(yrs,IU_min,col=mincol)
-        lines(yrs,IL_max,col=maxcol,lty=2)
-        lines(yrs,IL_min,col=mincol,lty=2)
-        legend('bottomleft',legend=c("Highest mean level","Lowest mean level"),lty=c(1,2),bty='n')
-        legend('bottomright',legend=c("Highest variability","Lowest variability"),text.col=c(maxcol,mincol),bty='n')
-
-        minadjust=0.5
-        maxadjust=0.5
-        dU_max<-density(IB_max*gen_ts(sigI_max,10000),adjust=maxadjust)
-        dU_min<-density(IB_max*gen_ts(sigI_min,10000),adjust=minadjust)
-        dL_max<-density(IB_min*gen_ts(sigI_max,10000),adjust=maxadjust)
-        dL_min<-density(IB_min*gen_ts(sigI_min,10000),adjust=minadjust)
-        scale<-max(dU_max$y, dU_min$y, dL_max$y, dL_min$y)
-
-        plot(c(0,2),ylim,axes=F,xlab="",ylab="",col="white")
-        abline(h=1,lwd=2)
-        #abline(h=0,col='light grey')
-        powplot<-0.66
-        polygon(x=1+(dU_max$y/scale)^powplot,y=dU_max$x,col=maxcol,border=maxcol)
-        polygon(x=1+(dU_min$y/scale)^powplot,y=dU_min$x,col=mincol,border=mincol)
-
-        polygon(x=(dL_max$y/scale)^powplot,y=dL_max$x,col=maxcol,border=maxcol)
-        polygon(x=(dL_min$y/scale)^powplot,y=dL_min$x,col=mincol,border=mincol)
-
-        legend('bottomright',legend=paste("V =",c(sigI_max,sigI_min)),text.font=2,text.col=c(maxcol,mincol),bty='n')
-
-      }else{
-
-        par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-        plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-        text(10,0.5,"< unspecified >", col="grey")
-
-      }
-
-    }else{
-
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< Management Q2 is unspecified >", col="grey")
-
-    }
-
-  }
-
   output$plotIV <- renderPlot(plotIV())
 
-  plotCB <- function(dummy=1){
-
-    CB_nams<-unlist(CB_list)#c("CB_n50_n30", "CB_n30_n10","CB_n10_0","CB_n5_5","CB_0_10")
-    cond<-CB_nams%in%input$CB
-
-    if(sum(cond)>0){
-
-      par(mfrow=c(1,2),mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.4,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
-      Cbias_max<-max(CB_maxes[cond])
-      Cbias_min<-min(CB_mins[cond])
-
-      set.seed(2)
-
-      ts1<-c(1:20,c(41:50)/2,rep(25.5,30))
-      ny1<-length(ts1)
-      ts1<-ts1*exp(rnorm(ny1,0,0.2))
-      ts1<-ts1/mean(ts1)*8
-
-      ts2<-c(seq(1,10,length.out=5),seq(10,5,length.out=15),seq(5.5,10,length.out=5),rep(11,25))
-      ny2<-length(ts2)
-      ts2<-ts2*exp(rnorm(ny2,0,0.25))
-      ts2<-ts2/mean(ts2)
-
-      cols<-colsbox<-c(fcol,'black',icol)
-      colsbox[2]<-'white'
-
-      # plot TS2
-      yrs<-2017-(ny2:1)-1
-      ny<-length(yrs)
-      UB<- Cbias_max*ts2
-      LB<- Cbias_min*ts2
-      plot(yrs,ts2,col="white",ylim=c(0,max(UB,ts2)),xlab="",ylab="",type='l')
-      if(Cbias_max<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=cols[3])
-      }else if(Cbias_min<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,ts2[ny:1]),border=NA,col=cols[3])
-      }
-      if(Cbias_min>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,LB[ny:1]),border=NA,col=cols[1])
-      }else if(Cbias_max>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,ts2[ny:1]),border=NA,col=cols[1])
-      }
-      lines(yrs,ts2,col=cols[2],lwd=1)
-      mtext("Example 1",3,line=0.8)
-
-      legend('topleft',legend=c("Catches over-reported","Catches taken","Catches under-reported"),
-             fill=colsbox,border='white',col=cols,lty=c(NA,1,NA),bty='n',cex=0.8)
-
-      # plot TS1
-      yrs<-2017-(ny1:1)-1
-      ny<-length(yrs)
-      UB<- Cbias_max*ts1
-      LB<- Cbias_min*ts1
-      plot(yrs,ts1,col="white",ylim=c(0,max(UB,ts1)),xlab="",ylab="",type='l')
-      if(Cbias_max<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=NA,col=cols[3])
-      }else if(Cbias_min<1){
-        polygon(c(yrs,yrs[ny:1]),c(LB,ts1[ny:1]),border=NA,col=cols[3])
-      }
-      if(Cbias_min>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,LB[ny:1]),border=NA,col=cols[1])
-      }else if(Cbias_max>1){
-        polygon(c(yrs,yrs[ny:1]),c(UB,ts1[ny:1]),border=NA,col=cols[1])
-      }
-      lines(yrs,ts1,col=cols[2],lwd=1)
-      mtext("Example 2",3,line=0.8)
-      mtext("Year",1,line=1,outer=T)
-      mtext("Catches (taken) (tonnes)",2,line=0.7,outer=T)
-
-
-    }else{
-
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >", col="grey")
-
-    }
-
-  }
-
-  output$plotCB <- renderPlot(plotCB())
-
-  plotBeta <- function(){
-
-    Beta_nams<-unlist(Beta_list)#list("Beta_200_300", "Beta_125_200","Beta_80_125", "Beta_50_80","Beta_33_50")
-    cond<-Beta_nams%in%input$Beta
-
-    if(sum(cond)>0){
-
-      par(mfrow=c(1,2),mai=c(0.6,0.7,0.01,0.01), omi=c(0.4,0.4,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
-      Beta_max<-max(Beta_maxes[cond])
-      Beta_min<-min(Beta_mins[cond])
-
-      dep<-seq(0,1,length.out=100)
-      plot(c(0,1),c(0,1),type='l',lwd=2,xlab="",ylab="")
-      mtext("Real Stock Depletion (SSB relative to unfished)",1,line=2.2,xlab="",ylab="")
-      mtext("Relative abundance index",2,line=2.2)
-      mtext("Index relative to real depletion",3,line=0.5)
-      Imax<-dep^Beta_max
-      Imin<-dep^Beta_min
-      lines(dep,Imax,col=icol)
-      lines(dep,Imin,col=fcol)
-
-      set.seed(2)
-
-      ts1<-seq(1,0.4,length.out=61)*(2+(cos((-0:60)/10.18))/3)*exp(rnorm(61,0,0.05))
-      ts1<-ts1/max(ts1)
-      tLB<-ts1^Beta_max
-      tUB<-ts1^Beta_min
-      ts1<-ts1/mean(ts1)
-      tLB<-tLB/mean(tLB)
-      tUB<-tUB/mean(tUB)
-      ny<-length(ts1)
-
-      yrs<-CurrentYr-(ny:1)
-      plot(yrs,ts1,lwd=2,type="l",ylim=range(c(ts1,tLB,tUB)),xlab="",ylab="")
-      mtext("Year",1,line=2.2)
-      mtext("Relative abundance",2,line=2.2)
-      mtext("Example indices",3,line=0.5)
-
-      lines(yrs,tLB,col=icol)
-      lines(yrs,tUB,col=fcol)
-
-      legend('topright',c(paste0("Beta = ",c(Beta_max,Beta_min)),"True biomass"),text.col=c(icol,fcol,"black"),text.font=c(1,1,2),bty='n')
-
-    }else{
-
-      par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
-      plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
-      text(10,0.5,"< unspecified >", col="grey")
-
-    }
-
-  }
-
+  # Data
   output$plotBeta <- renderPlot(plotBeta())
-
-
-
-  # Ancillary indicators functions ================================
-
-  slp<-function(x,mat,ind){
-    y<-log(mat[x,ind])
-    if(sum(!is.na(y))<2){
-      return(NA)
-    }else{
-     return(lm(y~x1,data.frame(x1=1:length(ind),y=y))$coef[2])
-    }
-  }
-
-  slp2<-function(x,mat,ind){
-    x1<-1:length(ind)
-    y=log(mat[x,ind])
-    mux<-mean(x1)
-    muy<-mean(y)
-    SS<-sum((x1-mux)^2)
-    (1/SS)*sum((x1-mux)*(y-muy))
-   }
-
-  AAV<-function(x,mat,ind){
-    ni<-length(ind)
-    mean(abs((mat[x,ind[2:ni]]-mat[x,ind[1:(ni-1)]])/mat[x,ind[1:(ni-1)]]))
-  }
-
-  mu<-function(x,mat,ind){
-    log(mean(mat[x,ind]))
-  }
-
-  getinds<-function(PPD,styr,res, tsd= c("Cat","Cat","Cat","Ind","ML"),stat=c("slp","AAV","mu","slp", "slp")){
-    nsim<-dim(PPD@Cat)[1]
-    proyears<-dim(PPD@Cat)[2]-styr+1
-
-    if(res>proyears)message(paste0("The temporal resolution for posterior predictive data calculation (",res,") is higher than the number of projected years (",proyears,"). Only one time step of indicators are calculated for ",proyears, " projected years."))
-    np<-floor(proyears/res)
-
-    ntsd<-length(tsd)
-    inds<-array(NA,c(ntsd,np,nsim))
-
-    for(i in 1:ntsd){
-      for(pp in 1:np){
-        ind<-styr+((pp-1)*res)+1:res
-        inds[i,pp,]<-sapply(1:nsim,get(stat[i]),mat=slot(PPD,tsd[i]),ind=ind)
-      }
-    }
-    inds
-  }
-
-  CC<-function(indPPD,indData,pp=1,dnam=c("CS","CV","CM","IS","IM","MLS","MLM"),res=6){
-
-    if(pp>1)namst<-paste(rep(dnam,pp),rep((1:pp)*res,each=length(dnam)))
-    if(pp==1)namst=dnam
-    cols<-c("#ff000050","#0000ff50")
-    ntsd<-dim(indPPD)[1]
-    ni<-pp*ntsd
-    ind2PPD<-matrix(indPPD[,1:pp,],nrow=ni)
-    ind2Data<-matrix(indData[,1:pp],nrow=ni)
-    par(mfrow=c(ni-1,ni-1),mai=rep(0,4),omi=c(0.5,0.75,0.4,0.05))
-
-    for(i in 2:ni){
-
-      for(j in 1:(ni-1)){
-
-        if(j==i|j>i){
-
-          plot(1,1,col='white',axes=F)
-
-
-        }else{
-
-          #coly=cols[ceiling(posmean(cor(mcmc@rawdat[1:maxn,keep1[i]],mcmc@rawdat[1:maxn,keep2[j]]))*ncols)]
-          xlim<-quantile(c(ind2PPD[j,],ind2Data[j,]),c(0.02,0.98))
-          ylim<-quantile(c(ind2PPD[i,],ind2Data[i,]),c(0.02,0.98))
-          plot(ind2PPD[j,],ind2PPD[i,],pch=19,xlim=xlim,ylim=ylim,cex=1.2,col=cols[1],axes=F)
-          axis(1,c(-10E10,10E10),c(-10E10,10E10))
-          axis(2,c(-10E10,10E10),c(-10E10,10E10))
-          axis(3,c(-10E10,10E10),c(-10E10,10E10))
-          axis(4,c(-10E10,10E10),c(-10E10,10E10))
-          points(ind2Data[j,],ind2Data[i,],pch=4,cex=2,col=cols[2],lwd=2)
-
-        }
-        if(i==2&j==(ni-1)){
-          legend('center',legend=c("Observed","Simulated"),text.col=c("blue","red"),bty='n',cex=1.4,text.font=2)
-
-        }
-
-        if(j==1)mtext(namst[i],2,line=2,cex=1,las=2)
-        if(i==ni)mtext(namst[j],1,line=1,cex=1,las=2)
-        #if(j==1)mtext(i,2,line=2,cex=0.5,las=2)
-        #if(i==nplotted)mtext(j,1,line=1,cex=0.5,las=2)
-
-      }
-
-    }
-    mtext(paste("Example AI Analysis for",input$sel_MP),3,line=0.1,outer=T)
-
-  }
-
-  mahalanobis_robust<-function (x, center, cov, inverted = FALSE) {
-
-    x <- if (is.vector(x))
-      matrix(x, ncol = length(x))
-    else as.matrix(x)
-    if (!identical(center, FALSE))
-      x <- sweep(x, 2L, center)
-
-    invcov <- corpcor::pseudoinverse(cov)
-    setNames(rowSums(x %*% invcov * x), rownames(x))
-
-  }
-
-  getsegment<-function(densobj,thresh,lower=T){
-    if(lower){
-      cond<-densobj$x<thresh
-    }else{
-      cond<-densobj$x>thresh
-    }
-
-    xs<-c(0,densobj$y[cond],0)
-    ys<-densobj$x[cond]
-    ys<-c(ys[1],ys,ys[length(ys)])
-
-    list(x=xs,y=ys)
-  }
-
-  plot_mdist<-function(indPPD,indData){
-    nullcov<-cov(t(indPPD[,1,]))
-    nullm<-apply(indPPD[,1,],1,mean)
-    nullsims<-t(indPPD[,1,])
-    obs=indData[,1]
-
-    dist<-mahalanobis_robust(x=obs, center=nullm, cov=nullcov)
-    dists<-mahalanobis_robust(x=nullsims, center=nullm, cov=nullcov)
-
-    par(mai=c(1.5,1.5,1.2,0.05))
-    dens<-density(dists,from=0,to=quantile(dists,0.99))
-    plot(dens,xlab="",main="",col='blue',ylab="")
-    thresh<-quantile(dists,0.95)
-    abline(v=thresh,lty=2,lwd=2)
-    text(thresh+1.2,max(dens$y)-0.02,"V (alpha = 5%)")
-    mtext("Mahanobis distance, D",1,line=2)
-    mtext("Density",2,line=2)
-    subdens<-getsegment(dens,thresh,lower=T)
-    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
-
-    leg<-"Outlier detected (Obs > V)"
-    lcol<-"Red"
-    if(dist<thresh){
-      leg<-"Outlier not detected (Obs < V)"
-      lcol="green"
-    }
-    abline(v=dist,lwd=2,col=lcol)
-    text(dist+1.2,max(dens$y)-0.02,"Observed M-distance",col=lcol)
-    legend('top',legend=leg,text.col=lcol,bty='n')
-    mtext(paste("Example AI Analysis for",input$sel_MP),3,line=0.1)
-  }
-
-  MSC_PMs<-function(MSEobj,curyr=2018){
-
-    layout(matrix(c(1,2,1,3,1,4),nrow=2),heights=c(1,0.7))
-
-    par(mai=c(0.7,0.3,0.1,0.1),omi=c(0.05,0.4,0.01,0.01))
-    yrs<-curyr+(1:MSEobj@proyears)
-
-    Brel<-MSEobj@B_BMSY[,1,]*100
-    ylim<-c(0,quantile(Brel,0.97))
-    matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent(fcol,50),lty=1,lwd=2,ylim=ylim,yaxs="i",xlab="",ylab="")
-
-    MGTline=mean(MSEobj@OM$MGT)*2
-    abline(v=curyr+1+c(burnin,MGTline,50),lwd=3,lty=1,col="#99999980")
-    abline(h=c(50,100),lwd=3,lty=1,col="#99999980")
-    yra<-array(rep(yrs,each=MSEobj@nsim),c(MSEobj@nsim,MSEobj@proyears))
-
-    col1<-'blue'
-    col2<-'red'
-    col3<-'green'
-
-    cond1<-Brel>50 & yra < (curyr+burnin)
-    cond2<-Brel>100 & yra < (curyr+burnin)
-    points(yra[cond2],Brel[cond2],pch=3,cex=1.4,col=col2)
-    points(yra[cond1],Brel[cond1],pch=19,cex=0.88,col=col1)
-
-    cond3<-Brel>100 & yra < curyr+1.5+MGTline & yra > curyr+0.5+MGTline
-    cond4=Brel>50 & yra > (curyr+burnin)
-    cond5<-Brel>100 & yra > (curyr+burnin)
-    points(yra[cond5],Brel[cond5],pch=4,cex=1.4,col=col2)
-    points(yra[cond4],Brel[cond4],cex=1,col=col1)
-    points(yra[cond3],Brel[cond3],pch=17,cex=1.7,col=col3)
-
-    text(curyr+5,5,paste0("Burn-in yrs (",burnin,")"),col='dark grey',font=2,cex=1.2)
-    text(curyr+MGTline-2.5,25,"2MGT",col='dark grey',font=2,cex=1.2)
-    text(curyr+47,5,"Year 50",col='dark grey',font=2,cex=1.2)
-
-    P111a<-round(100*sum(cond1)/(burnin*MSEobj@nsim),0)
-    P111b<-round(100*sum(cond2)/(burnin*MSEobj@nsim),0)
-    P112<-round(100*sum(cond3)/MSEobj@nsim,0)
-    P121a<-round(100*sum(cond4)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
-    P121b<-round(100*sum(cond5)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
-
-
-    legend('topright',legend=c(paste0("1.1.1a (",P111a,"%)"),
-                                  paste0("1.1.1b (",P111b,"%)"),
-                                  paste0("1.1.2 (",P112,"%)"),
-                                  paste0("1.2.1a (",P121a,"%)"),
-                                  paste0("1.2.1b (",P121b,"%)")),
-                           col=c(col1,col2,col3,col1,col2),text.col=c(col1,col2,col3,col1,col2),bty='n',pch=c(19,3,17,1,4),text.font=2)
-    mtext("Biomass relative to BMSY (%)",2,line=2.8)
-    mtext("MSE Projection Year",1,line=2.8)
-
-    dens<-density(Brel[,1:burnin],from=0)
-    plot(dens,main="",xlab="",ylab="")
-    abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
-    subdens<-getsegment(dens,50,lower=F)
-    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
-    subdens<-getsegment(dens,100,lower=F)
-    polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
-    lines(dens)
-    mtext("Posterior density",2,line=2.8)
-    legend('topright',legend=c("1.1.1a","1.1.1b"),text.col=c("blue","red"),bty='n',text.font=2)
-    legend('top',legend=paste0("Burn-in yrs (",burnin,")"),cex=1.2,text.col='dark grey',text.font=2,bty='n')
-
-
-    dens<-density(Brel[,burnin],from=0)
-    plot(dens,main="",xlab="",ylab="")
-    abline(v=100,lwd=2,lty=1,col="#99999980")
-    subdens<-getsegment(dens,100,lower=F)
-    polygon(y=subdens$x,x=subdens$y,col="green",border=NA)
-    lines(dens)
-    mtext("Biomass relative to BMSY",1,line=2.8)
-    legend('topright',legend="1.1.2",text.col="green",bty='n',text.font=2)
-    legend('top',legend="Burn-in year",cex=1.2,text.col='dark grey',text.font=2,bty='n')
-
-
-    dens<-density(Brel[,(burnin+1):MSEobj@proyears],from=0)
-    plot(dens,main="",xlab="",ylab="")
-    abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
-    subdens<-getsegment(dens,50,lower=F)
-    polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
-    subdens<-getsegment(dens,100,lower=F)
-    polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
-    legend('topright',legend=c("1.2.1a","1.2.1b"),text.col=c("blue","red"),bty='n',text.font=2)
-    legend('top',legend=paste0("Years ",burnin,"-",MSEobj@proyears),cex=1.2,text.col='dark grey',text.font=2,bty='n')
-
-    lines(dens)
-
-   # mtext("(a)",3,adj=0.01,line=0.3)
-  }
-
-
-
+  output$plotCB <- renderPlot(plotCB())
 
 })

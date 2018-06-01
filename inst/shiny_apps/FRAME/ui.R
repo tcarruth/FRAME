@@ -7,6 +7,7 @@ shinyUI(
   fluidPage(
     useShinyjs(),
     tags$head(
+      tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
       tags$style(HTML("hr {border-top: 1.4px solid #E3E1DE;}
                       h4 { font-size:15px;}
                       h5 { font-size:13px;}
@@ -277,7 +278,7 @@ shinyUI(
                                       the number of MSE simulations, the number of years for historical projections and whether to use parallel computation
                                       to speed up MSE calculations.",style="color:grey"),
                                    h5(""),
-                                   h5("More detailed help on the Data questions can be found in the FRAME manual
+                                   h5("More detailed help with the various options can be found in the FRAME manual
                                             : ", a("Section 7.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#7_the_options_tab", target="_blank"),style="color:grey")
 
                                  ),
@@ -297,8 +298,12 @@ shinyUI(
                                    column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
                                    column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
                                    column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
-                                   column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0))),
-                                   column(3,numericInput("ntop", label = "N top MPs", value=16,min=1,max=80))
+                                   conditionalPanel(width=12,condition="input.Analysis_type=='Demo'|input.Analysis_type=='Eval'",
+                                     column(3,numericInput("ntop", label = "N top MPs", value=10,min=1,max=80))
+                                   ),
+                                   conditionalPanel(width=12,condition="input.Analysis_type=='App'|input.Analysis_type=='Ind'",
+                                     column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)))
+                                   )
                                  ),
 
                                 value=5),
@@ -309,10 +314,10 @@ shinyUI(
                                 ## textOutput(
                                  h5("1. Specify fishery, management and data attributes",style = "color:grey"),
                                  h5("2. Save progress",style = "color:grey"),
-                                 h5("3. Run MSE by selecting CALCULATE (5 minutes)",style = "color:grey"),
-                                 h5("4. Visualize results",style = "color:grey"),
-                                 h5("5. Build report",style = "color:grey"),
-                                 h5("6. Monitor ancillary indicators",style = "color:grey"),
+                                 h5("3. Run an Evaluation MSE (15 minutes)",style = "color:grey"),
+                                 h5("4. Select an MP",style = "color:grey"),
+                                 h5("5. Run an Application MSE (5 minutes)",style = "color:grey"),
+                                 h5("6. Establish indicators",style = "color:grey"),
                                  HTML("<br>"),
                                  h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
                                  h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
@@ -556,15 +561,25 @@ shinyUI(
                          )
                       ),
 
+
+                      conditionalPanel(condition="input.tabs1==4",
+                                       column(12,
+                                              h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
+                                              h5("FRAME links a straightforward graphical questionaire the powerful OMx operating model of DLMtool to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
+                                              h5("There are four principal components to FRAME: describing fishery dynamics, evaluating feasible MPs, applying a suitable MP and establishing indicators that can detect changes in system dynamics.",style = "color:grey"),
+                                              h5("All questions in FRAME default to maxmum uncertainty. As you work through the questions for the Fishery, Management and Data, you can narrow the range of possible simulated cases but you should provide justification for each selection",style = "color:grey"),
+                                              h5("Your progress is automatically saved at all times in an autosave.frame file in your working directory",style = "color:grey")
+                                        )
+                      ),
                       conditionalPanel(condition="input.tabs1==5 & (output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)",
                            column(12,
                              h5("Analysis Type: 'Demo' runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application;
                                 'Evaluation' provides summary performance for a large number of possible management procedures. 'Application' provides an in-depth account of the performance of a single management procedure.
                                 'Indicator' evaluates the power of various data types to detect unforseen changes in fishery system dynamics and allows users to upload their own data to detect such changes.",style = "color:grey"),
                              h5("Users can also determine the total number of simulations, the number of projected years and the management update interval (years between management recommendations in the projection).
-                                 The burn-in is intended to represent a duration over which an MP has already been used. Burn-in is the number of initial projected years correponding to some stock status performance indicators. ",style = "color:grey"),
+                                 The burn-in is intended to represent a duration over which an MP has already been used. Burn-in is also the number of initial projected years correponding to some stock status performance indicators. ",style = "color:grey"),
                              h5("Users can also choose to exclude reference management procdures (e.g. zero catches, fishing at FMSY), activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).
-                                Users may also select Low Trophic Level (LTL) species type for an alternative performance evaluation for such species",style = "color:grey"),
+                                Users may also select Low Trophic Level (LTL) species type for an alternative performance evaluation for such species.",style = "color:grey"),
                              h5("Assessment and Indicator modes require the selection of a single MP. Other options include the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
                              h5(""),
                              h5("A more detailed guide to these options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey")
@@ -649,18 +664,22 @@ shinyUI(
                downloadButton("Build_OM","Build operating model report")
           ),
 
-          conditionalPanel(condition="output.Calc>0",
+          conditionalPanel(condition="output.Calc==1",
             column(12,style="height:50px",
                 HTML("<br>"),
                 downloadButton("Build_Eval","Build evaluation report")
-            ),
+            )
+          ),
 
+          conditionalPanel(condition="output.Calc==2",
             column(12,style="height:50px",
                 HTML("<br>"),
-                downloadButton("Build_AI","Build ancillary indicators report")
+                downloadButton("Build_App","Build application report")
+            ),
+            column(12,style="height:50px",
+                HTML("<br>"),
+                downloadButton("Build_AI","Build indicators report")
             )
-
-
           )
         ),
         column(6,style="height:160px",
@@ -717,6 +736,7 @@ shinyUI(
                              plotOutput("P2_LTY",height="auto")
 
                       ),
+
                       column(width = 4,
 
                              column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
@@ -725,12 +745,18 @@ shinyUI(
                       )
                     ), # end of fluid row
                     fluidRow(
-                      column(width = 12,h5("B/BMSY and Relative Yield projection plots",style="font-weight:bold")),
-                      column(width=12,h5("Projections of biomass and yield relative to MSY levels. The light blue region represents the 90% probability interval, the white solid line is the median and the dark blue lines are two example simulations")),
+                      column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
+                      column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
                       plotOutput("wormplot",height="auto"),
-                      column(width = 12,h5("HCR and Tools, change in fishing mortaliy rate as biomass drops below BMSY",style="font-weight:bold")),
-                      column(width=12,h5("A separate MSE analysis was conducted to reveal whether (given all other parameters the same) each MP should theoretically reduce fishing mortality rate as biomass declines below BMSY. Here positive relationships reveal throttling and a p-value of 0.2 is used as the threshold")),
-                      plotOutput("HCR",height="auto"),
+
+                      column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
+                      column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                      plotOutput("wormplot2",height="auto"),
+
+                      column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),
+                      column(width=12,h5("These plots show how many simulations could be assigned to each of the SG regions defined by PI.1.1.1 ")),
+                      plotOutput("PI111_uncertain",height="auto"),
+
                       column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
                       column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
                       plotOutput("CCU",height="auto")
@@ -740,8 +766,39 @@ shinyUI(
                 ), # end of Evaluation results
                 conditionalPanel(condition="input.Analysis_type=='App'&output.Calc==2",
 
-                   column(width = 12,h5("Application test",style="color::grey")),
-                   plotOutput("MSC_PMs",height="auto")
+                   column(width = 12,
+                          HTML("<br>"),
+                          h4("MP Application",style = "color:black;"),
+                          #column(width=12,h5("More detailed results are provided for a single MP")),
+                          hr(),
+                          fluidRow(
+                            column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
+                            column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                order of projected long-term yield relative to fishing at the FMSY
+                                                reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                right.")),
+                             tableOutput('App_Ptable'),
+                             tableOutput('App_threshtable'),
+
+                             column(width = 12,h5("Biomass projection plots and risk assessment",style="font-weight:bold")),
+                             column(width=12,h5("Projections of biomass that show the derivation of the various PI scores in the table above")),
+                             plotOutput("MSC_PMs",height="auto"),
+
+                             column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
+                             column(width=12,h5("Projections of biomass and yield. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                             plotOutput("App_wormplot",height="auto"),
+
+                             column(width = 12,h5("F/FMSY and Yield (relative to MSY) projection plots",style="font-weight:bold")),
+                             column(width=12,h5("Projections of fishing mortality rate and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                             plotOutput("App_wormplot2",height="auto"),
+
+                             column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
+                             column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                             plotOutput("App_wormplot3",height="auto")
+                          )
+                   )
 
                 ),    # end of Application results
                 conditionalPanel(condition="input.Analysis_type=='Ind'&output.Calc==3",
@@ -776,9 +833,9 @@ shinyUI(
 
         column(8,style="height:40px"),
         column(2,style="height:40px; padding:9px",textOutput("SessionID")),
-        column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
+        column(2,style="height:40px", h6("copyright (c) NRDC 2018"))
         #column(12,style="height:100px"),
-        column(12, textInput("Debug1", "Debug window", ""))
+        #column(12, textInput("Debug1", "Debug window", ""))
 
      ) # end of fluid row
     ) # end of fluid page
