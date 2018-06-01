@@ -80,13 +80,22 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 <br>
 
+# Biomass projection plots and risk assessment
 
-# Performance Trade-Offs 
+The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  
 
-Long term yield (LTY) vs probability biomass is greater than half BMSY in the first 10 years (PI.1.1.1a)
+The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right.
+
+MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or management restrictions (M) controled by management question 1" 
+
+```{r MSC_PMs,echo=F,warning=F,error=F,message=F,fig.width=11,fig.height=11}
+
+  MSC_PMs(params$MSEobj,params$MSEobj_reb,MPcols=params$MPcols)
+ 
+
+```
 
 <br>
-
 
 # B/BMSY and relative yield projection plots
 
@@ -108,6 +117,30 @@ For each MP a 50 year projection is presented showing the possible range of valu
  
 
 ```
+
+
+# F/FMSY and relative yield projection plots
+
+For each MP a 50 year projection is presented showing the possible range of values for fishing mortality rate relative to MSY levels (F/FMSY) and yield relative to MSY levels. The colored region represents the 10th and 90th percentiles, the white line is the median trend and lines for two simulations are included to show the typical degree of variability within a simulation. 
+
+
+```{r pencil2,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
+ 
+ nMPs<-length(params$MSEobj@MPs)
+ panelsperplot<-1
+ nplots<-ceiling(nMPs/panelsperplot)
+ plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
+ 
+ for(i in 1:length(plots)){
+   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+   Pplot4(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
+ }
+
+ 
+
+```
+
+
 
 # Rebuilding 
 
@@ -176,6 +209,19 @@ for(i in 1:length(plots)){
 }
 
 ```
+
+# Value of information
+
+This is similar to cost-of-current uncertainties but identifies those data errors and biases that are most likely to impact the long-term yield performance of the MP.
+
+```{r VOI,echo=F,warning=F,error=F,message=F,fig.width=8, fig.height=8}
+
+
+VOI_MSC(params$MSEobj,MPcols=params$MPcols)
+
+
+```
+
 
 
 

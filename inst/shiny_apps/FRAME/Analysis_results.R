@@ -1,9 +1,13 @@
 
-MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2){
+MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
+
+  if(is.na(MPcols[1]))MPcols=rep('black',MSEobj@nMPs)
+
+  MPcols[MPcols=="green"]<-"darkgreen"
 
   layout(matrix(c(1,2,1,3,1,4),nrow=2),heights=c(1,0.7))
 
-  par(mai=c(0.8,0.3,0.1,0.1),omi=c(0.001,0.4,0.01,0.01))
+  par(mai=c(0.8,0.3,0.1,0.1),omi=c(0.001,0.4,0.3,0.01))
   yrs<-curyr+(1:MSEobj@proyears)
 
   Brel<-MSEobj@B_BMSY[,1,]*100
@@ -55,6 +59,11 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2){
                              paste0("1.2.1a (",P121a,"%)"),
                              paste0("1.2.1b (",P121b,"%)")),
          col=c(col1,col2,col3,col1,col2),text.col=c(col1,col2,col3,col1,col2),bty='n',pch=c(19,3,17,1,4),text.font=2)
+
+  legend('right',legend=c("Specified OM","Rebuilding analysis (1.1.2)"),
+         col=c(makeTransparent(fcol,99),makeTransparent("#00ff00",99)),bty='n',lwd=c(3,3),text.font=2)
+
+
   mtext("Biomass relative to BMSY (%)",2,line=2.8)
   mtext("MSE Projection Year",1,line=2.8)
 
@@ -100,8 +109,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2){
   legend('topright',legend=c("1.2.1a","1.2.1b"),text.col=c("blue","red"),bty='n',text.font=2)
   mtext(paste0("Years ",burnin,"-",MSEobj@proyears),3,line=labline,cex=labcex,col='dark grey',font=2)
   lines(dens)
-
-  # mtext("(a)",3,adj=0.01,line=0.3)
+  mtext(MSEobj@MPs[1],3,line=0.3,col=MPcols[1],outer=T,font=2)
 }
 
 plotquant<-function(x,p=c(0.05,0.25,0.75,0.95),yrs,qcol,lcol,addline=T,ablines=NA){

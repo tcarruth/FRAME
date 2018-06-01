@@ -145,7 +145,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
 
 }
 
-Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50)){
+Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5){
 
   dynheader<-c(1,1,2,1,2,1,1)
   names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")

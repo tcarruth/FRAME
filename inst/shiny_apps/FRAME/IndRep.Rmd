@@ -67,7 +67,7 @@ In this preliminary analysis, seven data types are monitored in the posterior pr
 
 <br>
 
-```{r CC,echo=F,warning=F,error=F,message=F,fig.width=7, fig.height=7}
+```{r CC,echo=F,warning=F,error=F,message=F,fig.width=11, fig.height=11}
 
 PPD<-params$MSEobj@Misc[[params$mm]]
 
@@ -90,7 +90,7 @@ CC(indPPD,indData,pp=1,res=res)
 The Mahalanobis distance plot shows the distances of all simulated points from the simulated mean (in multivariate space accounting for parameter correlation). To demonstrate the function, a single simulation (as above) is compared with the other simulated values. The critical value (V) is plotted here as the 95th percentile of the Mahalanobis distances. If the observed data fall outside this value the observations are considered to be outliers. 
 <br>
 
-```{r P1_LTY,echo=F,warning=F,error=F,message=F,fig.width=5, fig.height=5}
+```{r P1_LTY,echo=F,warning=F,error=F,message=F,fig.width=8, fig.height=8}
 
 plot_mdist(indPPD,indData)
 
@@ -104,3 +104,18 @@ plot_mdist(indPPD,indData)
 
 The package is subject to ongoing testing. If you find a bug or a problem please send a report to <t.carruthers@oceans.ubc.ca> so that it can be fixed!  
 
+<br clear="both"/>
+<br clear="both"/>
+<br clear="both"/>
+
+<hr />
+```{r copyright, results='asis',echo=FALSE, size="tiny"}
+
+  
+  cat(params$SessionID)
+  cat("\n\n")
+  cat(params$copyright)
+ 
+
+```
+<hr />

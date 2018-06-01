@@ -9,12 +9,12 @@ M_list<<-list("Very short-lived (0.6 < M)" = "M_60", "Short-lived      (0.4 < M 
 M_mins<- c( 0.6,    0.4,      0.2,      0.1,      0.05,    0.025)
 M_maxes<-c( 0.8,    0.6,      0.4,      0.2,      0.1,     0.05)
 
-D_list<<-list("Very depleted (D < 0.1)" = "D_10", "Depleted (0.1 < D < 0.2)" = "D_10_20",
-              "Moderately depleted (0.2 < D < 0.3)" = "D_20_30", "Healthy (0.3 < D < 0.6)" = "D_30_60",
-              "Not depleted (0.6 < D < 0.8)" = "D_60_80","Lightly fished (0.8 < D)" = "D_80")
+D_list<<-list("Crashed (D < 0.05)" = "D_05", "Very depleted (0.05 < D < 0.1)" = "D_05_10",
+              "Depleted (0.1 < D < 0.15)" = "D_10_15", "Moderately depleted (0.15 < D < 0.3)" = "D_15_30",
+              "Healthy (0.3 < D < 0.5)" = "D_30_50","Underexploited (0.5 < D)" = "D_50")
 
-D_mins<- c( 0.02,  0.1,      0.2,      0.3,      0.6,     0.8)
-D_maxes<-c( 0.1,   0.2,      0.3,      0.6,      0.8,     0.95)
+D_mins<- c( 0.01,  0.05,      0.1,      0.15,      0.3,     0.5)
+D_maxes<-c( 0.05,   0.1,      0.15,     0.3,       0.5,     0.8)
 
 
 h_list<<-list("Not resilient (h < 0.3)" = "h_30", "Low resilience (0.3 < 0.5)" = "h_30_50",

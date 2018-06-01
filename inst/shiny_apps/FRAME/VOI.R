@@ -26,7 +26,7 @@ CCU_plot<-function(VOIout,MSEobj,MPcols,maxrow=1,maxcol=3){
   nMPs<-MSEobj@nMPs
 
   nrow=ceiling(nMPs/maxcol)
-  par(mfrow=c(max(maxrow,nrow),maxcol),mai=c(1.8,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
+  par(mfrow=c(max(maxrow,nrow),maxcol),mai=c(2.4,0.4,0.01,0.01),omi=c(0.3,0.3,0.05,0.01))
 
   MPcols[MPcols=="green"]<-'darkgreen'
 

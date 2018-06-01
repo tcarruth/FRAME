@@ -55,7 +55,7 @@ UpJust<-function(){
 
 RecJust<-function(){
 
-  if(input$tabs1==1 & Fpanel()>0 & Fpanel()<14){
+  if(input$tabs1==1 & Fpanel()>0 & Fpanel()<15){
     Just[[1]][Fpanel()]<<-input$Justification
   }else if(input$tabs1==2 & Mpanel()>0 & Mpanel()<4){
     Just[[2]][Mpanel()]<<-input$Justification

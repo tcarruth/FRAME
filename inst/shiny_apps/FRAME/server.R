@@ -42,16 +42,19 @@ shinyServer(function(input, output, session) {
   Mpanel<-reactiveVal(0)
   Dpanel<-reactiveVal(0)
   Calc<-reactiveVal(0)
+  Started<-reactiveVal(0)
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
   output$Calc   <- reactive({ Calc()})
+  output$Started   <- reactive({ Started()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Dpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Calc",suspendWhenHidden=FALSE)
+  outputOptions(output,"Started",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -124,6 +127,15 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Analysis_type,{
 
+    if(Started()==1){
+      updateTabsetPanel(session=session, inputId="tabs1", selected = "5")
+    }else if(Started()==0){
+      updateTabsetPanel(session=session, inputId="tabs1", selected = "4")
+
+    }else{
+      updateTabsetPanel(session=session, inputId="tabs1", selected = "5")
+    }
+
     if(input$Analysis_type=='Demo'){
       updateNumericInput(session,'nsim',value="24")
       updateNumericInput(session,'interval',value="8")
@@ -152,6 +164,10 @@ shinyServer(function(input, output, session) {
       updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
       shinyjs::disable("ntop")
     }
+    shinyjs::disable("LTL")
+    shinyjs::disable("LoadInd")
+    shinyjs::disable("Power")
+    Started(1)
 
   })
 
@@ -248,6 +264,15 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  observeEvent(input$burnin,{
+    if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
+      redoEval()
+    }else if(input$Analysis_type=="App"){
+      redoApp()
+    }
+
+  })
+
 
 #############################################################################################################################################################################
 
@@ -255,6 +280,9 @@ shinyServer(function(input, output, session) {
 
 
   observeEvent(input$Calculate,{
+
+    Fpanel(1)
+    updateTabsetPanel(session=session,inputId="tabs1", selected = "5")
 
     nsim<<-input$nsim
     burnin<<-input$burnin
@@ -325,6 +353,7 @@ shinyServer(function(input, output, session) {
   })
 
   redoEval<-function(){
+    burnin=input$burnin
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
     Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
     MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
@@ -333,7 +362,7 @@ shinyServer(function(input, output, session) {
     save(MSEobj_reb_top,file="MSEobj_reb_top")
     nMPs<-length(MSEobj_top@MPs)
     updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
-    output$Ptable <- function()Ptab_formatted(Ptab2)
+    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin)
     output$threshtable<-function()Thresh_tab()
     output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
@@ -346,19 +375,31 @@ shinyServer(function(input, output, session) {
   }
 
   redoApp<-function(){
+    burnin=input$burnin
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
     Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
-    output$App_Ptable <- function()Ptab_formatted(Ptab2)
+    output$App_Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin)
     output$App_threshtable<-function()Thresh_tab()
-    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj,MSEobj_reb),height=800,width=900)
-    output$App_wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
-    output$App_wormplot2<-renderPlot(Pplot4(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
-    output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb,MPcols=MPcols,maxcol=1,maxrow=2), height =320 , width =450)
-
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj,MSEobj_reb,MPcols=MPcols),height=800,width=900)
+    output$App_wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_wormplot2<-renderPlot(Pplot4(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj,MPcols=MPcols,maxMPs=MSEobj@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =450 , width =550)
+    VOIout<<-getVOI(MSEobj)
+    output$App_CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols,maxrow=1,maxcol=1),height =550 , width =550)
+    output$App_VOI<-renderPlot(VOI_MSC(MSEobj,MPcols=MPcols),height =550 , width =550)
   }
 
   redoInd<-function(){
+    PPD<-MSEobj@Misc[[1]]
+    tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+    stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+    res<-6
+    indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
+    indData<-matrix(indPPD[,1,1],ncol=1)
 
+    output$CC<-renderPlot( CC(indPPD,indData,pp=1,res=res),height =1300 ,width=1300)
+    output$mdist<-renderPlot(plot_mdist(indPPD,indData),height =550 ,width=550)
 
   }
 
@@ -392,7 +433,7 @@ shinyServer(function(input, output, session) {
     filename = paste0(namconv(input$Name),"_OM.html"), #"report.html",
 
     content = function(file) {
-      doprogress("Building OM report",20)
+      doprogress("Building OM report",1)
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OMRep.Rmd')
 
@@ -437,7 +478,7 @@ shinyServer(function(input, output, session) {
     content = function(file) {
 
       src <- normalizePath('EvalRep.Rmd')
-      doprogress("Building evaluation report",8)
+      doprogress("Building evaluation report",1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -483,7 +524,7 @@ shinyServer(function(input, output, session) {
     content = function(file) {
 
       src <- normalizePath('AppRep.Rmd')
-      doprogress("Building evaluation report",8)
+      doprogress("Building evaluation report",1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -493,7 +534,7 @@ shinyServer(function(input, output, session) {
 
       library(rmarkdown)
       params <- list(test = input$Name,
-                     set_title=paste0("Evaluation Report for ",input$Name),
+                     set_title=paste0("Application Report for ",input$Name),
                      set_type=paste0(switch(input$Analysis_type,
                                             "Demo"="Demonstration evaluation analysis",
                                             "Eval" = "Evaluation of MPs analysis",
@@ -524,7 +565,7 @@ shinyServer(function(input, output, session) {
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_AI.html"), #"report.html",
     content = function(file) {
-      doprogress("Building AI report",6)
+      doprogress("Building AI report",1)
       src <- normalizePath('IndRep.Rmd')
 
       test<-match(input$sel_MP,MPs)
@@ -575,11 +616,13 @@ shinyServer(function(input, output, session) {
 
 
   observeEvent(input$tabs1, {
+
     UpJust()
     Des<<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
     MSCsave_auto()
     #getMPs()
     selectedMP<<-MPs[2]
+
   })
 
   observeEvent(input$Fback,{
