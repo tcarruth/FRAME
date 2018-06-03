@@ -16,7 +16,7 @@ Fease2 <- function(Data=NULL, TAC=TRUE, TAE=TRUE, SL=TRUE, Spatial=TRUE, names.o
     if (msg) message("No Data object provided. Returning feasible MPs")
     canMPs <- MPs
   }
-  mptypes <- MPtype(MPs)
+  mptypes <- MPtype2(MPs)
   mprecs <- mptypes[,3]
   isfease <- rep(TRUE, length(MPs))
   isfease[17]
@@ -38,4 +38,57 @@ Fease2 <- function(Data=NULL, TAC=TRUE, TAE=TRUE, SL=TRUE, Spatial=TRUE, names.o
     return(df)
   }
 }
+
+MPtype2 <- function(MPs=NA) {
+  if (any(is.na(MPs))) MPs <- avail("MP")
+
+  Data <- DLMtool::SimulatedData
+
+  runMPs <- applyMP(Data, MPs, reps = 2, nsims=1, silent=TRUE)
+  recs <- runMPs[[1]]
+
+  type <- rep("NA", length(MPs))
+  rec <- rep("", length(MPs))
+  rectypes <- c("TAE", "Spatial", "SL")
+  for (mm in seq_along(recs)) {
+    Effort <- Spatial <- Selectivity <- FALSE
+    output <- length(recs[[mm]]$TAC) > 0
+    names <- names(recs[[mm]])
+    names <- names[!names %in% c("TAC", "Spatial")]
+    input <- sum(unlist(lapply(Map(function(x) recs[[mm]][[x]], names), length))) > 0
+    if (all(!is.na(recs[[mm]]$Spatial))) input <- TRUE
+    if (output) {
+      type[mm] <- "Output"
+      thisrec <- "TAC"
+    }
+    if (input) {
+      # what recommentations have been made?
+      if (any(is.finite(recs[[mm]]$Effort))) Effort <- TRUE
+      if (any(is.finite(recs[[mm]]$Spatial))) Spatial <- TRUE
+      if (any(is.finite(recs[[mm]]$LR5)) | any(is.finite(recs[[mm]]$LFR)) | any(is.finite(recs[[mm]]$HS)) |
+          any(is.finite(recs[[mm]]$Rmaxlen)) | any(is.finite(recs[[mm]]$L5)) | any(is.finite(recs[[mm]]$LFS)) |
+          any(is.finite(recs[[mm]]$Vmaxlen))) Selectivity <- TRUE
+
+      dorecs <- rectypes[c(Effort, Spatial, Selectivity)]
+      thisrec <- dorecs
+      type[mm] <- "Input"
+
+    }
+    if (input & output) {
+      type[mm] <- "Mixed"
+      thisrec <- c("TAC", thisrec)
+    }
+    if (length(thisrec)>1)  {
+      rec[mm] <- paste(thisrec, collapse=", ")
+    } else {
+      rec[mm] <- thisrec
+    }
+  }
+  type[grep("ref", MPs)] <- "Reference"
+
+  df <- data.frame(MP=MPs, Type=type, Recs=rec, stringsAsFactors = FALSE)
+  df[order(df$Type),]
+
+}
+
 

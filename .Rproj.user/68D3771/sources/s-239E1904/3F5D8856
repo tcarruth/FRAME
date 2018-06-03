@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1528007946335.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3F5D8856",
+    "lastKnownWriteTime" : 1527988486,
+    "last_content_update" : 1527988486,
+    "path" : "C:/GitHub/DLMtool/R/Misc_Exported.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "157,0",
+        "scrollLine" : "142"
+    },
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

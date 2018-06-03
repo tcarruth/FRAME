@@ -54,7 +54,9 @@ Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
 Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
 
   # save(Ptab1,file="Ptab1")
+
   MPs<-as.character(Ptab1$MP)
+  #MPs<-avail('MP')
   if(is.na(ntop))ntop<-nrow(Ptab1)
   if(ntop>nrow(Ptab1))ntop<-nrow(Ptab1)
   if(ntop<1)ntop<-1
