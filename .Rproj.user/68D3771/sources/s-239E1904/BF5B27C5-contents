@@ -4,7 +4,11 @@
 # ===== A script for testing EDS (ie the MSC_DLMtool App) ========================================================
 # ================================================================================================================
 
-# === March 28th 2018 =========================
+# === April 15th 2018 =========================
+
+# !!!! install Rtools !!!!
+
+https://cran.r-project.org/bin/windows/Rtools/
 
 
 # ----- Install devtools on your computer if you don't have it already --------- (one time only)
@@ -15,27 +19,27 @@ install.packages("devtools")
 # ---- Install dependencies ---------------------------------------------------- (one time only)
 
 install.packages("corpcor")
-install.packages("DLMtool")
+devtools::install_github("DLMtool/DLMtool",type="source")
 install.packages("formattable")
-install.packages("gmailr")
 install.packages("kableExtra")
 install.packages("knitr")
 install.packages("shiny")
 install.packages("dplyr")
 install.packages("shinyjs")
+install.packages("httpuv")
 
 
 # --- Get latest version of the App ---------------------------------------------- (for updates)
 
-devtools::install_github("tcarruth/FRAME",
-                         type="source",
-                         auth_token="ac5d7d3e60823a4dd37a1c00fb0a4f0f99b21aba")
+devtools::install_github("tcarruth/FRAME", type="source",auth_token="ac5d7d3e60823a4dd37a1c00fb0a4f0f99b21aba")
+
 
 
 # --- Test the App --------------------------- (only run these lines to retest after steps above)
 
-library(FRAME)
-Shiny(FRAME)
+rm(list = ls())  # remove all items in workspace
+library(FRAME)   # load the FRAME library
+Shiny(FRAME)     # launch app
 
 
 

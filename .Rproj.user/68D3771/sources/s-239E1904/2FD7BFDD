@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1528003075309.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2340660538",
+    "id" : "2FD7BFDD",
+    "lastKnownWriteTime" : 1528007128,
+    "last_content_update" : 1528007128422,
+    "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/Performance_table.R",
+    "project_path" : "inst/shiny_apps/FRAME/Performance_table.R",
+    "properties" : {
+        "cursorPosition" : "90,0",
+        "scrollLine" : "80"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
