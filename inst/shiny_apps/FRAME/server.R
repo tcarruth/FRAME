@@ -147,13 +147,13 @@ shinyServer(function(input, output, session) {
       updateNumericInput(session,'interval',value="4")
 
     }else{
-      updateNumericInput(session,'nsim',value="192")
+      updateNumericInput(session,'nsim',value="196")
       updateNumericInput(session,'interval',value="4")
-      if(input$Analysis_type=='Ind')shinyjs::disable("Parallel")
-      if(input$Analysis_type!='Ind'){
-        if(input$nsim<48) shinyjs::disable("Parallel")
-        if(input$nsim>47) shinyjs::enable("Parallel")
-      }
+      #if(input$Analysis_type=='Ind')shinyjs::disable("Parallel")
+      #if(input$Analysis_type!='Ind'){
+      #  if(input$nsim<48) shinyjs::disable("Parallel")
+       # if(input$nsim>47) shinyjs::enable("Parallel")
+      #}
     }
 
     MPs<<-getMPs()
@@ -293,7 +293,7 @@ shinyServer(function(input, output, session) {
     nsim<<-input$nsim
     burnin<<-input$burnin
     parallel=F
-    if(input$Parallel){
+    if(input$Parallel&input$Analysis_type!="Ind"){
       setup()
       if(nsim>47)parallel=T
     }
