@@ -149,7 +149,11 @@ shinyServer(function(input, output, session) {
     }else{
       updateNumericInput(session,'nsim',value="192")
       updateNumericInput(session,'interval',value="4")
-
+      if(input$Analysis_type=='Ind')shinyjs::disable("Parallel")
+      if(input$Analysis_type!='Ind'){
+        if(input$nsim<48) shinyjs::disable("Parallel")
+        if(input$nsim>47) shinyjs::enable("Parallel")
+      }
     }
 
     MPs<<-getMPs()

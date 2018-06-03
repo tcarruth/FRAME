@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "0",
+    "hash" : "3433010011",
     "id" : "84C604C5",
-    "lastKnownWriteTime" : 1528006339,
-    "last_content_update" : 1528006339,
+    "lastKnownWriteTime" : 1528009120,
+    "last_content_update" : 1528009120931,
     "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/server.R",
     "project_path" : "inst/shiny_apps/FRAME/server.R",
     "properties" : {
-        "cursorPosition" : "26,37",
-        "scrollLine" : "0"
+        "cursorPosition" : "157,0",
+        "scrollLine" : "139"
     },
     "relative_order" : 1,
     "source_on_save" : false,
