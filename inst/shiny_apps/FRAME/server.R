@@ -323,13 +323,15 @@ shinyServer(function(input, output, session) {
     #OM_reb<-Replace(OM_reb,temp,Sub="Obs")
     #OM_reb<-Replace(OM_reb,temp,Sub="Imp")
 
-
-    withProgress(message = "Rebuilding evaluation", value = 0, {
-      MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
-    })
+    if(input$Analysis_type!="Ind"){
+      withProgress(message = "Rebuilding evaluation", value = 0, {
+        MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
+      })
+      save(MSEobj_reb,file="MSEobj_reb")
+    }
 
     save(MSEobj,file="MSEobj")
-    save(MSEobj_reb,file="MSEobj_reb")
+
 
     # ==== Types of reporting ==========================================================
 
