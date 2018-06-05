@@ -71,10 +71,10 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
   tempdat@Abun<-rep(NA,length(tempdat0@Abun))
 
   ndaty<-dim(tempdat@Cat)[2]
-  cond<-unlist(PanelState[[3]][1]) # cond=rep(T,9) cond=c(F,T,F,T,F,T,F,F,F)
+  cond<-unlist(PanelState[[3]][1]) # cond=rep(T,9) cond=c(T,T,F,T,T,T,T,T,T)
   FeasePos<-c("Catch","Catch","Index","Index","Index","Catch_at_length","Catch_at_age","Growth","Abundance")
-  Datslot<-c("Cat","Cat","Ind","Ind","Ind","CAL","CAA","vbK","Abun")
-  yrrange<-c(ndaty, 5,  ndaty,  5,    ndaty,        2,                2, NA, NA)
+  Datslot<-c("Cat","Cat","Ind",  "Ind","Ind","CAL","CAA","vbK","Abun")
+  yrrange<-c(ndaty, 5,    ndaty,  5,    ndaty,        2,                2, NA, NA)
 
   for(i in 1:length(Datslot)){
     if(cond[i]){ # if user has specified that data are available
@@ -90,6 +90,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
       }
     }
   }
+  if(!cond[3])tempdat@Dep<-rep(NA,2)
 
   DFeasible<-Fease2(tempdat)
 
