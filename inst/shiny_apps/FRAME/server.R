@@ -294,8 +294,11 @@ shinyServer(function(input, output, session) {
     burnin<<-input$burnin
     parallel=F
     if(input$Parallel&input$Analysis_type!="Ind"){
-      setup()
-      if(nsim>47)parallel=T
+
+      if(nsim>47){
+        parallel=T
+        setup()
+      }
     }
     OM<<-makeOM(PanelState,nsim=nsim)
 
