@@ -71,7 +71,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation (v1.0)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation (v2.0)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -81,13 +81,28 @@ shinyUI(
                column(5,tags$a(img(src = "MSC2.png", height = 46, width = 68),href="https://www.msc.org/",target='_blank'))
 
             )
+      )
+    ),
+
+
+    h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
+    h5("FRAME links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool and MSEtool  to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
+    h5("In steps 1 and 2 the fishery is characterized and any available data are used to specify an operating model. The operating model can then be used to evaluate feasible MPs (Evaluation mode),
+     applying a suitable MP (Application mode) and establishing indicators that can detect changes in system dynamics (Indicators mode).",style = "color:grey"),
+
+    fluidRow(
+      HTML("<br>"),
+
+      column(12,style="height:60px",
+
+            h4("STEP 1: CHARACTERISE FISHERY"),
+            hr()
       ),
 
-      column(12,
+      column(1),
+      column(11,
              fluidRow(
 
-               h5(" "),
-               HTML("<br>"),
 
                column(width = 4, style="height:360px",
                       tabsetPanel( id = "tabs1",selected=4,
@@ -268,56 +283,7 @@ shinyUI(
                                                   actionLink("All_Err","DEFAULT")),
                                  value=3),
 
-                        tabPanel(h4("Options",style = "color:#A8A8A8"),
 
-                                 conditionalPanel(width=4,condition="(output.Dpanel==0 & output.Fpanel== 0 & output.Mpanel == 0)&input.Analysis_type=='Demo'",
-                                   HTML("<br>"),
-                                   h5("The Options panel allows the user to control aspects of the MSE testing of Management procedures such as
-                                      the number of MSE simulations, the number of years for historical projections and whether to use parallel computation
-                                      to speed up MSE calculations.",style="color:grey"),
-                                   h5(""),
-                                   h5("More detailed help with the various options can be found in the FRAME manual
-                                            : ", a("Section 7.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#7_the_options_tab", target="_blank"),style="color:grey")
-
-                                 ),
-
-                                 conditionalPanel(width=4,condition="(output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)|input.Analysis_type!='Demo'",
-
-                                   column(12,style="height:15px"),
-                                   column(3,numericInput("nsim", label = "Sims", value=24,min=8,max=1000)),
-                                   column(3,numericInput("proyears", label = "Proj. yrs", value=50,min=25,max=100)),
-                                   column(3,numericInput("interval", label = "Interval", value=8,min=2,max=10)),
-
-                                   #column(6, textInput("Source", "Source custom code", "mysource.r")),
-                                   column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
-                                   column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
-                                   column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
-                                   conditionalPanel(width=3,condition="input.Analysis_type!='Ind'",
-                                      column(3,numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),style="padding:10px")
-                                   ),
-
-                                   conditionalPanel(width=9,condition="input.Analysis_type=='Demo'|input.Analysis_type=='Eval'",
-                                     column(3,numericInput("ntop", label = "N top MPs", value=10,min=1,max=80),style="padding:10px")
-                                   ),
-                                   conditionalPanel(width=6,condition="input.Analysis_type=='App'|input.Analysis_type=='Ind'",
-                                     column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px")
-                                   ),
-                                   conditionalPanel(width=6,condition="input.Analysis_type=='Ind'",
-                                      column(5,h5("Load indicator file",style="font-weight:bold")),
-                                      column(5,downloadButton("LoadInd",""))
-                                   ),
-                                   conditionalPanel(width=12,condition="input.Analysis_type=='Ind'",
-                                                    column(12,h5("Select dynamics for power analysis",style="font-weight:bold")),
-                                                    column(12,checkboxGroupInput("Power", label = NULL,
-                                                                        choices = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                                                        selected = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                                                        inline=T))
-
-                                   )
-
-                                 ),
-
-                                value=5),
 
 
 
@@ -339,10 +305,10 @@ shinyUI(
                ),
 
 
-               column(width = 8,style="height:360px",
+               column(width = 7,style="height:360px",
 
-                      HTML("<br><br>"),
-                      hr(),
+                      HTML("<br><br><br>"),
+                      #hr(),
 
                       # --------- Fishery panel guides ---------------------------------------------------------------------------------------------------------------
 
@@ -576,16 +542,12 @@ shinyUI(
 
                       conditionalPanel(condition="input.tabs1==4|(input.tabs1==1 & (output.Fpanel==0&output.Dpanel==0&output.Mpanel==0))|(input.tabs1==2&(output.Fpanel==0&output.Dpanel==0&output.Mpanel==0))|(input.tabs1==3&(output.Fpanel==0&output.Dpanel==0&output.Mpanel==0))|(input.tabs1==5&(output.Fpanel==0&output.Dpanel==0&output.Mpanel==0))",
                                        column(12,
-                                              h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
-                                              h5("FRAME links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
-                                              h5("There are four main components to FRAME: describing fishery dynamics (the Fishery, Management and Data questions to the left), evaluating feasible MPs (Evaluation mode),
-                                                 applying a suitable MP (Application mode) and establishing indicators that can detect changes in system dynamics (Indicators mode).",style = "color:grey"),
                                               h5("The Fishery, Management and Data questions specify the range of operating model simulations in the MSE.
                                                  The questions are presented in order of general importance and default to maxmum uncertainty.
                                                  At any stage you can select an analysis type and press 'CALCULATE'.
                                                  However it is desirable where possible to narrow the range of uncertainty in fishery dynamics.
-                                                 As you work through the questions in the Fishery, Management and Data panels, you can narrow the range of simulated fisheries but you should provide justification for each selection in the justification box.",style = "color:grey"),
-                                              h5("Your progress is automatically saved at all times in an autosave.frame file in your working directory",style = "color:grey")
+                                                 As you work through the questions in the Fishery, Management and Data panels, you can narrow the range of simulated fisheries but you should provide justification for each selection in the justification box.",style = "color:grey")
+
                                         )
                       ),
                       conditionalPanel(condition="input.tabs1==5 & (output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)",
@@ -608,8 +570,8 @@ shinyUI(
 
              )
         ),
-
-        column(12,style="height:180px",
+        column(1),
+        column(10,style="height:180px",
              fluidRow(
 
                column(width = 12,
@@ -629,7 +591,8 @@ shinyUI(
 
             )
         ),
-
+        column(12,
+        column(1),
         column(4,style="height:80px",
             fluidRow(
 
@@ -663,32 +626,114 @@ shinyUI(
 
                       )
                )
+
+
+
             )
          ),
-         column(6,style="height:80px;padding-left:30px",
-            fluidRow(
-
-               #column(12,style="height:15px"),
-               column(12,radioButtons("Analysis_type",label=NULL,
-                                      c("Demo Evaluation"="Demo","Evaluation" = "Eval","Application"="App","Indicators"="Ind"),
-                                      selected="Demo",inline=T)),
-               column(12,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=403))
-
-
-             )
-        ),
-        column(12,style="height:45px"),
-
-
-        column(4,style="height:40px",
-          h4("Reporting",style = "color:black"),
-          hr(),
-
-
-          column(12,style="height:50px",
+         column(4),
+         column(3,style="height:50px",
                HTML("<br>"),
                downloadButton("Build_OM","Build Operating Model report")
-          ),
+         )
+
+
+        ),
+
+        column(12,style="height:45px"),
+
+        column(12,style="height:50px",
+
+             h4("STEP 2: BUILD OPERATING MODELS"),
+             hr()
+        ),
+
+
+        column(12,style="height:50px",
+            h4("STEP 3: RUN MSE"),
+            hr()
+        ),
+
+        column(12,style="height:400px",
+
+
+             fluidRow(
+
+             column(6,style="height:80px;padding-left:30px",
+                    fluidRow(
+
+                      #column(12,style="height:15px"),
+                      column(12,radioButtons("Analysis_type",label=NULL,
+                                             c("Demo Evaluation"="Demo","Evaluation" = "Eval","Application"="App","Indicators"="Ind"),
+                                             selected="Demo",inline=T)),
+                      column(12,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=403))
+
+
+                    )
+             ),
+
+             column(6,
+
+                      conditionalPanel(width=6,condition="(output.Dpanel==0 & output.Fpanel== 0 & output.Mpanel == 0)&input.Analysis_type=='Demo'",
+                                       HTML("<br>"),
+                                       h5("The Options panel allows the user to control aspects of the MSE testing of Management procedures such as
+                                          the number of MSE simulations, the number of years for historical projections and whether to use parallel computation
+                                          to speed up MSE calculations.",style="color:grey"),
+                                       h5(""),
+                                       h5("More detailed help with the various options can be found in the FRAME manual
+                                          : ", a("Section 7.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#7_the_options_tab", target="_blank"),style="color:grey")
+
+                                       ),
+
+                      conditionalPanel(width=6,condition="(output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)|input.Analysis_type!='Demo'",
+
+                                       column(12,style="height:15px"),
+                                       column(3,numericInput("nsim", label = "Sims", value=24,min=8,max=1000)),
+                                       column(3,numericInput("proyears", label = "Proj. yrs", value=50,min=25,max=100)),
+                                       column(3,numericInput("interval", label = "Interval", value=8,min=2,max=10)),
+
+                                       #column(6, textInput("Source", "Source custom code", "mysource.r")),
+                                       column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
+                                       column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
+                                       column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
+                                       conditionalPanel(width=3,condition="input.Analysis_type!='Ind'",
+                                                        column(3,numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),style="padding:10px")
+                                       ),
+
+                                       conditionalPanel(width=9,condition="input.Analysis_type=='Demo'|input.Analysis_type=='Eval'",
+                                                        column(3,numericInput("ntop", label = "N top MPs", value=10,min=1,max=80),style="padding:10px")
+                                       ),
+                                       conditionalPanel(width=6,condition="input.Analysis_type=='App'|input.Analysis_type=='Ind'",
+                                                        column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px")
+                                       ),
+                                       conditionalPanel(width=6,condition="input.Analysis_type=='Ind'",
+                                                        column(5,h5("Load indicator file",style="font-weight:bold")),
+                                                        column(5,downloadButton("LoadInd",""))
+                                       ),
+                                       conditionalPanel(width=12,condition="input.Analysis_type=='Ind'",
+                                                        column(12,h5("Select dynamics for power analysis",style="font-weight:bold")),
+                                                        column(12,checkboxGroupInput("Power", label = NULL,
+                                                                                     choices = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
+                                                                                     selected = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
+                                                                                     inline=T))
+
+                                       )
+
+                      )
+
+
+
+            )
+        )),
+
+        column(12,style="height:50px",
+
+             h4("STEP 4: BUILD REPORTS"),
+             hr()
+        ),
+
+        column(12,style="height:40px",
+
 
           conditionalPanel(condition="output.Calc==1",
             column(12,style="height:50px",
@@ -718,6 +763,14 @@ shinyUI(
            )
           )
         ),
+
+         column(12,style="height:50px",
+
+            h4("FILE: LOAD/SAVE"),
+            hr()
+
+         ),
+
         column(8,style="height:260px",
              h4("File",style = "color:black"),
              hr(),
@@ -732,11 +785,13 @@ shinyUI(
 
             # column(8,textInput("File", "File name:", "myStock.msc"))
         ),
+
+
         column(12,style="height:50px"),
         column(12,
 
              conditionalPanel(condition="output.Calc>0",
-                h4("Results",style = "color:black"),
+                h4("RESULTS"),
                 hr(),
 
                 conditionalPanel(condition="output.Calc==1&(input.Analysis_type=='Demo'|input.Analysis_type=='Eval')",
