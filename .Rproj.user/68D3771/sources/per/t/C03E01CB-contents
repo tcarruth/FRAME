@@ -70,20 +70,17 @@ shinyUI(
       column(1,style="height:65px",
              h2("FRAME")
       ),
-      column(6,style="height:65px",
+      column(5,style="height:65px",
              h5("fishery risk assessment and method evaluation (v1.0)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
              fluidRow(
 
-               column(10,
-                      #img(src = "MSC.png", height = 37, width = 60),
-                      tags$a(img(src = "DLMtool.png", height = 45, width = 145),href="https://www.datalimitedtoolkit.org",target='_blank'))
-                      #img(src = "NRDC.png", height = 40, width = 30),
-                      #img(src = "UBC.png", height = 40, width = 30))
+               column(7,tags$a(img(src = "DLMtool.png", height = 45, width = 145),href="https://www.datalimitedtoolkit.org",target='_blank')),
+               column(5,tags$a(img(src = "MSC2.png", height = 46, width = 68),href="https://www.msc.org/",target='_blank'))
 
-             )
+            )
       ),
 
       column(12,
@@ -712,17 +709,27 @@ shinyUI(
                   HTML("<br>"),
                   downloadButton("Build_AI","Build Indicators report")
            )
+          ),
+
+          conditionalPanel(condition="output.Assess==1",
+           column(12,style="height:50px",
+                  HTML("<br>"),
+                  downloadButton("Build_Cond","Build Conditioning report")
+           )
           )
         ),
-        column(8,style="height:160px",
+        column(8,style="height:260px",
              h4("File",style = "color:black"),
              hr(),
              column(6,style="padding:10px",
-                    fileInput("Load","Load a previous session")),
+                    fileInput("Load","Load a previous session"),
+                    fileInput("LoadOBJ","Load a DLMtool object")),
 
              column(6,
                     h5("Save progress",style="font-weight:bold"),
                     downloadButton("Save","",width=70))
+
+
             # column(8,textInput("File", "File name:", "myStock.msc"))
         ),
         column(12,style="height:50px"),
@@ -879,9 +886,9 @@ shinyUI(
 
         column(8,style="height:40px"),
         column(2,style="height:40px; padding:9px",textOutput("SessionID")),
-        column(2,style="height:40px", h6("copyright (c) NRDC 2018"))
+        column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
         #column(12,style="height:100px"),
-        #column(12, textInput("Debug1", "Debug window", ""))
+        column(12, textInput("Debug1", "Debug window", ""))
 
      ) # end of fluid row
     ) # end of fluid page

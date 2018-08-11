@@ -34,9 +34,11 @@ shinyServer(function(input, output, session) {
 
   # Miscellaneous
   source("./Misc.R",local=TRUE)
-  source('./modSampCpars.R',local=TRUE)
+  #source('./modSampCpars.R',local=TRUE)
   source('./Fease_Functions.R',local=TRUE )
-  assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
+  source('./SSRA.R',local=TRUE ) # Stochastic SRA wrapper
+  source('./StochasticSRA_MSC.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
+  #assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
 
   # --------------------------------------------------------------
 
@@ -45,18 +47,21 @@ shinyServer(function(input, output, session) {
   Dpanel<-reactiveVal(0)
   Calc<-reactiveVal(0)
   Started<-reactiveVal(0)
+  Assess<-reactiveVal(0)
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
   output$Calc   <- reactive({ Calc()})
   output$Started   <- reactive({ Started()})
+  output$Assess  <- reactive({ Assess()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Dpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Calc",suspendWhenHidden=FALSE)
   outputOptions(output,"Started",suspendWhenHidden=FALSE)
+  outputOptions(output,"Assess",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -257,6 +262,31 @@ shinyServer(function(input, output, session) {
     #updateTextAreaInput(session,"Debug3",value=inputId)
     # ==========================================================================
 
+    Fpanel(1)
+    Mpanel(1)
+    Dpanel(1)
+    Calc(0)
+
+  })
+
+  observeEvent(input$LoadOBJ,{
+
+    filey<-input$LoadOBJ
+    obj<-readRDS(file=filey$datapath)
+
+    if(class(obj)=="Data"){
+
+      OM<<-makeOM(PanelState,nsim=nsim)
+      updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(obj@Cat)))
+      withProgress(message = "Running SRA", value = 0, {
+        OM<<-SSRA_wrap(OM,obj)
+      })
+
+      Just[[1]][1+c(2,4,5,6,7,10)]<<-"Estimated by Stochastic SRA"
+
+    }
+
+    Assess(1)
     Fpanel(1)
     Mpanel(1)
     Dpanel(1)
@@ -618,6 +648,42 @@ shinyServer(function(input, output, session) {
     }
   )
 
+  # Conditioning report
+  output$Build_Cond <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_Cond.html"), #"report.html",
+
+    content = function(file) {
+      doprogress("Building Conditioning report",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+      src <- normalizePath('CondRep.Rmd')
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'CondRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Operating Model Conditioning Report for ",input$Name),
+                     set_type=paste0("Demonstration Condinging analysis"," (FRAME version ",FRAMEversion,")"),
+                     PanelState=MSClog[[1]],
+                     Just=MSClog[[2]],
+                     Des=MSClog[[3]],
+                     OM=OM,
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+      )
+
+      output<-render(input="CondRep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
+
+    }
+  )
 
   # Fishery panel reactions ============================================================================================================
 
