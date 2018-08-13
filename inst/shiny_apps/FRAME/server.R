@@ -46,23 +46,28 @@ shinyServer(function(input, output, session) {
   Fpanel<-reactiveVal(0)
   Mpanel<-reactiveVal(0)
   Dpanel<-reactiveVal(0)
-  Calc<-reactiveVal(0)
   Started<-reactiveVal(0)
+  Data<-reactiveVal(0)
   Assess<-reactiveVal(0)
+  Calc<-reactiveVal(0)
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
-  output$Calc   <- reactive({ Calc()})
-  output$Started   <- reactive({ Started()})
-  output$Assess  <- reactive({ Assess()})
+
+  output$Started  <- reactive({ Started()})
+  output$Data     <- reactive({ Data()})
+  output$Assess   <- reactive({ Assess()})
+  output$Calc     <- reactive({ Calc()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Dpanel",suspendWhenHidden=FALSE)
-  outputOptions(output,"Calc",suspendWhenHidden=FALSE)
+
   outputOptions(output,"Started",suspendWhenHidden=FALSE)
+  outputOptions(output,"Data",suspendWhenHidden=FALSE)
   outputOptions(output,"Assess",suspendWhenHidden=FALSE)
+  outputOptions(output,"Calc",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -135,15 +140,6 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Analysis_type,{
 
-    if(Started()==1){
-      updateTabsetPanel(session=session, inputId="tabs1", selected = "5")
-    }else if(Started()==0){
-      updateTabsetPanel(session=session, inputId="tabs1", selected = "4")
-
-    }else{
-      updateTabsetPanel(session=session, inputId="tabs1", selected = "5")
-    }
-
     if(input$Analysis_type=='Demo'){
       updateNumericInput(session,'nsim',value="24")
       updateNumericInput(session,'interval',value="8")
@@ -179,7 +175,7 @@ shinyServer(function(input, output, session) {
     shinyjs::disable("LTL")
     shinyjs::disable("LoadInd")
     shinyjs::disable("Power")
-    Started(1)
+    #Started(1)
 
   })
 
@@ -270,13 +266,29 @@ shinyServer(function(input, output, session) {
 
   })
 
-  observeEvent(input$LoadOBJ,{
+  observeEvent(input$Load_Data,{
 
-    filey<-input$LoadOBJ
-    obj<-readRDS(file=filey$datapath)
+    filey<-input$Load_Data
+    out<-Data_parse(filey$datapath)
+    dat<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
+    updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+
+    if(class(dat)=="Data"){
+
+      Data(1)
+      updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+
+    }else{
+
+      Data(0)
+      updateTextAreaInput(session,"Data_Rep",value="File not of DLMtool class 'Data'")
+
+    }
+  })
+
+  observeEvent(input$Build_OM_2,{
 
     if(class(obj)=="Data"){
-
       OM<<-makeOM(PanelState,nsim=nsim)
       updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(obj@Cat)))
       withProgress(message = "Running SRA", value = 0, {
@@ -325,7 +337,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Calculate,{
 
     Fpanel(1)
-    updateTabsetPanel(session=session,inputId="tabs1", selected = "5")
+    #updateTabsetPanel(session=session,inputId="tabs1", selected = "5")
 
     nsim<<-input$nsim
     burnin<<-input$burnin
@@ -655,6 +667,42 @@ shinyServer(function(input, output, session) {
     }
   )
 
+  # Data report
+  output$Build_Data <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_data.html"), #"report.html",
+
+    content = function(file) {
+      doprogress("Building Data report",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+      src <- normalizePath('DataRep.Rmd')
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'DataRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Data report for ",input$Name),
+                     set_type=paste0("Demonstration Data description"," (FRAME version ",FRAMEversion,")"),
+                     dat=dat,
+                     author=input$Author,
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+      )
+
+      output<-render(input="DataRep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
+
+    }
+  )
+
+
   # Conditioning report
   output$Build_Cond <- downloadHandler(
     # For PDF output, change this to "report.pdf"
@@ -675,7 +723,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Operating Model Conditioning Report for ",input$Name),
-                     set_type=paste0("Demonstration Condinging analysis"," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Demonstration Conditioning analysis"," (FRAME version ",FRAMEversion,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],

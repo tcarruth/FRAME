@@ -81,3 +81,13 @@ LowSlopes<-function(OMin, except = NULL) {
 
   return(OMin)
 }
+
+Data_parse<-function(file){
+
+  parsed<-strsplit(file,"/")[[1]]
+  out<-list()
+  out$dir<-paste(parsed[1:(length(parsed)-1)],collapse="/")
+  out$name<-parsed[length(parsed)]
+  out
+
+}

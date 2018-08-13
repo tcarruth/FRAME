@@ -39,6 +39,7 @@ shinyUI(
                       #Fcont{font-size: 13px;}
                       #FcontD{font-size: 13px;}
                       #Fback{font-size: 13px;}
+                      #Build_OM_Q{font-size: 13px;}
                       #FbackD{font-size: 13px;}
                       #Build_OM{font-size: 13px;}
                       #Build_Eval{font-size: 13px;}
@@ -83,19 +84,24 @@ shinyUI(
             )
       )
     ),
-
+    hr(),
 
     h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
     h5("FRAME links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool and MSEtool  to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
-    h5("In steps 1 and 2 the fishery is characterized and any available data are used to specify an operating model. The operating model can then be used to evaluate feasible MPs (Evaluation mode),
-     applying a suitable MP (Application mode) and establishing indicators that can detect changes in system dynamics (Indicators mode).",style = "color:grey"),
+    h5("In steps 1 and 2 the fishery is characterized and any available data are loaded. In step 3 an operating model is constructed that is used in step 4 to conduct MSE of feasible MPs (Evaluation mode),
+     apply a suitable MP (Application mode) or establishing indicators that can detect changes in system dynamics (Indicators mode).",style = "color:grey"),
+    h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
+    h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
+    h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
+
 
     fluidRow(
-      HTML("<br>"),
+
+      HTML("<br><br>"),
 
       column(12,style="height:60px",
 
-            h4("STEP 1: CHARACTERISE FISHERY"),
+            h4("STEP 1: CHARACTERIZE FISHERY IN QUESTIONNAIRE"),
             hr()
       ),
 
@@ -105,7 +111,7 @@ shinyUI(
 
 
                column(width = 4, style="height:360px",
-                      tabsetPanel( id = "tabs1",selected=4,
+                      tabsetPanel( id = "tabs1",selected=1,
                         tabPanel(h4("Fishery",style = "color:black"),
 
                             conditionalPanel(width=4,condition="output.Fpanel==undefined|output.Fpanel==0",
@@ -281,25 +287,13 @@ shinyUI(
                                                   radioButtons("Err", label = h5("4. Overall data quality",style="color:black"),
                                                                      choices = Err_list, selected = "Err_bad"),
                                                   actionLink("All_Err","DEFAULT")),
-                                 value=3),
+                                 value=3)
 
 
 
 
 
-                        tabPanel(h4("Help",style = "color:#A8A8A8"),
-                                ## textOutput(
-                                 h5("1. Specify fishery, management and data attributes",style = "color:grey"),
-                                 h5("2. Save progress",style = "color:grey"),
-                                 h5("3. Run an Evaluation MSE (15 minutes)",style = "color:grey"),
-                                 h5("4. Select an MP",style = "color:grey"),
-                                 h5("5. Run an Application MSE (5 minutes)",style = "color:grey"),
-                                 h5("6. Establish indicators",style = "color:grey"),
-                                 HTML("<br>"),
-                                 h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
-                                 h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
-                                 h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
-                                 value=4)
+
                       )
 
                ),
@@ -570,8 +564,9 @@ shinyUI(
 
              )
         ),
-        column(1),
-        column(10,style="height:180px",
+
+       column(1),
+       column(10,style="height:180px",
              fluidRow(
 
                column(width = 12,
@@ -592,6 +587,7 @@ shinyUI(
             )
         ),
         column(12,
+        fluidRow(
         column(1),
         column(4,style="height:80px",
             fluidRow(
@@ -631,27 +627,98 @@ shinyUI(
 
             )
          ),
-         column(4),
-         column(3,style="height:50px",
-               HTML("<br>"),
-               downloadButton("Build_OM","Build Operating Model report")
+
+         column(2),
+
+
+         column(4,style="height:50px",
+
+
+               column(6,style="padding:10px",
+                      fileInput("Load","Load")
+               ),
+
+               column(2,
+                      h5("Save",style="font-weight:bold"),
+                      downloadButton("Save","",width=70)
+               ),
+
+               column(4,
+                     h5("Report",style="font-weight:bold"),
+                     downloadButton("Build_OM"," ")
+               )
          )
 
 
+        )
+        )
+       ), # end of Step 1 fluid row
+
+       column(12,style="height:45px"),
+       h4("STEP 2: LOAD AVAILABLE DATA (OPTIONAL)"),
+       hr(),
+
+       fluidRow(
+          column(1),
+          column(11,style="height:155px",
+
+             fluidRow(
+               column(3,style="padding:7px;padding-left:14px",
+                      fileInput("Load_Data","Load any available data")
+               ),
+               column(1),
+               column(6,style="padding:19px",
+                          h5("When formatted into a DLMtool/MSEtool csv data file, fishery data can be used to:",style = "color:grey"),
+                          h5(" - condition operating models",style = "color:grey"),
+                          h5(" - determine feasible MPs", style = "color:grey"),
+                          h5(" - assess the fishery status", style = "color:grey"),
+                          h5(" - test for exceptional circumstances.",style = "color:grey")
+
+               )
+             )
+          )
         ),
 
-        column(12,style="height:45px"),
+        fluidRow(
+            column(1),
+            column(6),
+            column(4,
+                  column(8),
+                  column(4,
+                         conditionalPanel(width=4,condition="output.Data==1",
+                          h5("Report",style="font-weight:bold"),
+                          downloadButton("Build_Data"," ")
+                         )
+                  )
+            )
+        ),
 
-        column(12,style="height:50px",
+        column(12,style="height:250px",
 
-             h4("STEP 2: BUILD OPERATING MODELS"),
-             hr()
+             h4("STEP 3: BUILD OPERATING MODELS"),
+             hr(),
 
+             fluidRow(
+               column(1),
+               column(11,style="height:155px",
+                 fluidRow(
+                    column(2,style="padding-left:3px",
+                      actionButton("Build_OM_2","Build Operating Model")
+
+                    ),
+                    column(2,
+
+                      checkboxInput("OM_cond",label="Use loaded data for conditioning",value=FALSE)
+
+                    )
+                 )
+              )
+            )
         ),
 
 
         column(12,style="height:50px",
-            h4("STEP 3: RUN MSE"),
+            h4("STEP 4: RUN MSE"),
             hr()
         ),
 
@@ -729,7 +796,7 @@ shinyUI(
 
         column(12,style="height:50px",
 
-             h4("STEP 4: BUILD REPORTS"),
+             h4("STEP 5: BUILD REPORTS"),
              hr()
         ),
 
@@ -763,28 +830,6 @@ shinyUI(
                   downloadButton("Build_Cond","Build Conditioning report")
            )
           )
-        ),
-
-         column(12,style="height:50px",
-
-            h4("FILE: LOAD/SAVE"),
-            hr()
-
-         ),
-
-        column(8,style="height:260px",
-             h4("File",style = "color:black"),
-             hr(),
-             column(6,style="padding:10px",
-                    fileInput("Load","Load a previous session"),
-                    fileInput("LoadOBJ","Load a DLMtool object")),
-
-             column(6,
-                    h5("Save progress",style="font-weight:bold"),
-                    downloadButton("Save","",width=70))
-
-
-            # column(8,textInput("File", "File name:", "myStock.msc"))
         ),
 
 
@@ -940,13 +985,13 @@ shinyUI(
 
       column(12,style="height:30px"),
 
-        column(8,style="height:40px"),
-        column(2,style="height:40px; padding:9px",textOutput("SessionID")),
-        column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
+      column(8,style="height:40px"),
+      column(2,style="height:40px; padding:9px",textOutput("SessionID")),
+      column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
         #column(12,style="height:100px"),
-        column(12, textInput("Debug1", "Debug window", ""))
+      column(12, textInput("Debug1", "Debug window", ""))
 
-     ) # end of fluid row
+     #) # end of fluid row
     ) # end of fluid page
   ) # end of server
 
