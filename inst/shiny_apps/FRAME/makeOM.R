@@ -6,9 +6,10 @@ getminmax<-function(panel,parameter,PanelState){
   range(mins[cond],maxs[cond])
 }
 
-makeOM<-function(PanelState,nsim=48){
+makeOM<-function(PanelState,nsim=48,nyears=NA,maxage=NA){
 
   OM<-LowSlopes(testOM)
+
   OM@R0<-100000
   OM@nsim<-nsim
 
@@ -21,10 +22,14 @@ makeOM<-function(PanelState,nsim=48){
   OM@Species<-input$Species
   OM@Region<-input$Region
   OM@Agency<-input$Agency
-  if(is.na(as.integer(input$nyears))){
-    OM@nyears<-68
+  if(is.na(nyears)){
+    if(is.na(as.integer(input$nyears))){
+      OM@nyears<-68
+    }else{
+      OM@nyears<-as.integer(input$nyears)
+    }
   }else{
-    OM@nyears<-as.integer(input$nyears)
+    OM@nyears<-nyears
   }
   nyears<-OM@nyears
 
@@ -52,6 +57,13 @@ makeOM<-function(PanelState,nsim=48){
 
   # Fishery characteristics -------
   OM@M<-getminmax(1,"M",PanelState)
+  if(is.na(maxage)){
+    OM@maxage=ceiling(-log(0.02)/min(OM@M))
+  }else{
+    OM@maxage=maxage
+  }
+
+  if(OM@maxage)
   OM@D<-getminmax(1,"D",PanelState)
   OM@h<-getminmax(1,"h",PanelState)
 

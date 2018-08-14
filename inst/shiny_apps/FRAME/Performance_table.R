@@ -92,7 +92,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
   }
   if(!cond[3])tempdat@Dep<-rep(NA,2)
 
-  DFeasible<-Fease2(tempdat)
+  DFeasible<-Fease(tempdat)
 
   # TAC TAE Feasibility
   cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)

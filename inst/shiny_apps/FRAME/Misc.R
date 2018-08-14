@@ -24,7 +24,7 @@ namconv<-function(nam){
 
 getMPs<-function(){
 
-  if(input$Analysis_type=="Demo"){
+  if(input$Demo){
     MPs<<-c('FMSYref','AvC','DCAC','curE75','matlenlim','MRreal','MCD','DD4010')
     #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
 

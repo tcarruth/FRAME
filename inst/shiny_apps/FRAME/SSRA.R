@@ -1,14 +1,14 @@
 
 # Stochastic SRA wrapper
 
-SSRA_wrap<-function(OM,Data,simno=1){
+SSRA_wrap<-function(OM,dat,simno=1){
 
 
-  CAA<-Data@CAA[simno,,]
-  Chist<-Data@Cat[simno,]
-  Ind<-Data@Ind[simno,]
+  CAA<-dat@CAA[simno,,]
+  Chist<-dat@Cat[simno,]
+  Ind<-dat@Ind[simno,]
   CAL=NA
-  ML<-Data@ML[simno,]
+  ML<-dat@ML[simno,]
   mulen<-NA
 
   StochasticSRA_MSC(OM,CAA,Chist,Ind,ML,CAL,mulen,wts=c(1,1,0.5,0.1,1),
@@ -16,4 +16,5 @@ SSRA_wrap<-function(OM,Data,simno=1){
                      ploty=F,nplot=6,SRAdir=NA)
 
 }
+
 

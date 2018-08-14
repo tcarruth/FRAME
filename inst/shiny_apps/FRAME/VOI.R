@@ -8,7 +8,7 @@ getVOI<-function(MSEobj_top){
   MSEtemp<-MSEobj_top
   MSEtemp@OM<-cbind(MSEtemp@OM,betas=MSEtemp@Obs$betas,Cbias=MSEtemp@Obs$Cbias)
   MSEtemp@OM<-MSEtemp@OM[,names(MSEtemp@OM)%in%opt1 | names(MSEtemp@OM)%in%opt2]
-  VOI(MSEtemp,ncomp=17,nbins=6)[[1]]
+  VOI(MSEtemp,ncomp=16,nbins=6)[[1]]
 
 }
 

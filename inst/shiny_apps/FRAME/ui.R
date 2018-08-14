@@ -101,7 +101,7 @@ shinyUI(
 
       column(12,style="height:60px",
 
-            h4("STEP 1: CHARACTERIZE FISHERY IN QUESTIONNAIRE"),
+            h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE"),
             hr()
       ),
 
@@ -655,7 +655,7 @@ shinyUI(
        ), # end of Step 1 fluid row
 
        column(12,style="height:45px"),
-       h4("STEP 2: LOAD AVAILABLE DATA (OPTIONAL)"),
+       h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)"),
        hr(),
 
        fluidRow(
@@ -664,7 +664,7 @@ shinyUI(
 
              fluidRow(
                column(3,style="padding:7px;padding-left:14px",
-                      fileInput("Load_Data","Load any available data")
+                      fileInput("Load_Data","Load available data")
                ),
                column(1),
                column(6,style="padding:19px",
@@ -675,6 +675,7 @@ shinyUI(
                           h5(" - test for exceptional circumstances.",style = "color:grey")
 
                )
+
              )
           )
         ),
@@ -693,115 +694,232 @@ shinyUI(
             )
         ),
 
-        column(12,style="height:250px",
+        column(12,style="height:45px"),
 
-             h4("STEP 3: BUILD OPERATING MODELS"),
-             hr(),
+        h4("STEP A3: BUILD OPERATING MODELS"),
+        hr(),
 
-             fluidRow(
-               column(1),
-               column(11,style="height:155px",
-                 fluidRow(
-                    column(2,style="padding-left:3px",
-                      actionButton("Build_OM_2","Build Operating Model")
+        fluidRow(
+           column(1),
+           column(11,
 
-                    ),
-                    column(2,
+              fluidRow(
 
-                      checkboxInput("OM_cond",label="Use loaded data for conditioning",value=FALSE)
+                column(4,
+                numericInput("nsim", label = "No. MSE simulations", value=24,min=8,max=1000),
 
-                    )
-                 )
-              )
-            )
-        ),
+                conditionalPanel(condition="output.Data==1", checkboxInput("OM_cond",label="Condition OM via S-SRA",value=FALSE)),
+
+                actionButton("Build_OM_2",h5("BUILD OPERATING MODEL",style="color:red"))
+
+                ),
 
 
-        column(12,style="height:50px",
-            h4("STEP 4: RUN MSE"),
-            hr()
-        ),
-
-        column(12,style="height:400px",
-
-
-             fluidRow(
-
-             column(6,style="height:80px;padding-left:30px",
-                    fluidRow(
-
-                      #column(12,style="height:15px"),
-                      column(12,radioButtons("Analysis_type",label=NULL,
-                                             c("Demo Evaluation"="Demo","Evaluation" = "Eval","Application"="App","Indicators"="Ind"),
-                                             selected="Demo",inline=T)),
-                      column(12,style="height:80px", actionButton("Calculate",h5("CALCULATE",style="color:red"),width=403))
-
-
-                    )
-             ),
-
-             column(6,
-
-                      conditionalPanel(width=6,condition="(output.Dpanel==0 & output.Fpanel== 0 & output.Mpanel == 0)&input.Analysis_type=='Demo'",
-                                       HTML("<br>"),
-                                       h5("The Options panel allows the user to control aspects of the MSE testing of Management procedures such as
-                                          the number of MSE simulations, the number of years for historical projections and whether to use parallel computation
-                                          to speed up MSE calculations.",style="color:grey"),
-                                       h5(""),
-                                       h5("More detailed help with the various options can be found in the FRAME manual
-                                          : ", a("Section 7.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#7_the_options_tab", target="_blank"),style="color:grey")
-
-                                       ),
-
-                      conditionalPanel(width=6,condition="(output.Dpanel>0 | output.Fpanel>0 | output.Mpanel>0)|input.Analysis_type!='Demo'",
-
-                                       column(12,style="height:15px"),
-                                       column(3,numericInput("nsim", label = "Sims", value=24,min=8,max=1000)),
-                                       column(3,numericInput("proyears", label = "Proj. yrs", value=50,min=25,max=100)),
-                                       column(3,numericInput("interval", label = "Interval", value=8,min=2,max=10)),
-
-                                       #column(6, textInput("Source", "Source custom code", "mysource.r")),
-                                       column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
-                                       column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
-                                       column(4,checkboxInput("LTL", label = "LTL species", value = FALSE)),
-                                       conditionalPanel(width=3,condition="input.Analysis_type!='Ind'",
-                                                        column(3,numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),style="padding:10px")
-                                       ),
-
-                                       conditionalPanel(width=9,condition="input.Analysis_type=='Demo'|input.Analysis_type=='Eval'",
-                                                        column(3,numericInput("ntop", label = "N top MPs", value=10,min=1,max=80),style="padding:10px")
-                                       ),
-                                       conditionalPanel(width=6,condition="input.Analysis_type=='App'|input.Analysis_type=='Ind'",
-                                                        column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px")
-                                       ),
-                                       conditionalPanel(width=6,condition="input.Analysis_type=='Ind'",
-                                                        column(5,h5("Load indicator file",style="font-weight:bold")),
-                                                        column(5,downloadButton("LoadInd",""))
-                                       ),
-                                       conditionalPanel(width=12,condition="input.Analysis_type=='Ind'",
-                                                        column(12,h5("Select dynamics for power analysis",style="font-weight:bold")),
-                                                        column(12,checkboxGroupInput("Power", label = NULL,
-                                                                                     choices = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                                                                     selected = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                                                                     inline=T))
-
-                                       )
+                column(6,style="padding-left:8px",
+                       style="padding:19px",
+                       h5("Operating models are specified from the responses in the questionnaire (Step 1)", style = "color:grey"),
+                       h5("Alternatively, where possible, users can use upload their data and condition models using
+                          stochastic SRA ",a("(Walters et al. 2006)", href="https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB", target="_blank"),style = "color:grey"),
+                       h5("For demonstration purposes a small number of MSE simulations (e.g. n = 24) is enough. For MP comparisons in 'Evaluation' mode,
+                          100 simulations is generally sufficient to get convergence in performance rankings. In more detailed Application or Indicator
+                          MSE testing of specific MPs a larger number is recommended (e.g. n = 200) to get stable absolute performance", style = "color:grey")
 
                       )
 
 
-
-            )
-        )),
-
-        column(12,style="height:50px",
-
-             h4("STEP 5: BUILD REPORTS"),
-             hr()
+              )
+           )
         ),
 
-        column(12,style="height:40px",
+        fluidRow(
+          column(1),
+          column(6),
+          column(4,
+                 column(8),
+                 column(4,
 
+                        conditionalPanel(condition="output.CondOM==1",
+
+                            h5("Conditioning Report",style="font-weight:bold"),
+                            downloadButton("Build_Cond","Report")
+
+                        )
+                 )
+          )
+        ),
+
+
+        column(12,style="height:45px"),
+
+
+        h4("STEP B1: EVALUATION (MULTI-MP)"),
+        hr(),
+
+        fluidRow(
+          column(1),
+          column(11,
+             fluidRow(
+                 column(4,
+
+                   column(6,numericInput("proyears", label = "Projected years", value=50,min=25,max=100)),
+                   column(6,numericInput("interval", label = "Management interval", value=8,min=2,max=10)),
+
+                   column(4,checkboxInput("Demo", label = "Demo mode", value=TRUE)),
+                   column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
+                   column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
+                   column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Only Data-Feasible MPs", value = FALSE))),
+
+                   conditionalPanel(condition="output.MadeOM==1",actionButton("Calculate",h5("RUN MSE",style="color:red")))
+
+                ),
+
+                column(6,style="height:80px",
+
+                       h5("An MSE can be run for a certain number of projected years in which managment recommendations are updated every Interval years", style = "color:grey"),
+                       h5("In Demo mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
+                       h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches", style = "color:grey"),
+                       h5("In situations where operating models are built with more than 48 simulations it can be much faster to run the MSE using parallel computing ('Parallel comp.)
+                          although the progress bar will not longer work", style = "color:grey")
+
+               )
+             )
+
+           )
+        ),
+
+        column(12,style="height:45px"),
+
+        h4("STEP B2: APPLICATION (SINGLE MP)"),
+        hr(),
+
+        fluidRow(
+          column(1),
+          column(11,
+            column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px")
+          )
+        ),
+
+        column(12,style="height:45px"),
+
+        h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)"),
+        hr(),
+
+        fluidRow(
+
+          column(1),
+          column(11,
+
+            column(5,selectInput("sel_MP_ind", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
+
+
+            column(12,h5("Select dynamics for power analysis",style="font-weight:bold")),
+
+            column(12,checkboxGroupInput("Power", label = NULL,
+                                         choices = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
+                                         selected = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
+                                         inline=T)),
+
+            column(5,h5("Load indicator file",style="font-weight:bold")),
+
+            column(5,downloadButton("LoadInd",""))
+          )
+        ),
+
+        column(12,style="height:45px"),
+
+        h4("RESULTS"),
+        hr(),
+
+        fluidRow(
+          column(1),
+          column(11,
+
+            fluidRow(
+              column(2,
+                checkboxInput("LTL", label = "LTL species", value = FALSE),
+
+                numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),
+                numericInput("ntop", label = "N top MPs", value=10,min=1,max=80)
+              ),
+
+              column(10,
+               tabsetPanel( id = "Res_Tab",selected=1,
+                            tabPanel(h4("Evaluation",style = "color:black"),
+                                     conditionalPanel(condition="output.Calc==1",
+
+                                                      fluidRow(
+                                                        column(width = 12,
+
+                                                               column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
+                                                               column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                                                  thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                                                  order of projected long-term yield relative to fishing at the FMSY
+                                                                                  reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                                                  not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                                                  right.")),
+                                                               column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
+                                                                                  do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
+                                                                                  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
+                                                                                  management restrictions (M) controled by management question 1")),
+                                                               tableOutput('Ptable'),
+                                                               tableOutput('threshtable')
+
+                                                               ),
+                                                        column(width = 12,
+
+                                                               column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
+                                                        )       ,
+                                                        column(width = 4,
+
+                                                               column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
+                                                               plotOutput("P1_LTY",height="auto")
+
+                                                        ),
+                                                        column(width = 4,
+
+                                                               column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
+                                                               plotOutput("P2_LTY",height="auto")
+
+                                                        ),
+
+                                                        column(width = 4,
+
+                                                               column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
+                                                               plotOutput("P3_LTY",height="auto")
+
+                                                        )
+                                                               ), # end of fluid row
+                                                      fluidRow(
+                                                        column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
+                                                        column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                                                        plotOutput("wormplot",height="auto"),
+
+                                                        column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
+                                                        column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                                                        plotOutput("wormplot2",height="auto"),
+
+                                                        column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),
+                                                        column(width=12,h5("These plots show how many simulations could be assigned to each of the SG regions defined by PI.1.1.1 ")),
+                                                        plotOutput("PI111_uncertain",height="auto"),
+
+                                                        column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
+                                                        column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
+                                                        plotOutput("CCU",height="auto")
+                                                      ) # end of fluid row
+
+
+                            ), value=1),
+
+                            tabPanel(h4("Application",style = "color:black"),value=2),
+                            tabPanel(h4("Indicators",style = "color:black"),value=3)
+               )
+              )
+            )
+          )
+        ),
+
+
+        column(12,style="height:40px",
 
           conditionalPanel(condition="output.Calc==1",
             column(12,style="height:50px",
@@ -822,14 +940,8 @@ shinyUI(
                   HTML("<br>"),
                   downloadButton("Build_AI","Build Indicators report")
            )
-          ),
-
-          conditionalPanel(condition="output.Assess==1",
-           column(12,style="height:50px",
-                  HTML("<br>"),
-                  downloadButton("Build_Cond","Build Conditioning report")
-           )
           )
+
         ),
 
 
@@ -840,71 +952,8 @@ shinyUI(
                 h4("RESULTS"),
                 hr(),
 
-                conditionalPanel(condition="output.Calc==1&(input.Analysis_type=='Demo'|input.Analysis_type=='Eval')",
 
-                    fluidRow(
-                      column(width = 12,
-
-                             column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                             column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                                thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                                order of projected long-term yield relative to fishing at the FMSY
-                                                reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
-                                                not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                                right.")),
-                             column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
-                                                do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
-                                                explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
-                                                management restrictions (M) controled by management question 1")),
-                             tableOutput('Ptable'),
-                             tableOutput('threshtable')
-
-                             ),
-                      column(width = 12,
-
-                             column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
-                      )       ,
-                      column(width = 4,
-
-                             column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
-                             plotOutput("P1_LTY",height="auto")
-
-                      ),
-                      column(width = 4,
-
-                             column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
-                             plotOutput("P2_LTY",height="auto")
-
-                      ),
-
-                      column(width = 4,
-
-                             column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
-                             plotOutput("P3_LTY",height="auto")
-
-                      )
-                    ), # end of fluid row
-                    fluidRow(
-                      column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
-                      column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
-                      plotOutput("wormplot",height="auto"),
-
-                      column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
-                      column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
-                      plotOutput("wormplot2",height="auto"),
-
-                      column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),
-                      column(width=12,h5("These plots show how many simulations could be assigned to each of the SG regions defined by PI.1.1.1 ")),
-                      plotOutput("PI111_uncertain",height="auto"),
-
-                      column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
-                      column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
-                      plotOutput("CCU",height="auto")
-                    ) # end of fluid row
-
-
-                ), # end of Evaluation results
-                conditionalPanel(condition="input.Analysis_type=='App'&output.Calc==2",
+                conditionalPanel(condition="output.Calc==2",
 
                    column(width = 12,
                           HTML("<br>"),
@@ -955,7 +1004,7 @@ shinyUI(
                    )
 
                 ),    # end of Application results
-                conditionalPanel(condition="input.Analysis_type=='Ind'&output.Calc==3",
+                conditionalPanel(condition="output.Calc==3",
 
                    column(12,
                           HTML("<br>"),

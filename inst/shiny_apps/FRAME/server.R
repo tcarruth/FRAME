@@ -48,7 +48,8 @@ shinyServer(function(input, output, session) {
   Dpanel<-reactiveVal(0)
   Started<-reactiveVal(0)
   Data<-reactiveVal(0)
-  Assess<-reactiveVal(0)
+  CondOM<-reactiveVal(0)
+  MadeOM<-reactiveVal(0)
   Calc<-reactiveVal(0)
 
   output$Fpanel <- reactive({ Fpanel()})
@@ -57,7 +58,8 @@ shinyServer(function(input, output, session) {
 
   output$Started  <- reactive({ Started()})
   output$Data     <- reactive({ Data()})
-  output$Assess   <- reactive({ Assess()})
+  output$CondOM   <- reactive({ CondOM()})
+  output$MadeOM   <- reactive({ MadeOM()})
   output$Calc     <- reactive({ Calc()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
@@ -66,7 +68,8 @@ shinyServer(function(input, output, session) {
 
   outputOptions(output,"Started",suspendWhenHidden=FALSE)
   outputOptions(output,"Data",suspendWhenHidden=FALSE)
-  outputOptions(output,"Assess",suspendWhenHidden=FALSE)
+  outputOptions(output,"CondOM",suspendWhenHidden=FALSE)
+  outputOptions(output,"MadeOM",suspendWhenHidden=FALSE)
   outputOptions(output,"Calc",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
@@ -138,47 +141,6 @@ shinyServer(function(input, output, session) {
 
   )
 
-  observeEvent(input$Analysis_type,{
-
-    if(input$Analysis_type=='Demo'){
-      updateNumericInput(session,'nsim',value="24")
-      updateNumericInput(session,'interval',value="8")
-
-    }else if(input$Analysis_type=='Eval'){
-      updateNumericInput(session,'nsim',value="96")
-      updateNumericInput(session,'interval',value="4")
-
-    }else{
-      updateNumericInput(session,'nsim',value="196")
-      updateNumericInput(session,'interval',value="4")
-      #if(input$Analysis_type=='Ind')shinyjs::disable("Parallel")
-      #if(input$Analysis_type!='Ind'){
-      #  if(input$nsim<48) shinyjs::disable("Parallel")
-       # if(input$nsim>47) shinyjs::enable("Parallel")
-      #}
-    }
-
-    MPs<<-getMPs()
-
-    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-
-    if(input$Analysis_type%in%c("Demo","Eval")){
-      shinyjs::disable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
-      shinyjs::enable("ntop")
-
-    }else{
-      shinyjs::enable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
-      shinyjs::disable("ntop")
-    }
-    shinyjs::disable("LTL")
-    shinyjs::disable("LoadInd")
-    shinyjs::disable("Power")
-    #Started(1)
-
-  })
-
   observeEvent(input$nsim, {
     if(input$nsim<48) shinyjs::disable("Parallel")
     if(input$nsim>47) shinyjs::enable("Parallel")
@@ -196,24 +158,21 @@ shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$Ex_Ref_MPs, {
+
     MPs<<-getMPs()
+
     if(input$Ex_Ref_MPs){
       MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
       selectedMP<<-MPs[1]
     }
-    if(input$Analysis_type%in%c("Demo","Eval")){
-      shinyjs::disable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
 
-    }else{
-      shinyjs::enable("sel_MP")
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
-    }
+    shinyjs::disable("sel_MP")
+    updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
 
   })
 
   observeEvent(input$sel_MP,{
-    if(input$Analysis_type%in%c("App","Ind"))  selectedMP<<-input$sel_MP
+    selectedMP<<-input$sel_MP
   })
 
 
@@ -270,61 +229,73 @@ shinyServer(function(input, output, session) {
 
     filey<-input$Load_Data
     out<-Data_parse(filey$datapath)
-    dat<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
+    dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
     updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
 
     if(class(dat)=="Data"){
 
       Data(1)
-      updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+      shinyjs::enable("OM_Cond")
+      #updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
 
     }else{
 
       Data(0)
-      updateTextAreaInput(session,"Data_Rep",value="File not of DLMtool class 'Data'")
+      shinyjs::disable("OM_Cond")
+      updateCheckboxInput(session,"OM_cond",value=FALSE)
+      #updateTextAreaInput(session,"Data_Rep",value="File not of DLMtool class 'Data'")
 
     }
   })
 
   observeEvent(input$Build_OM_2,{
 
-    if(class(obj)=="Data"){
-      OM<<-makeOM(PanelState,nsim=nsim)
-      updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(obj@Cat)))
-      withProgress(message = "Running SRA", value = 0, {
-        OM<<-SSRA_wrap(OM,obj)
+    if(input$OM_cond & Data()==1){ # Build from SRA
+
+      OM<<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
+
+      saveRDS(OM,"OM_autosave.rda")
+      saveRDS(dat,"Data_autosave.rda")
+
+      updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(dat@Cat)))
+      withProgress(message = "Building OM from Questionnaire inc. conditioning using S-SRA", value = 0, {
+        OM<<-SSRA_wrap(OM,dat)
       })
       GoBackwards_SRA(OM)
       UpdateQuest()
       Just[[1]][1+c(2,4,5,6,7,10)]<<-"Estimated by Stochastic SRA"
-      Assess(1)
+      CondOM(1)
+      Fpanel(1)
+      Mpanel(1)
+      Dpanel(1)
 
-    }else if(class(obj)=="OM"){
+    }else{ # Build OM from questionnaire only
 
-      GoBackwards(obj)
-      UpdateQuest()
+      doprogress("Building OM from Questionnaire",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+
 
     }
-
-    Fpanel(1)
-    Mpanel(1)
-    Dpanel(1)
+    MadeOM(1)
     Calc(0)
 
   })
 
+  #GoBackwards(obj)
+  #UpdateQuest()
+
   observeEvent(input$ntop,{
-    if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
-      redoEval()
-    }
+    #if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
+      #redoEval()
+    #}
   })
 
   observeEvent(input$burnin,{
-    if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
-      redoEval()
-    }else if(input$Analysis_type=="App"){
-      redoApp()
-    }
+    #if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
+      #redoEval()
+    #}else if(input$Analysis_type=="App"){
+      #redoApp()
+    #}
 
   })
 
@@ -336,26 +307,38 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Calculate,{
 
+
     Fpanel(1)
     #updateTabsetPanel(session=session,inputId="tabs1", selected = "5")
+
+
+    MPs<<-getMPs()
+
+    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
+    if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
+    #if(input$Analysis_type%in%c("Demo","Eval")){
+
+      #updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
+
+
+    #}else{
+
+      #updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
+
+    #}
+
 
     nsim<<-input$nsim
     burnin<<-input$burnin
     parallel=F
-    if(input$Parallel&input$Analysis_type!="Ind"){
+    if(input$Parallel){
 
       if(nsim>47){
         parallel=T
         setup()
       }
     }
-    OM<<-makeOM(PanelState,nsim=nsim)
 
-    if(input$Analysis_type%in%c("Demo","Eval")){
-       MPs<<-getMPs()
-    }else{
-       MPs<<-input$sel_MP
-    }
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
@@ -375,40 +358,39 @@ shinyServer(function(input, output, session) {
     #OM_reb<-Replace(OM_reb,temp,Sub="Obs")
     #OM_reb<-Replace(OM_reb,temp,Sub="Imp")
 
-    if(input$Analysis_type!="Ind"){
-      withProgress(message = "Rebuilding evaluation", value = 0, {
+
+    withProgress(message = "Rebuilding evaluation", value = 0, {
         MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
-      })
-      save(MSEobj_reb,file="MSEobj_reb")
-    }
+    })
+    save(MSEobj_reb,file="MSEobj_reb")
 
     save(MSEobj,file="MSEobj")
-
+    save(PanelState,file="PanelState")
 
     # ==== Types of reporting ==========================================================
 
-    if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
-     redoEval()
+    #if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
+      redoEval()
       Calc(1)
-    } else if(input$Analysis_type=="App"){ # FIP presentations
-     redoApp()
-      Calc(2)
-    } else { # leaving just generic risk assessment
-     redoInd()
-      Calc(3)
+    #} else if(input$Analysis_type=="App"){ # FIP presentations
+    #  redoApp()
+    #  Calc(2)
+    #} else { # leaving just generic risk assessment
+    #  redoInd()
+     # Calc(3)
 
-      PPD<-MSEobj@Misc[[1]]
-      tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-      stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-      res<-burnin
+      #PPD<-MSEobj@Misc[[1]]
+      #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+      #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+      #res<-burnin
 
-      indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
-      indData<-matrix(indPPD[,1,1],ncol=1)
+      #indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
+      #indData<-matrix(indPPD[,1,1],ncol=1)
 
-      output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-      output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+      #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+      #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
 
-    }
+    #}
 
   })
 
@@ -465,25 +447,25 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$D1,{
     if(Calc()!=0){
-      if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-        redoEval()
-      } else if(input$Analysis_type=="App"){ # FIP presentations
-        redoApp()
-      } else { # leaving just generic risk assessment
-        redoInd()
-     }
+      #if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
+       # redoEval()
+      #} else if(input$Analysis_type=="App"){ # FIP presentations
+      #  redoApp()
+      #} else { # leaving just generic risk assessment
+      #  redoInd()
+     #}
     }
   })
 
   observeEvent(input$M1,{
     if(Calc()!=0){
-    if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-      redoEval()
-    } else if(input$Analysis_type=="App"){ # One MP application
-      redoApp()
-    } else { # leaving just ancilliary indicators
-      redoInd()
-    }
+    #if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
+    #  redoEval()
+    #} else if(input$Analysis_type=="App"){ # One MP application
+    #  redoApp()
+    #} else { # leaving just ancilliary indicators
+    #  redoInd()
+    #}
     }
   })
 
@@ -507,12 +489,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Operating Model Specification Report for ",input$Name),
-                     set_type=paste0(switch(input$Analysis_type,
-                                     "Demo"="Demonstration evaluation analysis",
-                                     "Eval" = "Evaluation of MPs analysis",
-                                     "App" = "Application of an MP",
-                                     "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
-
+                     set_type=paste0("(FRAME version ",FRAMEversion,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
@@ -549,11 +526,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Evaluation Report for ",input$Name),
-                     set_type=paste0(switch(input$Analysis_type,
-                                            "Demo"="Demonstration evaluation analysis",
-                                            "Eval" = "Evaluation of MPs analysis",
-                                            "App" = "Application of an MP",
-                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -595,11 +568,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Application Report for ",input$Name),
-                     set_type=paste0(switch(input$Analysis_type,
-                                            "Demo"="Demonstration evaluation analysis",
-                                            "Eval" = "Evaluation of MPs analysis",
-                                            "App" = "Application of an MP",
-                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Application of an MP"," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -642,11 +611,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
-                     set_type=paste0(switch(input$Analysis_type,
-                                            "Demo"="Demonstration evaluation analysis",
-                                            "Eval" = "Evaluation of MPs analysis",
-                                            "App" = "Application of an MP",
-                                            "Ind" = "Ancillary indicators report")," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Ancillary indicators report"," (FRAME version ",FRAMEversion,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
