@@ -8,7 +8,7 @@ getVOI<-function(MSEobj_top){
   MSEtemp<-MSEobj_top
   MSEtemp@OM<-cbind(MSEtemp@OM,betas=MSEtemp@Obs$betas,Cbias=MSEtemp@Obs$Cbias)
   MSEtemp@OM<-MSEtemp@OM[,names(MSEtemp@OM)%in%opt1 | names(MSEtemp@OM)%in%opt2]
-  VOI(MSEtemp,ncomp=16,nbins=6)[[1]]
+  VOI(MSEtemp,ncomp=16,nbins=6,plot=F)[[1]]
 
 }
 
@@ -31,8 +31,9 @@ CCU_plot<-function(VOIout,MSEobj,MPcols,maxrow=1,maxcol=3){
   MPcols[MPcols=="green"]<-'darkgreen'
 
   for(i in 1:MSEobj@nMPs){
+
     MP<-MSEobj@MPs[i]
-    dat<-VOIout[match(MP,VOIout[,1])+0:1,2:18]
+    dat<-VOIout[match(MP,VOIout[,1])+0:1,2:17]
     lab1<-qno[match(as.factor(unlist(dat[1,])),opt1)]
     lab2<-qno[match(as.factor(unlist(dat[1,])),opt2)]
     lab1[is.na(lab1)]<-lab2[is.na(lab1)]
@@ -41,6 +42,7 @@ CCU_plot<-function(VOIout,MSEobj,MPcols,maxrow=1,maxcol=3){
     labs<-paste(qno,qtext,sep=" - ")
     barplot(dat2[,2],names.arg=labs[match(dat2[,1],qno)], las=2,col=fcol,border=NA,cex.axis=1.4,cex.names=1.3)
     legend('topright',MP,bty='n',text.font=2,cex=1.6,text.col=MPcols[i])
+
   }
 
   mtext("Question / operating model characteristic",1,outer=T,line=0.5)

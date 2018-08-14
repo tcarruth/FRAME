@@ -51,7 +51,7 @@ Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
 }
 
 #                                       11a 11b 12  21a 21a
-Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
+Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T){
 
   # save(Ptab1,file="Ptab1")
 
@@ -122,9 +122,9 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
   names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
 
   PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
-  MPcols<<-rep('black',length(MPs))
-  MPcols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
-  MPcols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
+  cols<<-rep('black',length(MPs))
+  cols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
+  cols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
 
 
   feasible<<-rep("",length(MPs))
@@ -139,16 +139,23 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA){
 
   # Rankings
   rnkscore<-Ptab2$LTY
-  rnkscore[MPcols=="green"]=rnkscore[MPcols=="green"]+2000
-  rnkscore[MPcols=="red"]=rnkscore[MPcols=="red"]+1000
+  rnkscore[cols=="green"]=rnkscore[cols=="green"]+2000
+  rnkscore[cols=="red"]=rnkscore[cols=="red"]+1000
   ord<-order(rnkscore,decreasing = T)
   Ptab2<-Ptab2[ord[1:ntop],]
-  MPcols<<-MPcols[ord[1:ntop]]
+  cols<<-cols[ord[1:ntop]]
+
+  if(Eval){
+    MPcols<<-cols
+  }else{
+    MPcols_app<<-cols
+  }
+
   Ptab2
 
 }
 
-Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5){
+Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
 
   dynheader<-c(1,1,2,1,2,1,1)
   names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", "Biomass (yrs 11-50)", "Yield (yrs 11-50)","Reason")
@@ -156,7 +163,7 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5){
   Ptab2 %>%
     mutate(
       #MP = row.names(.),
-      MP =  cell_spec(MP, "html", color = MPcols),
+      MP =  cell_spec(MP, "html", color = cols),
       Type =  cell_spec(Type, "html"),
       PI.111a = ifelse(PI.111a >= thresh[1],
                        cell_spec(PI.111a, "html", color = "green"),

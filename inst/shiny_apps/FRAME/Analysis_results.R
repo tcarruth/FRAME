@@ -13,9 +13,9 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   Brel<-MSEobj@B_BMSY[,1,]*100
   ylim<-c(0,quantile(Brel,0.92))
   ylim[2]<-max(200,ylim[2])
-  matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent(fcol,50),lty=1,lwd=2,ylim=ylim,yaxs="i",xlab="",ylab="")
+  matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent(fcol,80),lty=1,lwd=2,ylim=ylim,yaxs="i",xlab="",ylab="")
   Brel2<-MSEobj_reb@B_BMSY[,1,]*100
-  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",50),lty=1,lwd=2,add=T)
+  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",80),lty=1,lwd=2,add=T)
 
   MGTline=mean(MSEobj@OM$MGT)*2
 
@@ -28,7 +28,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
 
   col1<-'blue'
   col2<-'red'
-  col3<-'green'
+  col3<-'orange'
 
   cond1<-Brel>50 & yra < (curyr+burnin)
   cond2<-Brel>100 & yra < (curyr+burnin)
@@ -82,7 +82,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   lines(dens)
   mtext("Posterior density",2,line=2.8)
   legend('topright',legend=c("1.1.1a","1.1.1b"),text.col=c("blue","red"),bty='n',text.font=2)
-  mtext(paste0("Burn-in years (",burnin,"-",MSEobj@proyears,")"),3,line=labline,cex=labcex,col='dark grey',font=2)
+  mtext(paste0("Burn-in years (",0,"-",burnin,")"),3,line=labline,cex=labcex,col='dark grey',font=2)
 
   cond3b<-yra > MGTa+0.5 & yra < 1.5+MGTa
   xvar<-Brel2[cond3b]
@@ -91,10 +91,10 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   plot(dens,main="",xlab="",ylab="",xlim=xlim)
   abline(v=100,lwd=2,lty=1,col="#99999980")
   subdens<-getsegment(dens,100,lower=F)
-  polygon(y=subdens$x,x=subdens$y,col="green",border=NA)
+  polygon(y=subdens$x,x=subdens$y,col="orange",border=NA)
   lines(dens)
   mtext("Biomass relative to BMSY",1,line=2.8)
-  legend('topright',legend="1.1.2",text.col="green",bty='n',text.font=2)
+  legend('topright',legend="1.1.2",text.col="orange",bty='n',text.font=2)
   mtext("After 2MGT",3,line=labline,cex=labcex,col='dark grey',font=2)
 
   xvar<-Brel[,(burnin+1):MSEobj@proyears]

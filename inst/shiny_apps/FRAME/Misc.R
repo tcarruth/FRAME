@@ -24,21 +24,11 @@ namconv<-function(nam){
 
 getMPs<-function(){
 
-  if(input$Demo){
-    MPs<<-c('FMSYref','AvC','DCAC','curE75','matlenlim','MRreal','MCD','DD4010')
-    #MPs<-c('FMSYref','DBSRA')#,'DCAC','curE','matlenlim')
-
-  }else {
-    MPs<<-avail('MP')
-    cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
+  MPs<<-avail('MP')
+  cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
     #if(!input$Ref_MPs)cond<-cond|grepl('curE',MPs)|grepl('NFref',MPs)
-    MPs<-c('FMSYref',MPs[!cond])
-
-  }
-
+  MPs<-c('FMSYref',MPs[!cond])
   MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML")]
-  if(input$Ex_Ref_MPs)MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-
   MPs
 }
 

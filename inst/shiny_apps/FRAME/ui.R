@@ -740,10 +740,17 @@ shinyUI(
 
                         conditionalPanel(condition="output.CondOM==1",
 
-                            h5("Conditioning Report",style="font-weight:bold"),
-                            downloadButton("Build_Cond","Report")
+                           h5("Conditioning Report",style="font-weight:bold"),
+                           downloadButton("Build_Cond","")
+
+                        ),
+                        conditionalPanel(condition="output.MadeOM==1",
+
+                           h5("Full OM Report",style="font-weight:bold"),
+                           downloadButton("Build_full_OM","")
 
                         )
+
                  )
           )
         ),
@@ -759,18 +766,25 @@ shinyUI(
           column(1),
           column(11,
              fluidRow(
-                 column(4,
+                 column(4,conditionalPanel(condition="output.MadeOM==1",
 
                    column(6,numericInput("proyears", label = "Projected years", value=50,min=25,max=100)),
                    column(6,numericInput("interval", label = "Management interval", value=8,min=2,max=10)),
 
                    column(4,checkboxInput("Demo", label = "Demo mode", value=TRUE)),
                    column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
+                   column(4,checkboxInput("Data_Rich", label = "Data-rich MPs", value = FALSE)),
+
                    column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
-                   column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Only Data-Feasible MPs", value = FALSE))),
 
-                   conditionalPanel(condition="output.MadeOM==1",actionButton("Calculate",h5("RUN MSE",style="color:red")))
+                   column(12,actionButton("Calculate",h5("      RUN EVALUATION     ",style="color:red")))
 
+                   ),
+                   conditionalPanel(condition="output.MadeOM==0",
+
+                          h5("Operating model not built yet", style = "color:grey")
+
+                  )
                 ),
 
                 column(6,style="height:80px",
@@ -784,7 +798,26 @@ shinyUI(
                )
              )
 
-           )
+
+             )
+
+        ),
+
+
+        fluidRow(
+          column(1),
+          column(6),
+          column(4,
+                 column(8),
+                 column(4,
+
+                        conditionalPanel(condition="output.Calc==1",
+                              h5("Evaluation Report",style="font-weight:bold"),
+                              downloadButton("Build_Eval","")
+                        )
+
+                 )
+          )
         ),
 
         column(12,style="height:45px"),
@@ -795,9 +828,48 @@ shinyUI(
         fluidRow(
           column(1),
           column(11,
-            column(5,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px")
+                 fluidRow(
+                   column(4,conditionalPanel(condition="output.MadeOM==1",
+                      column(6,numericInput("proyears_app", label = "Projected years", value=50,min=25,max=100)),
+                      column(6,numericInput("interval_app", label = "Management interval", value=8,min=2,max=10)),
+                      column(6,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
+                      column(6,checkboxInput("Parallel_app", label = "Parallel comp.", value = FALSE)),
+
+                      column(12,
+                             actionButton("Calculate_app",h5("      RUN APPLICATION     ",style="color:red"))
+                      )
+
+                     ),
+                     conditionalPanel(condition="output.MadeOM==0",
+
+                           h5("Operating model not built yet", style = "color:grey")
+
+                     )
+                   ),
+                   column(6)
+                 )
           )
         ),
+
+        fluidRow(
+          column(1),
+          column(6),
+          column(4,
+                 column(8),
+                 column(4,
+
+                        conditionalPanel(condition="output.App==1",
+                               column(12,style="height:50px",
+                                      HTML("<br>"),
+                                      downloadButton("Build_App","Build Application report")
+                               )
+                        )
+
+                 )
+          )
+        ),
+
+
 
         column(12,style="height:45px"),
 
@@ -839,135 +911,95 @@ shinyUI(
                 checkboxInput("LTL", label = "LTL species", value = FALSE),
 
                 numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),
-                numericInput("ntop", label = "N top MPs", value=10,min=1,max=80)
+                numericInput("ntop", label = "N top MPs", value=10,min=1,max=80),
+                column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE)))
+
               ),
 
               column(10,
                tabsetPanel( id = "Res_Tab",selected=1,
-                            tabPanel(h4("Evaluation",style = "color:black"),
-                                     conditionalPanel(condition="output.Calc==1",
+                tabPanel(h4("Evaluation",style = "color:black"),
+                         conditionalPanel(condition="output.Calc==1",
 
-                                                      fluidRow(
-                                                        column(width = 12,
+                                fluidRow(
+                                  column(width = 12,
 
-                                                               column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                                                               column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                                                                  thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                                                                  order of projected long-term yield relative to fishing at the FMSY
-                                                                                  reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
-                                                                                  not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                                                                  right.")),
-                                                               column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
-                                                                                  do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
-                                                                                  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
-                                                                                  management restrictions (M) controled by management question 1")),
-                                                               tableOutput('Ptable'),
-                                                               tableOutput('threshtable')
+                                         column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
+                                         column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                            thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                            order of projected long-term yield relative to fishing at the FMSY
+                                                            reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                            not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                            right.")),
+                                         column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
+                                                            do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
+                                                            explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
+                                                            management restrictions (M) controled by management question 1")),
+                                         tableOutput('Ptable'),
+                                         tableOutput('threshtable')
 
-                                                               ),
-                                                        column(width = 12,
+                                         ),
+                                  column(width = 12,
 
-                                                               column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
-                                                        )       ,
-                                                        column(width = 4,
+                                         column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
+                                  )       ,
+                                  column(width = 4,
 
-                                                               column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
-                                                               plotOutput("P1_LTY",height="auto")
+                                         column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
+                                         plotOutput("P1_LTY",height="auto")
 
-                                                        ),
-                                                        column(width = 4,
+                                  ),
+                                  column(width = 4,
 
-                                                               column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
-                                                               plotOutput("P2_LTY",height="auto")
+                                         column(width = 12,h5("Long-term stock status vs long term yield performance trade-off",style="color::grey")),
+                                         plotOutput("P2_LTY",height="auto")
 
-                                                        ),
+                                  ),
 
-                                                        column(width = 4,
+                                  column(width = 4,
 
-                                                               column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
-                                                               plotOutput("P3_LTY",height="auto")
+                                         column(width = 12,h5("Rebuilding performance vs long term yield trade-off",style="color::grey")),
+                                         plotOutput("P3_LTY",height="auto")
 
-                                                        )
-                                                               ), # end of fluid row
-                                                      fluidRow(
-                                                        column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
-                                                        column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
-                                                        plotOutput("wormplot",height="auto"),
+                                  )
+                                         ), # end of fluid row
+                                fluidRow(
+                                  column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
+                                  column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                                  plotOutput("wormplot",height="auto"),
 
-                                                        column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
-                                                        column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
-                                                        plotOutput("wormplot2",height="auto"),
+                                  column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
+                                  column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                                  plotOutput("wormplot2",height="auto"),
 
-                                                        column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),
-                                                        column(width=12,h5("These plots show how many simulations could be assigned to each of the SG regions defined by PI.1.1.1 ")),
-                                                        plotOutput("PI111_uncertain",height="auto"),
+                                  column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),
+                                  column(width=12,h5("These plots show how many simulations could be assigned to each of the SG regions defined by PI.1.1.1 ")),
+                                  plotOutput("PI111_uncertain",height="auto"),
 
-                                                        column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
-                                                        column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
-                                                        plotOutput("CCU",height="auto")
-                                                      ) # end of fluid row
-
-
-                            ), value=1),
-
-                            tabPanel(h4("Application",style = "color:black"),value=2),
-                            tabPanel(h4("Indicators",style = "color:black"),value=3)
-               )
-              )
-            )
-          )
-        ),
+                                  column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
+                                  column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
+                                  plotOutput("CCU",height="auto")
+                                ) # end of fluid row
 
 
-        column(12,style="height:40px",
+                    ), value=1),
 
-          conditionalPanel(condition="output.Calc==1",
-            column(12,style="height:50px",
-                HTML("<br>"),
-                downloadButton("Build_Eval","Build Evaluation report")
-            )
-          ),
+                    tabPanel(h4("Application",style = "color:black"),
+                             conditionalPanel(condition="output.App==1",
 
-          conditionalPanel(condition="output.Calc==2",
-            column(12,style="height:50px",
-                HTML("<br>"),
-                downloadButton("Build_App","Build Application report")
-            )
-          ),
-
-          conditionalPanel(condition="output.Calc==3",
-           column(12,style="height:50px",
-                  HTML("<br>"),
-                  downloadButton("Build_AI","Build Indicators report")
-           )
-          )
-
-        ),
-
-
-        column(12,style="height:50px"),
-        column(12,
-
-             conditionalPanel(condition="output.Calc>0",
-                h4("RESULTS"),
-                hr(),
-
-
-                conditionalPanel(condition="output.Calc==2",
-
-                   column(width = 12,
-                          HTML("<br>"),
-                          h4("MP Application",style = "color:black;"),
-                          #column(width=12,h5("More detailed results are provided for a single MP")),
-                          hr(),
-                          fluidRow(
-                            column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                            column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                                thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                                order of projected long-term yield relative to fishing at the FMSY
-                                                reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
-                                                not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                                right.")),
+                                              column(width = 12,
+                                                     HTML("<br>"),
+                                                     h4("MP Application",style = "color:black;"),
+                                                     #column(width=12,h5("More detailed results are provided for a single MP")),
+                                                     hr(),
+                                                     fluidRow(
+                                                       column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
+                                                       column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                                          thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                                          order of projected long-term yield relative to fishing at the FMSY
+                                                                          reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                                          not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                                          right.")),
                              tableOutput('App_Ptable'),
                              tableOutput('App_threshtable'),
 
@@ -999,11 +1031,39 @@ shinyUI(
                              column(width=12,h5("This is similar to cost-of-current uncertainties but identifies those data errors and biases that are most likely to impact the long-term yield performance of the MP.")),
                              plotOutput("App_VOI",height="auto")
 
-
                           )
-                   )
+                      )
 
-                ),    # end of Application results
+                    ),
+                    value=2),
+
+                    tabPanel(h4("Indicators",style = "color:black"),value=3)
+               )
+              )
+            )
+          )
+        ),
+
+
+        column(12,style="height:40px",
+
+          conditionalPanel(condition="output.Calc==3",
+           column(12,style="height:50px",
+                  HTML("<br>"),
+                  downloadButton("Build_AI","Build Indicators report")
+           )
+          )
+
+        ),
+
+
+        column(12,style="height:50px"),
+        column(12,
+
+             conditionalPanel(condition="output.Calc>0",
+                h4("RESULTS"),
+                hr(),
+
                 conditionalPanel(condition="output.Calc==3",
 
                    column(12,
@@ -1032,7 +1092,7 @@ shinyUI(
 
         ), # end of results
 
-      column(12,style="height:30px"),
+
 
       column(8,style="height:40px"),
       column(2,style="height:40px; padding:9px",textOutput("SessionID")),

@@ -50,7 +50,10 @@ shinyServer(function(input, output, session) {
   Data<-reactiveVal(0)
   CondOM<-reactiveVal(0)
   MadeOM<-reactiveVal(0)
-  Calc<-reactiveVal(0)
+
+  Calc<-reactiveVal(0) # Have run Evaluation (multi MP)
+  App<-reactiveVal(0)  # Have run Application (single MP)
+  Ind<-reactiveVal(0)  # Have run Indicator (single MP)
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
@@ -60,7 +63,10 @@ shinyServer(function(input, output, session) {
   output$Data     <- reactive({ Data()})
   output$CondOM   <- reactive({ CondOM()})
   output$MadeOM   <- reactive({ MadeOM()})
+
   output$Calc     <- reactive({ Calc()})
+  output$App      <- reactive({ App()})
+  output$Ind      <- reactive({ Ind()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
@@ -70,7 +76,10 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"Data",suspendWhenHidden=FALSE)
   outputOptions(output,"CondOM",suspendWhenHidden=FALSE)
   outputOptions(output,"MadeOM",suspendWhenHidden=FALSE)
+
   outputOptions(output,"Calc",suspendWhenHidden=FALSE)
+  outputOptions(output,"App",suspendWhenHidden=FALSE)
+  outputOptions(output,"Ind",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -146,30 +155,6 @@ shinyServer(function(input, output, session) {
     if(input$nsim>47) shinyjs::enable("Parallel")
   })
 
-  observeEvent(input$Fcont,{
-
-    if(Fpanel()==0 & Mpanel()==0 & Dpanel()==0){
-      MPs<<-getMPs()
-      updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
-      selectedMP<<-MPs[2]
-      shinyjs::disable("LTL")
-    }
-
-  })
-
-  observeEvent(input$Ex_Ref_MPs, {
-
-    MPs<<-getMPs()
-
-    if(input$Ex_Ref_MPs){
-      MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-      selectedMP<<-MPs[1]
-    }
-
-    shinyjs::disable("sel_MP")
-    updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
-
-  })
 
   observeEvent(input$sel_MP,{
     selectedMP<<-input$sel_MP
@@ -212,6 +197,7 @@ shinyServer(function(input, output, session) {
     updateTextInput(session, "Author",   value= MSClog[[3]]$Author)
     updateTextInput(session, "Justification",value=Just[[1]][1])
     updateTabsetPanel(session,"tabs1",selected="1")
+
     #=== DEBUGGING WINDOW =====================================================
     #updateTextAreaInput(session,"Debug",value=choices)
     #updateTextAreaInput(session,"Debug2",value=selected)
@@ -250,6 +236,8 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Build_OM_2,{
 
+    nsim<<-input$nsim
+
     if(input$OM_cond & Data()==1){ # Build from SRA
 
       OM<<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
@@ -274,10 +262,16 @@ shinyServer(function(input, output, session) {
       doprogress("Building OM from Questionnaire",1)
       OM<<-makeOM(PanelState,nsim=nsim)
 
-
     }
+
     MadeOM(1)
     Calc(0)
+    App(0)
+    Ind(0)
+
+    MPs<<-getMPs()
+    updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
+    selectedMP<<-MPs[2]
 
   })
 
@@ -307,29 +301,15 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Calculate,{
 
-
     Fpanel(1)
-    #updateTabsetPanel(session=session,inputId="tabs1", selected = "5")
-
 
     MPs<<-getMPs()
 
     if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
     if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
-    #if(input$Analysis_type%in%c("Demo","Eval")){
-
-      #updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=character(0))
-
-
-    #}else{
-
-      #updateSelectInput(session=session,inputId="sel_MP",choices=MPs,selected=selectedMP)
-
-    #}
-
 
     nsim<<-input$nsim
-    burnin<<-input$burnin
+
     parallel=F
     if(input$Parallel){
 
@@ -339,10 +319,9 @@ shinyServer(function(input, output, session) {
       }
     }
 
-
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
-    withProgress(message = "Running MSE", value = 0, {
+    withProgress(message = "Running Evaluation MSE", value = 0, {
       MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
     })
 
@@ -354,12 +333,7 @@ shinyServer(function(input, output, session) {
     OM@proyears<-max(MGT2)+2 # only have to compute to this year
     OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
-    #temp<-new('OM',Albacore,Generic_Fleet,Perfect_Info,Perfect_Imp)
-    #OM_reb<-Replace(OM_reb,temp,Sub="Obs")
-    #OM_reb<-Replace(OM_reb,temp,Sub="Imp")
-
-
-    withProgress(message = "Rebuilding evaluation", value = 0, {
+    withProgress(message = "Rebuilding Analysis", value = 0, {
         MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
     })
     save(MSEobj_reb,file="MSEobj_reb")
@@ -369,9 +343,9 @@ shinyServer(function(input, output, session) {
 
     # ==== Types of reporting ==========================================================
 
-    #if(input$Analysis_type%in%c("Demo","Eval")){ # Demonstration or evaluation
-      redoEval()
-      Calc(1)
+    redoEval()
+    Calc(1)
+    updateTabsetPanel(session,"Res_Tab",selected="1")
     #} else if(input$Analysis_type=="App"){ # FIP presentations
     #  redoApp()
     #  Calc(2)
@@ -394,17 +368,60 @@ shinyServer(function(input, output, session) {
 
   })
 
+
+  # ------------------------------------------------------------------------------------------------------------------------------------
+
+  observeEvent(input$Calculate_app,{
+
+    Fpanel(1)
+
+    selectedMP<<-input$sel_MP
+
+    nsim<<-input$nsim_app
+    parallel=F
+    if(input$Parallel){
+
+      if(nsim>47){
+        parallel=T
+        setup()
+      }
+    }
+
+    withProgress(message = "Running Application MSE", value = 0, {
+      MSEobj_app<<-runMSE(OM,MPs=selectedMP,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+    })
+
+    MGT2<-ceiling(MSEobj_app@OM$MGT*2)
+    MGT2[MGT2<5]<-5
+    MGT2[MGT2>20]<-20
+
+    OM_reb<-OM
+    OM@proyears<-max(MGT2)+2 # only have to compute to this year
+    OM_reb@cpars$D<-MSEobj_app@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
+
+    withProgress(message = "Rebuilding Analysis", value = 0, {
+      MSEobj_reb_app<<-runMSE(OM_reb,MPs=selectedMP,silent=T,control=list(progress=T),parallel=parallel)
+    })
+    save(MSEobj_reb_app,file="MSEobj_reb_app")
+
+    save(MSEobj_app,file="MSEobj_app")
+    App(1)
+    redoApp()
+    updateTabsetPanel(session,"Res_Tab",selected="2")
+
+  })
+
   redoEval<-function(){
-    burnin=input$burnin
+    burnin<<-input$burnin
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
+    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop) # This is where MPcols are defined
     MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
     MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
     save(MSEobj_top,file="MSEobj_top")
     save(MSEobj_reb_top,file="MSEobj_reb_top")
     nMPs<-length(MSEobj_top@MPs)
     updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
-    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin)
+    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols)
     output$threshtable<-function()Thresh_tab()
     output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
@@ -417,19 +434,19 @@ shinyServer(function(input, output, session) {
   }
 
   redoApp<-function(){
-    burnin=input$burnin
-    Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop)
-    output$App_Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin)
+    burnin<<-input$burnin
+    Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0)
+    Ptab2_app<<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F) # This is where MPcols_app is defined (Eval=F)
+    output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app)
     output$App_threshtable<-function()Thresh_tab()
-    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj,MSEobj_reb,MPcols=MPcols),height=800,width=900)
-    output$App_wormplot<-renderPlot(Pplot3(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
-    output$App_wormplot2<-renderPlot(Pplot4(MSEobj,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
-    output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb,MPcols=MPcols,maxcol=1,maxrow=2), height =450 , width =550)
-    output$App_PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj,MPcols=MPcols,maxMPs=MSEobj@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =450 , width =550)
-    VOIout<<-getVOI(MSEobj)
-    output$App_CCU<-renderPlot(CCU_plot(VOIout,MSEobj,MPcols=MPcols,maxrow=1,maxcol=1),height =550 , width =550)
-    output$App_VOI<-renderPlot(VOI_MSC(MSEobj,MPcols=MPcols),height =550 , width =550)
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=800,width=900)
+    output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_wormplot2<-renderPlot(Pplot4(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
+    output$App_PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_app,MPcols=MPcols_app,maxMPs=MSEobj_app@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =450 , width =550)
+    VOIout_app<<-getVOI(MSEobj_app)
+    output$App_CCU<-renderPlot(CCU_plot(VOIout_app,MSEobj_app,MPcols=MPcols_app,maxrow=1,maxcol=1),height =550 , width =550)
+    output$App_VOI<-renderPlot(VOI_MSC(MSEobj_app,MPcols=MPcols_app),height =550 , width =550)
   }
 
   redoInd<-function(){
@@ -469,7 +486,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # OM report
+  # OM questionnaire report
   output$Build_OM <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_OM.html"), #"report.html",
@@ -488,7 +505,7 @@ shinyServer(function(input, output, session) {
 
       library(rmarkdown)
       params <- list(test = input$Name,
-                     set_title=paste0("Operating Model Specification Report for ",input$Name),
+                     set_title=paste0("Questionnaire Report for ",input$Name),
                      set_type=paste0("(FRAME version ",FRAMEversion,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -506,6 +523,42 @@ shinyServer(function(input, output, session) {
     }
   )
 
+  # Full OM report
+  output$Build_full_OM <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_full_OM.html"), #"report.html",
+
+    content = function(file) {
+      doprogress("Building OM report",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+      src <- normalizePath('OM_full_Rep.Rmd')
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'OM_full_Rep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Full Operating Model Specification Report for ",input$Name),
+                     set_type=paste0("(FRAME version ",FRAMEversion,")"),
+                     PanelState=MSClog[[1]],
+                     Just=MSClog[[2]],
+                     Des=MSClog[[3]],
+                     OM=OM,
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+      )
+
+      output<-render(input="OM_full_Rep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
+
+    }
+  )
 
   # MSE report
   output$Build_Eval <- downloadHandler(
