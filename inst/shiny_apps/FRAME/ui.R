@@ -639,12 +639,14 @@ shinyUI(
                ),
 
                column(2,
-                      h5("Save",style="font-weight:bold"),
-                      downloadButton("Save","",width=70)
+
+                        h5("Save",style="font-weight:bold"),
+                        downloadButton("Save","",width=70)
+
                ),
 
                column(4,
-                     h5("Report",style="font-weight:bold"),
+                     h5("Questionnaire Report",style="font-weight:bold"),
                      downloadButton("Build_OM"," ")
                )
          )
@@ -687,7 +689,7 @@ shinyUI(
                   column(8),
                   column(4,
                          conditionalPanel(width=4,condition="output.Data==1",
-                          h5("Report",style="font-weight:bold"),
+                          h5("Data Report",style="font-weight:bold"),
                           downloadButton("Build_Data"," ")
                          )
                   )
@@ -732,26 +734,37 @@ shinyUI(
         ),
 
         fluidRow(
-          column(1),
-          column(6),
+          column(7),
           column(4,
-                 column(8),
-                 column(4,
 
-                        conditionalPanel(condition="output.CondOM==1",
+                column(6,style="padding:10px",
+                       fileInput("Load_OM","Load")
+                ),
 
-                           h5("Conditioning Report",style="font-weight:bold"),
-                           downloadButton("Build_Cond","")
+                column(2,
+                       conditionalPanel(condition='output.MadeOM==1',
+                         h5("Save",style="font-weight:bold"),
+                         downloadButton("Save_OM","",width=70)
+                       )
+                ),
 
-                        ),
-                        conditionalPanel(condition="output.MadeOM==1",
+                column(4,
 
-                           h5("Full OM Report",style="font-weight:bold"),
-                           downloadButton("Build_full_OM","")
+                  conditionalPanel(condition="output.MadeOM==1",
 
-                        )
+                     h5("OM Report",style="font-weight:bold"),
+                     downloadButton("Build_full_OM","")
 
-                 )
+                  ),
+
+                  conditionalPanel(condition="output.CondOM==1",
+
+                      h5("Conditioning Report",style="font-weight:bold"),
+                      downloadButton("Build_Cond","")
+
+                  )
+                )
+
           )
         ),
 
@@ -789,9 +802,9 @@ shinyUI(
 
                 column(6,style="height:80px",
 
-                       h5("An MSE can be run for a certain number of projected years in which managment recommendations are updated every Interval years", style = "color:grey"),
-                       h5("In Demo mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
-                       h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches", style = "color:grey"),
+                       h5("An MSE can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
+                       h5("In 'Demo' mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
+                       h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run.", style = "color:grey"),
                        h5("In situations where operating models are built with more than 48 simulations it can be much faster to run the MSE using parallel computing ('Parallel comp.)
                           although the progress bar will not longer work", style = "color:grey")
 
@@ -829,7 +842,8 @@ shinyUI(
           column(1),
           column(11,
                  fluidRow(
-                   column(4,conditionalPanel(condition="output.MadeOM==1",
+                   column(4,
+                     conditionalPanel(condition="output.MadeOM>0",
                       column(6,numericInput("proyears_app", label = "Projected years", value=50,min=25,max=100)),
                       column(6,numericInput("interval_app", label = "Management interval", value=8,min=2,max=10)),
                       column(6,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
@@ -846,7 +860,12 @@ shinyUI(
 
                      )
                    ),
-                   column(6)
+                   column(6,
+
+                          h5("In the application mode, an MSE is run for a single MP over a greater number of simulations.", style = "color:grey")
+
+
+                          )
                  )
           )
         ),
@@ -860,8 +879,8 @@ shinyUI(
 
                         conditionalPanel(condition="output.App==1",
                                column(12,style="height:50px",
-                                      HTML("<br>"),
-                                      downloadButton("Build_App","Build Application report")
+                                      h5("Application",style="font-weight:bold"),
+                                      downloadButton("Build_App","")
                                )
                         )
 
@@ -877,24 +896,50 @@ shinyUI(
         hr(),
 
         fluidRow(
-
           column(1),
-          column(11,
+          column(11,style="height:155px",
 
-            column(5,selectInput("sel_MP_ind", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
+                 fluidRow(
 
+                   column(3,style="padding:7px;padding-left:14px",
 
-            column(12,h5("Select dynamics for power analysis",style="font-weight:bold")),
+                          conditionalPanel(condition="output.App==1",
 
-            column(12,checkboxGroupInput("Power", label = NULL,
-                                         choices = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                         selected = list("Nat. Mort." = "M", "Sel." = "Sel","Fish. Eff."="q","Rec."="Rec","Growth"="Growth"),
-                                         inline=T)),
+                            fileInput("Load_Data_Ind","Load indicator data")
 
-            column(5,h5("Load indicator file",style="font-weight:bold")),
+                          ),
+                          conditionalPanel(condition="output.App==0",
+                            h5("Application MSE not run yet", style = "color:grey")
+                          ),
+                          conditionalPanel(condition="output.DataInd==1",
+                                           actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
+                          )
 
-            column(5,downloadButton("LoadInd",""))
+                   ),
+                   column(1),
+                   column(6,style="padding:19px",
+                        h5("A similar data file to step A2 can be loaded here with extended data for years after operating model conditioning",style = "color:grey"),
+                        h5("These data can be compared against the predicted data of the Application operating model and used to detect exceptional
+                             circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey")
+
+                   )
+
+                 )
           )
+        ),
+
+        fluidRow(
+          column(1),
+          column(6),
+          column(4,
+                 column(8),
+                 column(4,
+                        conditionalPanel(width=4,condition="output.DataInd==1",
+                                h5("Indicator Report",style="font-weight:bold"),
+                                downloadButton("Build_AI"," ")
+                        )
+                 )
+           )
         ),
 
         column(12,style="height:45px"),
@@ -908,17 +953,30 @@ shinyUI(
 
             fluidRow(
               column(2,
-                checkboxInput("LTL", label = "LTL species", value = FALSE),
 
-                numericInput("burnin", label = "Burn-in", value=10,min=5,max=20),
-                numericInput("ntop", label = "N top MPs", value=10,min=1,max=80),
-                column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE)))
+                numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
+                numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
+                checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
+
+                column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
+
+                HTML("<br>"),
+                h5("Performance Thresholds",style="font-weight:bold"),
+                hr(),
+                sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
+                sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
+                sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
+                sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
+                sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5)
 
               ),
 
               column(10,
                tabsetPanel( id = "Res_Tab",selected=1,
                 tabPanel(h4("Evaluation",style = "color:black"),
+                         conditionalPanel(condition="output.Calc==0",
+                                          h5("Evaluation MSE not run yet", style = "color:grey")
+                         ),
                          conditionalPanel(condition="output.Calc==1",
 
                                 fluidRow(
@@ -985,6 +1043,9 @@ shinyUI(
                     ), value=1),
 
                     tabPanel(h4("Application",style = "color:black"),
+                             conditionalPanel(condition="output.App==0",
+                                     h5("Application MSE not run yet", style = "color:grey")
+                             ),
                              conditionalPanel(condition="output.App==1",
 
                                               column(width = 12,
@@ -1037,67 +1098,44 @@ shinyUI(
                     ),
                     value=2),
 
-                    tabPanel(h4("Indicators",style = "color:black"),value=3)
+                    tabPanel(h4("Indicators",style = "color:black"),
+
+                             conditionalPanel(condition="output.Ind==0",
+                                      h5("Evaluation MSE not run yet", style = "color:grey")
+                             ),
+
+                             conditionalPanel(condition="output.Ind==1",
+                               column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
+                               hr(),
+                               fluidRow(
+                                 column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
+                                 column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
+                                 column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
+                                 column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
+
+                                 plotOutput("CC",height="auto"),
+                                 column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
+                                 plotOutput("mdist",height="auto")
+
+                               )
+                             ),
+
+                             value=3)
                )
               )
             )
           )
-        ),
+      ), # end of Results
 
-
-        column(12,style="height:40px",
-
-          conditionalPanel(condition="output.Calc==3",
-           column(12,style="height:50px",
-                  HTML("<br>"),
-                  downloadButton("Build_AI","Build Indicators report")
-           )
-          )
-
-        ),
-
-
-        column(12,style="height:50px"),
-        column(12,
-
-             conditionalPanel(condition="output.Calc>0",
-                h4("RESULTS"),
-                hr(),
-
-                conditionalPanel(condition="output.Calc==3",
-
-                   column(12,
-                          HTML("<br>"),
-                          h4("Ancillary Indicators",style = "color:black;"),
-                          column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
-                          hr(),
-                          fluidRow(
-                            column(width = 12,h5("Posterior predictive data cross-correlation (statistics over the first 6 projected years)",style="color::grey")),
-                            column(width = 12,h5("CS = Catch Slope, CV = Catch Variability, CM = Catch Mean",style="color::grey")),
-                            column(width = 12,h5("IS = Index Slope, IM = Index Mean",style="color::grey")),
-                            column(width = 12,h5("MLS = Mean Length Slope, MLM = Mean Length",style="color::grey")),
-
-                            plotOutput("CC",height="auto"),
-                            column(width = 12,h5("Mahalanobis distance / quantile plot",style="color::grey")),
-                            plotOutput("mdist",height="auto")
-
-                          )
-
-                   )
-
-                )     # end of Indicator results
-
-           ) # end of conditional panel
-
-
-        ), # end of results
-
-
+      column(12,style="height:100px"),
+      hr(),
 
       column(8,style="height:40px"),
       column(2,style="height:40px; padding:9px",textOutput("SessionID")),
       column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
         #column(12,style="height:100px"),
+      column(12, actionButton("debug", "Debug")),
+
       column(12, textInput("Debug1", "Debug window", ""))
 
      #) # end of fluid row

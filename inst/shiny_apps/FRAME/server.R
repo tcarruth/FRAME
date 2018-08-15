@@ -50,9 +50,9 @@ shinyServer(function(input, output, session) {
   Data<-reactiveVal(0)
   CondOM<-reactiveVal(0)
   MadeOM<-reactiveVal(0)
-
   Calc<-reactiveVal(0) # Have run Evaluation (multi MP)
   App<-reactiveVal(0)  # Have run Application (single MP)
+  DataInd<-reactiveVal(0) # Indicator data loaded
   Ind<-reactiveVal(0)  # Have run Indicator (single MP)
 
   output$Fpanel <- reactive({ Fpanel()})
@@ -66,6 +66,7 @@ shinyServer(function(input, output, session) {
 
   output$Calc     <- reactive({ Calc()})
   output$App      <- reactive({ App()})
+  output$DataInd  <- reactive({ DataInd()})
   output$Ind      <- reactive({ Ind()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
@@ -79,6 +80,7 @@ shinyServer(function(input, output, session) {
 
   outputOptions(output,"Calc",suspendWhenHidden=FALSE)
   outputOptions(output,"App",suspendWhenHidden=FALSE)
+  outputOptions(output,"DataInd",suspendWhenHidden=FALSE)
   outputOptions(output,"Ind",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
@@ -133,34 +135,25 @@ shinyServer(function(input, output, session) {
   })
 
 
-  # == File I/O =================
+  # == File I/O ==========================================================================
 
+  # Questionnaire save
   output$Save<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".frame"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+    filename = paste0(namconv(input$Name),".frame"),
 
     content=function(file){
 
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
-      doprogress("Saving")
+      doprogress("Saving Questionnaire")
       saveRDS(MSClog,file)
 
     }
 
   )
 
-  observeEvent(input$nsim, {
-    if(input$nsim<48) shinyjs::disable("Parallel")
-    if(input$nsim>47) shinyjs::enable("Parallel")
-  })
-
-
-  observeEvent(input$sel_MP,{
-    selectedMP<<-input$sel_MP
-  })
-
-
+  # Questionnaire load
   observeEvent(input$Load,{
 
     filey<-input$Load
@@ -211,6 +204,7 @@ shinyServer(function(input, output, session) {
 
   })
 
+  # Data load
   observeEvent(input$Load_Data,{
 
     filey<-input$Load_Data
@@ -233,6 +227,65 @@ shinyServer(function(input, output, session) {
 
     }
   })
+
+  # OM save
+  output$Save_OM<- downloadHandler(
+
+    filename = paste0(namconv(input$Name),".OM"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+
+    content=function(file){
+
+      doprogress("Saving Operating Model")
+      saveRDS(OM,file)
+
+    }
+
+  )
+
+  # OM load
+  observeEvent(input$Load_OM,{
+
+    filey<-input$Load_OM
+    OM<-readRDS(file=filey$datapath)
+    MPs<<-getMPs()
+    updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
+    MadeOM(1)
+
+  })
+
+  # Indicator Data load
+  observeEvent(input$Load_Data_Ind,{
+
+    filey<-input$Load_Data_Ind
+    out<-Data_parse(filey$datapath)
+    dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
+    updateTextAreaInput(session,"Data_Rep_Ind",value="Data successfully loaded")
+
+    if(class(dat)=="Data"){
+
+      DataInd(1)
+
+    }else{
+
+      DataInd(0)
+
+    }
+  })
+
+  # End of file I/O ===================================================================================
+
+
+  observeEvent(input$nsim, {
+    if(input$nsim<48) shinyjs::disable("Parallel")
+    if(input$nsim>47) shinyjs::enable("Parallel")
+  })
+
+  observeEvent(input$sel_MP,{
+    selectedMP<<-input$sel_MP
+  })
+
+
+  # ======= OM building =============================
 
   observeEvent(input$Build_OM_2,{
 
@@ -275,27 +328,9 @@ shinyServer(function(input, output, session) {
 
   })
 
-  #GoBackwards(obj)
-  #UpdateQuest()
-
-  observeEvent(input$ntop,{
-    #if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
-      #redoEval()
-    #}
-  })
-
-  observeEvent(input$burnin,{
-    #if(input$Analysis_type%in%c("Demo","Eval")&input$Calculate>0){
-      #redoEval()
-    #}else if(input$Analysis_type=="App"){
-      #redoApp()
-    #}
-
-  })
-
 
 #############################################################################################################################################################################
-
+### MSE functions
 #############################################################################################################################################################################
 
 
@@ -411,6 +446,31 @@ shinyServer(function(input, output, session) {
 
   })
 
+
+  observeEvent(input$Calculate_Ind,{
+
+    redoInd()
+
+    #PPD<-MSEobj@Misc[[1]]
+    #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
+    #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
+    #res<-burnin
+
+    #indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
+    #indData<-matrix(indPPD[,1,1],ncol=1)
+
+    #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
+    #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
+
+    #}
+    updateTabsetPanel(session,"Res_Tab",selected="3")
+    Ind(1)
+
+  })
+
+
+
+
   redoEval<-function(){
     burnin<<-input$burnin
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
@@ -450,7 +510,7 @@ shinyServer(function(input, output, session) {
   }
 
   redoInd<-function(){
-    PPD<-MSEobj@Misc[[1]]
+    PPD<-MSEobj_app@Misc[[1]]
     tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
     stat=c("slp","AAV","mu","slp","mu", "slp","mu")
     res<-6
@@ -486,6 +546,9 @@ shinyServer(function(input, output, session) {
     }
   })
 
+
+  # ===== Reports ==================================================================================================
+
   # OM questionnaire report
   output$Build_OM <- downloadHandler(
     # For PDF output, change this to "report.pdf"
@@ -518,6 +581,78 @@ shinyServer(function(input, output, session) {
       )
 
       output<-render(input="OMRep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
+
+    }
+  )
+
+  # Data report
+  output$Build_Data <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_data.html"), #"report.html",
+
+    content = function(file) {
+      doprogress("Building Data report",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+      src <- normalizePath('DataRep.Rmd')
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'DataRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Data report for ",input$Name),
+                     set_type=paste0("Demonstration Data description"," (FRAME version ",FRAMEversion,")"),
+                     dat=dat,
+                     author=input$Author,
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+      )
+
+      output<-render(input="DataRep.Rmd",output_format="html_document", params = params)
+      file.copy(output, file)
+
+    }
+  )
+
+  # Conditioning report
+  output$Build_Cond <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = paste0(namconv(input$Name),"_Cond.html"), #"report.html",
+
+    content = function(file) {
+      doprogress("Building Conditioning report",1)
+      OM<<-makeOM(PanelState,nsim=nsim)
+      src <- normalizePath('CondRep.Rmd')
+
+      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+      MSClog<-list(PanelState, Just, Des)
+
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'CondRep.Rmd', overwrite = TRUE)
+
+      library(rmarkdown)
+      params <- list(test = input$Name,
+                     set_title=paste0("Operating Model Conditioning Report for ",input$Name),
+                     set_type=paste0("Demonstration Conditioning analysis"," (FRAME version ",FRAMEversion,")"),
+                     PanelState=MSClog[[1]],
+                     Just=MSClog[[2]],
+                     Des=MSClog[[3]],
+                     OM=OM,
+                     ntop=input$ntop,
+                     inputnames=inputnames,
+                     SessionID=SessionID,
+                     copyright="copyright (c) NRDC 2018"
+      )
+
+      output<-render(input="CondRep.Rmd",output_format="html_document", params = params)
       file.copy(output, file)
 
     }
@@ -560,7 +695,7 @@ shinyServer(function(input, output, session) {
     }
   )
 
-  # MSE report
+  # Evaluation MSE report
   output$Build_Eval <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_Eval.html"), #"report.html",
@@ -602,7 +737,8 @@ shinyServer(function(input, output, session) {
     }
 
   )
-  # Application report
+
+  # Application MSE report
   output$Build_App <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_App.html"), #"report.html",
@@ -629,7 +765,7 @@ shinyServer(function(input, output, session) {
                      OM=OM,
                      MSEobj=MSEobj,
                      MSEobj_reb=MSEobj_reb,
-                     MPcols=MPcols,
+                     MPcols=MPcols_app,
                      ntop=input$ntop,
                      burnin=burnin,
                      SessionID=SessionID,
@@ -643,6 +779,7 @@ shinyServer(function(input, output, session) {
 
   )
 
+  # Anciliary indicators report
   output$Build_AI <- downloadHandler(
     # For PDF output, change this to "report.pdf"
     filename = paste0(namconv(input$Name),"_AI.html"), #"report.html",
@@ -685,78 +822,6 @@ shinyServer(function(input, output, session) {
     }
   )
 
-  # Data report
-  output$Build_Data <- downloadHandler(
-    # For PDF output, change this to "report.pdf"
-    filename = paste0(namconv(input$Name),"_data.html"), #"report.html",
-
-    content = function(file) {
-      doprogress("Building Data report",1)
-      OM<<-makeOM(PanelState,nsim=nsim)
-      src <- normalizePath('DataRep.Rmd')
-
-      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
-      MSClog<-list(PanelState, Just, Des)
-
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'DataRep.Rmd', overwrite = TRUE)
-
-      library(rmarkdown)
-      params <- list(test = input$Name,
-                     set_title=paste0("Data report for ",input$Name),
-                     set_type=paste0("Demonstration Data description"," (FRAME version ",FRAMEversion,")"),
-                     dat=dat,
-                     author=input$Author,
-                     ntop=input$ntop,
-                     inputnames=inputnames,
-                     SessionID=SessionID,
-                     copyright="copyright (c) NRDC 2018"
-      )
-
-      output<-render(input="DataRep.Rmd",output_format="html_document", params = params)
-      file.copy(output, file)
-
-    }
-  )
-
-
-  # Conditioning report
-  output$Build_Cond <- downloadHandler(
-    # For PDF output, change this to "report.pdf"
-    filename = paste0(namconv(input$Name),"_Cond.html"), #"report.html",
-
-    content = function(file) {
-      doprogress("Building Conditioning report",1)
-      OM<<-makeOM(PanelState,nsim=nsim)
-      src <- normalizePath('CondRep.Rmd')
-
-      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
-      MSClog<-list(PanelState, Just, Des)
-
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'CondRep.Rmd', overwrite = TRUE)
-
-      library(rmarkdown)
-      params <- list(test = input$Name,
-                     set_title=paste0("Operating Model Conditioning Report for ",input$Name),
-                     set_type=paste0("Demonstration Conditioning analysis"," (FRAME version ",FRAMEversion,")"),
-                     PanelState=MSClog[[1]],
-                     Just=MSClog[[2]],
-                     Des=MSClog[[3]],
-                     OM=OM,
-                     ntop=input$ntop,
-                     inputnames=inputnames,
-                     SessionID=SessionID,
-                     copyright="copyright (c) NRDC 2018"
-      )
-
-      output<-render(input="CondRep.Rmd",output_format="html_document", params = params)
-      file.copy(output, file)
-
-    }
-  )
 
   # Fishery panel reactions ============================================================================================================
 
@@ -771,7 +836,7 @@ shinyServer(function(input, output, session) {
     Des<<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
     MSCsave_auto()
     #getMPs()
-    selectedMP<<-MPs[2]
+    #selectedMP<<-MPs[2]
 
   })
 
@@ -988,5 +1053,12 @@ shinyServer(function(input, output, session) {
   # Data
   output$plotBeta <- renderPlot(plotBeta())
   output$plotCB <- renderPlot(plotCB())
+
+
+
+  observeEvent(input$debug,
+
+               updateTextAreaInput(session,"Debug1",value=MadeOM())
+  )
 
 })

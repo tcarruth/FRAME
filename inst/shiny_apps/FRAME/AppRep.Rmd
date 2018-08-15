@@ -73,7 +73,7 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
  Ptab1<-Ptab(params$MSEobj,params$MSEobj_reb,burnin=params$burnin,rnd=0)
  Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=params$ntop)
- Ptab_formatted(Ptab2)
+ Ptab_formatted(Ptab2,cols=params@MPcols)
  Thresh_tab()
 
 ```
