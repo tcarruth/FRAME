@@ -101,7 +101,9 @@ shinyUI(
 
       column(12,style="height:60px",
 
-            h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE"),
+            conditionalPanel(condition="output.Quest==0",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
+            conditionalPanel(condition="output.Quest==1",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+
             hr()
       ),
 
@@ -657,7 +659,9 @@ shinyUI(
        ), # end of Step 1 fluid row
 
        column(12,style="height:45px"),
-       h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)"),
+       conditionalPanel(condition="output.CondOM==0",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)")),
+       conditionalPanel(condition="output.CondOM==1",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)",style="color:green")),
+
        hr(),
 
        fluidRow(
@@ -698,7 +702,10 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        h4("STEP A3: BUILD OPERATING MODELS"),
+        conditionalPanel(condition="output.MadeOM==0",h4("STEP A3: BUILD OPERATING MODELS")),
+        conditionalPanel(condition="output.MadeOM==1",h4("STEP A3: BUILD OPERATING MODELS",style="color:green")),
+
+
         hr(),
 
         fluidRow(
@@ -771,8 +778,9 @@ shinyUI(
 
         column(12,style="height:45px"),
 
+        conditionalPanel(condition="output.Calc==0",h4("STEP B1: EVALUATION (MULTI-MP)")),
+        conditionalPanel(condition="output.Calc==1",h4("STEP B1: EVALUATION (MULTI-MP)",style="color:green")),
 
-        h4("STEP B1: EVALUATION (MULTI-MP)"),
         hr(),
 
         fluidRow(
@@ -800,7 +808,7 @@ shinyUI(
                   )
                 ),
 
-                column(6,style="height:80px",
+                column(6,
 
                        h5("An MSE can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
                        h5("In 'Demo' mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
@@ -821,7 +829,17 @@ shinyUI(
           column(1),
           column(6),
           column(4,
-                 column(8),
+                 column(6,style="padding:10px",
+                        fileInput("Load_Eval","Load")
+                 ),
+
+                 column(2,
+                        conditionalPanel(condition="output.Calc==1",
+                           h5("Save",style="font-weight:bold"),
+                           downloadButton("Save_Eval","",width=70)
+                        )
+
+                 ),
                  column(4,
 
                         conditionalPanel(condition="output.Calc==1",
@@ -835,7 +853,9 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        h4("STEP B2: APPLICATION (SINGLE MP)"),
+        conditionalPanel(condition="output.App==0",h4("STEP B2: APPLICATION (SINGLE MP)")),
+        conditionalPanel(condition="output.App==1",h4("STEP B2: APPLICATION (SINGLE MP)",style="color:green")),
+
         hr(),
 
         fluidRow(
@@ -874,12 +894,22 @@ shinyUI(
           column(1),
           column(6),
           column(4,
-                 column(8),
+                 column(6,style="padding:10px",
+                        fileInput("Load_App","Load")
+                 ),
+
+                 column(2,
+                        conditionalPanel(condition="output.App==1",
+                                         h5("Save",style="font-weight:bold"),
+                                         downloadButton("Save_App","",width=70)
+                        )
+
+                 ),
                  column(4,
 
                         conditionalPanel(condition="output.App==1",
                                column(12,style="height:50px",
-                                      h5("Application",style="font-weight:bold"),
+                                      h5("Application Report",style="font-weight:bold"),
                                       downloadButton("Build_App","")
                                )
                         )
@@ -892,7 +922,9 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)"),
+        conditionalPanel(condition="output.Ind==0",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)")),
+        conditionalPanel(condition="output.Ind==1",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)",style="color:green")),
+
         hr(),
 
         fluidRow(
@@ -1049,10 +1081,7 @@ shinyUI(
                              conditionalPanel(condition="output.App==1",
 
                                               column(width = 12,
-                                                     HTML("<br>"),
-                                                     h4("MP Application",style = "color:black;"),
-                                                     #column(width=12,h5("More detailed results are provided for a single MP")),
-                                                     hr(),
+
                                                      fluidRow(
                                                        column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
                                                        column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
@@ -1101,7 +1130,7 @@ shinyUI(
                     tabPanel(h4("Indicators",style = "color:black"),
 
                              conditionalPanel(condition="output.Ind==0",
-                                      h5("Evaluation MSE not run yet", style = "color:grey")
+                                      h5("Indicators not calculated yet", style = "color:grey")
                              ),
 
                              conditionalPanel(condition="output.Ind==1",

@@ -47,6 +47,7 @@ shinyServer(function(input, output, session) {
   Mpanel<-reactiveVal(0)
   Dpanel<-reactiveVal(0)
   Started<-reactiveVal(0)
+  Quest<-reactiveVal(0)
   Data<-reactiveVal(0)
   CondOM<-reactiveVal(0)
   MadeOM<-reactiveVal(0)
@@ -60,6 +61,7 @@ shinyServer(function(input, output, session) {
   output$Dpanel <- reactive({ Dpanel()})
 
   output$Started  <- reactive({ Started()})
+  output$Quest    <- reactive({ Quest()})
   output$Data     <- reactive({ Data()})
   output$CondOM   <- reactive({ CondOM()})
   output$MadeOM   <- reactive({ MadeOM()})
@@ -75,6 +77,8 @@ shinyServer(function(input, output, session) {
 
   outputOptions(output,"Started",suspendWhenHidden=FALSE)
   outputOptions(output,"Data",suspendWhenHidden=FALSE)
+  outputOptions(output,"Quest",suspendWhenHidden=FALSE)
+
   outputOptions(output,"CondOM",suspendWhenHidden=FALSE)
   outputOptions(output,"MadeOM",suspendWhenHidden=FALSE)
 
@@ -132,6 +136,7 @@ shinyServer(function(input, output, session) {
       }
     }
 
+
   })
 
 
@@ -149,7 +154,9 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Questionnaire")
       saveRDS(MSClog,file)
 
+
     }
+
 
   )
 
@@ -202,6 +209,7 @@ shinyServer(function(input, output, session) {
     Dpanel(1)
     Calc(0)
 
+
   })
 
   # Data load
@@ -211,6 +219,7 @@ shinyServer(function(input, output, session) {
     out<-Data_parse(filey$datapath)
     dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
     updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+
 
     if(class(dat)=="Data"){
 
@@ -226,6 +235,14 @@ shinyServer(function(input, output, session) {
       #updateTextAreaInput(session,"Data_Rep",value="File not of DLMtool class 'Data'")
 
     }
+
+
+    MadeOM(0)
+    Calc(0)
+    App(0)
+    Ind(0)
+    DataInd(0)
+
   })
 
   # OM save
@@ -238,7 +255,9 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Operating Model")
       saveRDS(OM,file)
 
+
     }
+
 
   )
 
@@ -250,6 +269,82 @@ shinyServer(function(input, output, session) {
     MPs<<-getMPs()
     updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
     MadeOM(1)
+    CondOM(0)
+    Quest(0)
+
+
+  })
+
+
+  # Eval save
+  output$Save_Eval<- downloadHandler(
+
+    filename = paste0(namconv(input$Name),".Eval"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+
+    content=function(file){
+
+      doprogress("Saving Evaluation MSE data")
+      saveRDS(list(MSEobj=MSEobj,MSEobj_reb=MSEobj_reb),file)
+
+
+    }
+
+
+  )
+
+  # Eval load
+  observeEvent(input$Load_Eval,{
+
+    filey<-input$Load_Eval
+    listy<-readRDS(file=filey$datapath)
+    MSEobj<<-listy[[1]]
+    MSEobj_reb<<-listy[[2]]
+    Calc(1)
+    App(0)
+    MadeOM(0)
+    CondOM(0)
+    DataInd(0)
+    Ind(0)
+    Quest(0)
+    redoEval(fease=T)
+    updateTabsetPanel(session,"Res_Tab",selected="1")
+
+
+  })
+
+  # App save
+  output$Save_App<- downloadHandler(
+
+    filename = paste0(namconv(input$Name),".App"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+
+    content=function(file){
+
+      doprogress("Saving Application MSE data")
+      saveRDS(list(MSEobj_app=MSEobj_app,MSEobj_reb_app=MSEobj_reb_app),file)
+
+
+    }
+
+
+  )
+
+  # App load
+  observeEvent(input$Load_App,{
+
+    filey<-input$Load_App
+    listy<-readRDS(file=filey$datapath)
+    MSEobj_app<<-listy[[1]]
+    MSEobj_reb_app<<-listy[[2]]
+    App(1)
+    Calc(0)
+    MadeOM(0)
+    CondOM(0)
+    DataInd(0)
+    Quest(0)
+    Ind(0)
+    redoApp(fease=T)
+    updateTabsetPanel(session,"Res_Tab",selected="2")
+
 
   })
 
@@ -259,7 +354,6 @@ shinyServer(function(input, output, session) {
     filey<-input$Load_Data_Ind
     out<-Data_parse(filey$datapath)
     dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
-    updateTextAreaInput(session,"Data_Rep_Ind",value="Data successfully loaded")
 
     if(class(dat)=="Data"){
 
@@ -302,25 +396,30 @@ shinyServer(function(input, output, session) {
       withProgress(message = "Building OM from Questionnaire inc. conditioning using S-SRA", value = 0, {
         OM<<-SSRA_wrap(OM,dat)
       })
-      GoBackwards_SRA(OM)
-      UpdateQuest()
+      #GoBackwards_SRA(OM)
+      #UpdateQuest()
       Just[[1]][1+c(2,4,5,6,7,10)]<<-"Estimated by Stochastic SRA"
       CondOM(1)
       Fpanel(1)
       Mpanel(1)
       Dpanel(1)
+      Data(1)
+
 
     }else{ # Build OM from questionnaire only
 
       doprogress("Building OM from Questionnaire",1)
       OM<<-makeOM(PanelState,nsim=nsim)
 
+
     }
 
+    Quest(1)
     MadeOM(1)
     Calc(0)
     App(0)
     Ind(0)
+    DataInd(0)
 
     MPs<<-getMPs()
     updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
@@ -378,28 +477,9 @@ shinyServer(function(input, output, session) {
 
     # ==== Types of reporting ==========================================================
 
-    redoEval()
+    redoEval(fease=T)
     Calc(1)
     updateTabsetPanel(session,"Res_Tab",selected="1")
-    #} else if(input$Analysis_type=="App"){ # FIP presentations
-    #  redoApp()
-    #  Calc(2)
-    #} else { # leaving just generic risk assessment
-    #  redoInd()
-     # Calc(3)
-
-      #PPD<-MSEobj@Misc[[1]]
-      #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-      #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-      #res<-burnin
-
-      #indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
-      #indData<-matrix(indPPD[,1,1],ncol=1)
-
-      #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-      #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
-
-    #}
 
   })
 
@@ -441,7 +521,7 @@ shinyServer(function(input, output, session) {
 
     save(MSEobj_app,file="MSEobj_app")
     App(1)
-    redoApp()
+    redoApp(fease=T)
     updateTabsetPanel(session,"Res_Tab",selected="2")
 
   })
@@ -469,20 +549,21 @@ shinyServer(function(input, output, session) {
   })
 
 
-
-
-  redoEval<-function(){
+  redoEval<-function(fease=F){
     burnin<<-input$burnin
     Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-    Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop) # This is where MPcols are defined
+    thresh=c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+    temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+    Ptab2<<-temp[[1]]
+    MPcols<<-temp[[2]]
     MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
     MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
     save(MSEobj_top,file="MSEobj_top")
     save(MSEobj_reb_top,file="MSEobj_reb_top")
     nMPs<-length(MSEobj_top@MPs)
     updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
-    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols)
-    output$threshtable<-function()Thresh_tab()
+    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
+    output$threshtable<-function()Thresh_tab(thresh)
     output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
     output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
@@ -493,12 +574,15 @@ shinyServer(function(input, output, session) {
     output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
   }
 
-  redoApp<-function(){
+  redoApp<-function(fease=F){
     burnin<<-input$burnin
     Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0)
-    Ptab2_app<<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F) # This is where MPcols_app is defined (Eval=F)
-    output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app)
-    output$App_threshtable<-function()Thresh_tab()
+    thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+    temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,fease=fease,thresh=thresh)
+    Ptab2_app<<-temp[[1]]
+    MPcols_app<<-temp[[2]]
+    output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app,thresh=thresh)
+    output$App_threshtable<-function()Thresh_tab(thresh)
     output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=800,width=900)
     output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_wormplot2<-renderPlot(Pplot4(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
@@ -522,27 +606,91 @@ shinyServer(function(input, output, session) {
 
   }
 
+
+  CheckJust<-function(){
+
+    isjust<-function(x)sum(x=="No justification was provided")
+
+    as.integer(sum(unlist(lapply(Just,isjust)))==0)
+
+  }
+
+
+  # Update tables if...
+  observeEvent(input$burnin,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+
+  observeEvent(input$ntop,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+
+  observeEvent(input$P111a,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+  observeEvent(input$P111b,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+  observeEvent(input$P112,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+  observeEvent(input$P121a,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+  observeEvent(input$P121b,{
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
+    }
+  })
+
   observeEvent(input$D1,{
-    if(Calc()!=0){
-      #if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-       # redoEval()
-      #} else if(input$Analysis_type=="App"){ # FIP presentations
-      #  redoApp()
-      #} else { # leaving just generic risk assessment
-      #  redoInd()
-     #}
+    if(Calc()==1){
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
     }
   })
 
   observeEvent(input$M1,{
     if(Calc()!=0){
-    #if(input$Analysis_type%in%c("Demo","Eval")){ # Certification or demo of certification
-    #  redoEval()
-    #} else if(input$Analysis_type=="App"){ # One MP application
-    #  redoApp()
-    #} else { # leaving just ancilliary indicators
-    #  redoInd()
-    #}
+      redoEval(fease=T)
+    }
+    if(App()==1){
+      redoApp(fease=T)
     }
   })
 
@@ -851,6 +999,7 @@ shinyServer(function(input, output, session) {
     }
 
     UpJust()
+
     Des<<-list(Name=input$Name,Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
     MSCsave_auto()
 
@@ -868,6 +1017,7 @@ shinyServer(function(input, output, session) {
 
     # Write old values
     UpJust()
+
     Des<<-list(Name=input$Name,Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
     MSCsave_auto()
 

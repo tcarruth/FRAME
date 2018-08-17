@@ -50,8 +50,8 @@ Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
     add_header_above(c("Thresholds" = 5))
 }
 
-#                                       11a 11b 12  21a 21a
-Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T){
+#                                  11a 11b 12  21a 21a
+Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,fease=F){
 
   # save(Ptab1,file="Ptab1")
 
@@ -76,40 +76,65 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T){
   Datslot<-c("Cat","Cat","Ind",  "Ind","Ind","CAL","CAA","vbK","Abun")
   yrrange<-c(ndaty, 5,    ndaty,  5,    ndaty,        2,                2, NA, NA)
 
-  for(i in 1:length(Datslot)){
-    if(cond[i]){ # if user has specified that data are available
-      if(!is.na(yrrange[i])){ # it not a vector of values
-        ndim<-length(dim(slot(tempdat0,Datslot[i])))
-        if(ndim==2){ # is a matrix
-          slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
-        }else{ # is a 3D array
-          slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
+ # if(fease){
+
+    for(i in 1:length(Datslot)){
+      if(cond[i]){ # if user has specified that data are available
+        if(!is.na(yrrange[i])){ # it not a vector of values
+          ndim<-length(dim(slot(tempdat0,Datslot[i])))
+          if(ndim==2){ # is a matrix
+            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
+          }else{ # is a 3D array
+            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
+          }
+        }else{
+          slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
         }
-      }else{
-        slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
       }
     }
-  }
-  if(!cond[3])tempdat@Dep<-rep(NA,2)
+    if(!cond[3])tempdat@Dep<-rep(NA,2)
 
-  DFeasible<-Fease(tempdat)
+    DFeasible<-Fease(tempdat)
 
-  # TAC TAE Feasibility
-  cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
-  runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
-  recs <- runMPs[[1]]
-  type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
-  for (mm in seq_along(recs)) {
-    type[mm,1] <- as.integer(length(recs[[mm]]$TAC) > 0)
-    type[mm,2] <- as.integer(length(recs[[mm]]$Effort)>0)
-    type[mm,3] <- as.integer(length(recs[[mm]]$LR5)>0)
-    type[mm,4] <- as.integer(!is.na(recs[[mm]]$Spatial[1,1]))
-  }
+    # TAC TAE Feasibility
+    cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
+    runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
+    recs <- runMPs[[1]]
+    type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
+    for (mm in seq_along(recs)) {
+      type[mm,1] <- as.integer(length(recs[[mm]]$TAC) > 0)
+      type[mm,2] <- as.integer(length(recs[[mm]]$Effort)>0)
+      type[mm,3] <- as.integer(length(recs[[mm]]$LR5)>0)
+      type[mm,4] <- as.integer(!is.na(recs[[mm]]$Spatial[1,1]))
+    }
 
-  DFeasible<-unique(c(DFeasible,MPs[(type[,4]==1|type[,3]==1) & apply(type,1,sum)==1])) # Size limits and area closures might not need data
-  totneeded<-apply(type,1,sum)
-  speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
-  MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
+    DFeasible<-unique(c(DFeasible,MPs[(type[,4]==1|type[,3]==1) & apply(type,1,sum)==1])) # Size limits and area closures might not need data
+
+    totneeded<-apply(type,1,sum)
+    speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
+    MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
+
+    #if(Eval){
+    #  DFeasible_Eval<<-DFeasible
+    #  MFeasible_Eval<<-MFeasible
+    #}else{
+    #  DFeasible_App<<-DFeasible
+    #  MFeasible_App<<-MFeasible
+    #}
+
+
+  #}else{ # Not a feasibility run - use old values (much improved response time for sliders)
+
+    #if(Eval){  # if an evaluation
+    #  DFeasible<-DFeasible_Eval
+    #  MFeasible<-MFeasible_Eval
+    #}else{ # if an application
+    #  DFeasible<-DFeasible_App
+    #  MFeasible<-MFeasible_App
+    #}
+
+
+  #}
 
   MP_Type<-rep("TAC",length(MPs))
   MP_Type[type[,2]==1]<-"TAE"
@@ -125,7 +150,6 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T){
   cols<<-rep('black',length(MPs))
   cols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
   cols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
-
 
   feasible<<-rep("",length(MPs))
   condD<-!MPs%in%DFeasible
@@ -145,13 +169,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T){
   Ptab2<-Ptab2[ord[1:ntop],]
   cols<<-cols[ord[1:ntop]]
 
-  if(Eval){
-    MPcols<<-cols
-  }else{
-    MPcols_app<<-cols
-  }
-
-  Ptab2
+  list(Ptab2, cols)
 
 }
 
