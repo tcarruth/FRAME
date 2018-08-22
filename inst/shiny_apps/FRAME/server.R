@@ -6,7 +6,9 @@ library(formattable)
 library(knitr)
 library(dplyr)
 library(httpuv)
+library(shinyalert)
 
+options(shiny.maxRequestSize=100*1024^2)
 source("./global.R")
 
 # Define server logic required to generate and plot a random distribution
@@ -40,6 +42,8 @@ shinyServer(function(input, output, session) {
   source('./StochasticSRA_MSC.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
   source('./Backwards.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
   #assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
+  #assignInNamespace("incProgress",shiny::incProgress, ns="DLMtool")
+  incProgress<-shiny::incProgress
 
   # --------------------------------------------------------------
 
@@ -164,50 +168,63 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load,{
 
     filey<-input$Load
-    MSClog<-readRDS(file=filey$datapath)
+    tryCatch({
+        MSClog<-readRDS(file=filey$datapath)
+        cond<-length(MSClog)==3 & sum(names(MSClog[[1]])==c("Fpanel","Mpanel","Dpanel"))==3
 
-    PanelState<<-MSClog[[1]]
-    Just<<-MSClog[[2]]
+        if(cond){
+          PanelState<<-MSClog[[1]]
+          Just<<-MSClog[[2]]
 
-    for(i in 1:length(PanelState)){
-      for(j in 1:length(PanelState[[i]])) {
-        if(!(i==3&j==4)){ # not the radio button
+          for(i in 1:length(PanelState)){
+            for(j in 1:length(PanelState[[i]])) {
+              if(!(i==3&j==4)){ # not the radio button
+                state<-as.vector(unlist(PanelState[[i]][j]))
+                choices<-as.vector(unlist(get(MasterList[[i]][j])))
+                selected<-as.list(choices[state])
+                choices<-as.list(choices)
+                updateCheckboxGroupInput(session, as.character(inputnames[[i]][j]), selected = selected)
+              }
+            }
+          }
+
+          i<-3
+          j<-4
           state<-as.vector(unlist(PanelState[[i]][j]))
           choices<-as.vector(unlist(get(MasterList[[i]][j])))
           selected<-as.list(choices[state])
           choices<-as.list(choices)
-          updateCheckboxGroupInput(session, as.character(inputnames[[i]][j]), selected = selected)
+          updateRadioButtons(session, as.character(inputnames[[i]][j]), selected = selected)
+
+          updateTextInput(session, "Name",     value= MSClog[[3]]$Name)
+          updateTextInput(session, "Species",  value= MSClog[[3]]$Species)
+          updateTextInput(session, "Region",   value= MSClog[[3]]$Region)
+          updateTextInput(session, "Agency",   value= MSClog[[3]]$Agency)
+          updateTextInput(session, "nyears",   value= MSClog[[3]]$nyears)
+          updateTextInput(session, "Author",   value= MSClog[[3]]$Author)
+          updateTextInput(session, "Justification",value=Just[[1]][1])
+          updateTabsetPanel(session,"tabs1",selected="1")
+
+          #=== DEBUGGING WINDOW =====================================================
+          #updateTextAreaInput(session,"Debug",value=choices)
+          #updateTextAreaInput(session,"Debug2",value=selected)
+          #updateTextAreaInput(session,"Debug3",value=inputId)
+          # ==========================================================================
+
+          Fpanel(1)
+          Mpanel(1)
+          Dpanel(1)
+          Calc(0)
+        }else{
+          shinyalert("File read error", "This does not appear to be a FRAME questionnaire file", type = "error")
         }
+
+      },
+      error = function(e){
+        shinyalert("File read error", "This does not appear to be a FRAME questionnaire file", type = "error")
+        return(0)
       }
-    }
-
-    i<-3
-    j<-4
-    state<-as.vector(unlist(PanelState[[i]][j]))
-    choices<-as.vector(unlist(get(MasterList[[i]][j])))
-    selected<-as.list(choices[state])
-    choices<-as.list(choices)
-    updateRadioButtons(session, as.character(inputnames[[i]][j]), selected = selected)
-
-    updateTextInput(session, "Name",     value= MSClog[[3]]$Name)
-    updateTextInput(session, "Species",  value= MSClog[[3]]$Species)
-    updateTextInput(session, "Region",   value= MSClog[[3]]$Region)
-    updateTextInput(session, "Agency",   value= MSClog[[3]]$Agency)
-    updateTextInput(session, "nyears",   value= MSClog[[3]]$nyears)
-    updateTextInput(session, "Author",   value= MSClog[[3]]$Author)
-    updateTextInput(session, "Justification",value=Just[[1]][1])
-    updateTabsetPanel(session,"tabs1",selected="1")
-
-    #=== DEBUGGING WINDOW =====================================================
-    #updateTextAreaInput(session,"Debug",value=choices)
-    #updateTextAreaInput(session,"Debug2",value=selected)
-    #updateTextAreaInput(session,"Debug3",value=inputId)
-    # ==========================================================================
-
-    Fpanel(1)
-    Mpanel(1)
-    Dpanel(1)
-    Calc(0)
+    )
 
 
   })
@@ -216,32 +233,26 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_Data,{
 
     filey<-input$Load_Data
-    out<-Data_parse(filey$datapath)
-    dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
-    updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
 
-
-    if(class(dat)=="Data"){
-
-      Data(1)
-      shinyjs::enable("OM_Cond")
-      #updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
-
-    }else{
-
-      Data(0)
-      shinyjs::disable("OM_Cond")
-      updateCheckboxInput(session,"OM_cond",value=FALSE)
-      #updateTextAreaInput(session,"Data_Rep",value="File not of DLMtool class 'Data'")
-
-    }
-
-
-    MadeOM(0)
-    Calc(0)
-    App(0)
-    Ind(0)
-    DataInd(0)
+    tryCatch(
+      {
+        dat<<-XL2Data(filey$datapath)
+        updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+        Data(1)
+        shinyjs::enable("OM_Cond")
+        MadeOM(0)
+        Calc(0)
+        App(0)
+        Ind(0)
+        DataInd(0)
+      },
+      error = function(e){
+        shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
+        Data(0)
+        shinyjs::disable("OM_Cond")
+        updateCheckboxInput(session,"OM_cond",value=FALSE)
+      }
+    )
 
   })
 
@@ -264,14 +275,27 @@ shinyServer(function(input, output, session) {
   # OM load
   observeEvent(input$Load_OM,{
 
-    filey<-input$Load_OM
-    OM<-readRDS(file=filey$datapath)
-    MPs<<-getMPs()
-    updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
-    MadeOM(1)
-    CondOM(0)
-    Quest(0)
+      filey<-input$Load_OM
 
+      tryCatch({
+        OM<-readRDS(file=filey$datapath)
+      },
+      error = function(e){
+        shinyalert("File read error", "This does not appear to be a DLMtool OM object, saved by saveRDS()", type = "error")
+        return(0)
+      }
+      )
+
+
+      if(class(OM)=='OM'){
+        MPs<<-getMPs()
+        updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
+        MadeOM(1)
+        CondOM(0)
+        Quest(0)
+      }else{
+        shinyalert("Incorrect class of object", "This file should be an object of DLMtool class 'OM'", type = "error")
+      }
 
   })
 
@@ -296,19 +320,33 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_Eval,{
 
     filey<-input$Load_Eval
-    listy<-readRDS(file=filey$datapath)
-    MSEobj<<-listy[[1]]
-    MSEobj_reb<<-listy[[2]]
-    Calc(1)
-    App(0)
-    MadeOM(0)
-    CondOM(0)
-    DataInd(0)
-    Ind(0)
-    Quest(0)
-    redoEval(fease=T)
-    updateTabsetPanel(session,"Res_Tab",selected="1")
 
+    tryCatch({
+      listy<-readRDS(file=filey$datapath)
+    },
+    error = function(e){
+      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+      return(0)
+    }
+    )
+
+    cond<-class(listy[[1]])=="MSE" & class(listy[[2]])=="MSE" & listy[[1]]@nMPs>1
+
+    if(cond){
+      MSEobj<<-listy[[1]]
+      MSEobj_reb<<-listy[[2]]
+      Calc(1)
+      App(0)
+      MadeOM(0)
+      CondOM(0)
+      DataInd(0)
+      Ind(0)
+      Quest(0)
+      redoEval(fease=T)
+      updateTabsetPanel(session,"Res_Tab",selected="1")
+    }else{
+      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+    }
 
   })
 
@@ -332,18 +370,33 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_App,{
 
     filey<-input$Load_App
-    listy<-readRDS(file=filey$datapath)
-    MSEobj_app<<-listy[[1]]
-    MSEobj_reb_app<<-listy[[2]]
-    App(1)
-    Calc(0)
-    MadeOM(0)
-    CondOM(0)
-    DataInd(0)
-    Quest(0)
-    Ind(0)
-    redoApp(fease=T)
-    updateTabsetPanel(session,"Res_Tab",selected="2")
+
+    tryCatch({
+      listy<-readRDS(file=filey$datapath)
+    },
+    error = function(e){
+      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+      return(0)
+    }
+    )
+
+    cond<-class(listy[[1]])=="MSE" & class(listy[[2]])=="MSE" & listy[[1]]@nMPs==1
+
+    if(cond){
+      MSEobj_app<<-listy[[1]]
+      MSEobj_reb_app<<-listy[[2]]
+      App(1)
+      Calc(0)
+      MadeOM(0)
+      CondOM(0)
+      DataInd(0)
+      Quest(0)
+      Ind(0)
+      redoApp(fease=T)
+      updateTabsetPanel(session,"Res_Tab",selected="2")
+    }else{
+      shinyalert("File read error", "This does not appear to be a FRAME application MSE object", type = "error")
+    }
 
 
   })
@@ -352,18 +405,21 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_Data_Ind,{
 
     filey<-input$Load_Data_Ind
-    out<-Data_parse(filey$datapath)
-    dat<<-XL2Data(out$name,out$dir)#readRDS(file=filey$datapath)
 
-    if(class(dat)=="Data"){
+    tryCatch(
+      {
+        dat_ind<<-XL2Data(filey$datapath)#readRDS(file=filey$datapath)
 
-      DataInd(1)
+        DataInd(1)
+      },
+      error = function(e){
+        shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
+        DataInd(0)
 
-    }else{
+      }
+    )
 
-      DataInd(0)
 
-    }
   })
 
   # End of file I/O ===================================================================================
@@ -405,12 +461,10 @@ shinyServer(function(input, output, session) {
       Dpanel(1)
       Data(1)
 
-
     }else{ # Build OM from questionnaire only
 
       doprogress("Building OM from Questionnaire",1)
       OM<<-makeOM(PanelState,nsim=nsim)
-
 
     }
 
@@ -432,7 +486,6 @@ shinyServer(function(input, output, session) {
 ### MSE functions
 #############################################################################################################################################################################
 
-
   observeEvent(input$Calculate,{
 
     Fpanel(1)
@@ -441,6 +494,15 @@ shinyServer(function(input, output, session) {
 
     if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
     if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
+    if(input$Data_Rich){
+      SCA_4010 <- make_MP(SCA, HCR40_10)
+      SCA_MSY <- make_MP(SCA, HCR_MSY)
+      DDSS_4010 <- make_MP(DD_SS, HCR40_10)
+      DDSS_MSY <- make_MP(DD_SS, HCR_MSY)
+      SPSS_4010 <- make_MP(SP_SS, HCR40_10)
+      SPSS_MSY <- make_MP(SP_SS, HCR_MSY)
+      MPs<-c(MPs,"SCA_4010","SCA_MSY","DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+    }
 
     nsim<<-input$nsim
 
@@ -526,28 +588,13 @@ shinyServer(function(input, output, session) {
 
   })
 
-
   observeEvent(input$Calculate_Ind,{
 
     redoInd()
-
-    #PPD<-MSEobj@Misc[[1]]
-    #tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-    #stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-    #res<-burnin
-
-    #indPPD<-getinds(PPD,styr=MSEobj@nyears,res=res,tsd=tsd,stat=stat)
-    #indData<-matrix(indPPD[,1,1],ncol=1)
-
-    #output$CC<-renderPlot(CC(indPPD,indData,pp=1,res=res),height=700,width=700)
-    #output$MahD<-renderPlot(plot_mdist(indPPD,indData),height=400,width=400)
-
-    #}
     updateTabsetPanel(session,"Res_Tab",selected="3")
     Ind(1)
 
   })
-
 
   redoEval<-function(fease=F){
     burnin<<-input$burnin
@@ -583,7 +630,7 @@ shinyServer(function(input, output, session) {
     MPcols_app<<-temp[[2]]
     output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app,thresh=thresh)
     output$App_threshtable<-function()Thresh_tab(thresh)
-    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=800,width=900)
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=1200,width=1000)
     output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_wormplot2<-renderPlot(Pplot4(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
@@ -594,15 +641,37 @@ shinyServer(function(input, output, session) {
   }
 
   redoInd<-function(){
+
+    styr=MSEobj_app@nyears
     PPD<-MSEobj_app@Misc[[1]]
+
+    # Standardization
+    PPD@Cat<-PPD@Cat/PPD@Cat[,styr]
+    PPD@Ind<-PPD@Ind/PPD@Ind[,styr]
+    PPD@ML<-PPD@ML/PPD@ML[,styr]
+
     tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
     stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-    res<-6
-    indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
-    indData<-matrix(indPPD[,1,1],ncol=1)
+    res<-input$Ind_Res
+    datayears<-dim(dat_ind@Cat)[2]
 
-    output$CC<-renderPlot( CC(indPPD,indData,pp=1,res=res),height =1300 ,width=1300)
-    output$mdist<-renderPlot(plot_mdist(indPPD,indData),height =550 ,width=550)
+    if(datayears-MSEobj_app@nyears < res){
+      res=datayears-MSEobj_app@nyears
+    }else if(datayears-MSEobj_app@nyears < 3){
+      return(0)
+    }
+
+    indPPD<-getinds(PPD,styr=styr,res=res,tsd=tsd,stat=stat)
+
+    # Standardization
+    dat_ind@Cat<-dat_ind@Cat/dat_ind@Cat[,styr]
+    dat_ind@Ind<-dat_ind@Ind/dat_ind@Ind[,styr]
+    dat_ind@ML<-dat_ind@ML/dat_ind@ML[,styr]
+
+    indData<-getinds(dat_ind,styr=styr,res=res,tsd=tsd,stat=stat)
+
+    output$CC<-renderPlot( CC(indPPD,indData,pp=1,res=res),height =900 ,width=900)
+    output$mdist<-renderPlot(plot_mdist(indPPD,indData,alpha=input$Ind_Alpha),height =550 ,width=550)
 
   }
 

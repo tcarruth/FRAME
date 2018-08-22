@@ -1,4 +1,4 @@
-
+library(shinyalert)
 library(shiny)
 library(shinyjs)
 
@@ -6,6 +6,7 @@ shinyUI(
 
   fluidPage(
     useShinyjs(),
+    useShinyalert(),
     tags$head(
       tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
       tags$style(HTML("hr {border-top: 1.4px solid #E3E1DE;}
@@ -72,7 +73,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation (v2.0)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation (MSC-DLMtool App v2.0)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -589,72 +590,72 @@ shinyUI(
             )
         ),
         column(12,
-        fluidRow(
-        column(1),
-        column(4,style="height:80px",
-            fluidRow(
+          fluidRow(
+          column(1),
+          column(4,style="height:80px",
+              fluidRow(
 
-               column(width = 2,
-                 conditionalPanel(condition="(input.tabs1==1 & output.Fpanel>1)|(input.tabs1==2 & output.Mpanel>1)|(input.tabs1==3 & output.Dpanel>1)",
-                    actionButton("Fback","< Back")
+                 column(width = 2,
+                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel>1)|(input.tabs1==2 & output.Mpanel>1)|(input.tabs1==3 & output.Dpanel>1)",
+                      actionButton("Fback","< Back")
+                   ),
+                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel>1)|(input.tabs1==2 & output.Mpanel>1)|(input.tabs1==3 & output.Dpanel>1))",
+                                    actionButton("FbackD","< Back",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
+                   )
+
                  ),
-                 conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel>1)|(input.tabs1==2 & output.Mpanel>1)|(input.tabs1==3 & output.Dpanel>1))",
-                                  actionButton("FbackD","< Back",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
+
+                 column(width = 2,
+                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4)",
+                      actionButton("Fcont","Next >")
+                   ),
+                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
+                      actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
+                   )
+
+                 ),
+
+                 column(width=4,#style="height:180px",
+                        conditionalPanel(condition="output.Fpanel>0|output.Ppanel>0|output.Dpanel>0|output.Fpanel!=undefined|output.Mpanel!=undefined|output.Dpanel!=undefined",
+                                         #h4("Progress",style="color:grey"),
+                                         #hr(),
+                                         textOutput("Fpanelout"),
+                                         textOutput("Mpanelout"),
+                                         textOutput("Dpanelout")
+
+                        )
                  )
 
-               ),
 
-               column(width = 2,
-                 conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4)",
-                    actionButton("Fcont","Next >")
+
+              )
+           ),
+
+           column(2),
+
+
+           column(4,style="height:50px",
+
+
+                 column(6,style="padding:10px",
+                        fileInput("Load","Load",accept=c("frame",".frame"))
                  ),
-                 conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
-                    actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
+
+                 column(2,
+
+                          h5("Save",style="font-weight:bold"),
+                          downloadButton("Save","",width=70)
+
+                 ),
+
+                 column(4,
+                       h5("Questionnaire Report",style="font-weight:bold"),
+                       downloadButton("Build_OM"," ")
                  )
-
-               ),
-
-               column(width=4,#style="height:180px",
-                      conditionalPanel(condition="output.Fpanel>0|output.Ppanel>0|output.Dpanel>0|output.Fpanel!=undefined|output.Mpanel!=undefined|output.Dpanel!=undefined",
-                                       #h4("Progress",style="color:grey"),
-                                       #hr(),
-                                       textOutput("Fpanelout"),
-                                       textOutput("Mpanelout"),
-                                       textOutput("Dpanelout")
-
-                      )
-               )
+           )
 
 
-
-            )
-         ),
-
-         column(2),
-
-
-         column(4,style="height:50px",
-
-
-               column(6,style="padding:10px",
-                      fileInput("Load","Load")
-               ),
-
-               column(2,
-
-                        h5("Save",style="font-weight:bold"),
-                        downloadButton("Save","",width=70)
-
-               ),
-
-               column(4,
-                     h5("Questionnaire Report",style="font-weight:bold"),
-                     downloadButton("Build_OM"," ")
-               )
-         )
-
-
-        )
+          )
         )
        ), # end of Step 1 fluid row
 
@@ -922,14 +923,14 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        conditionalPanel(condition="output.Ind==0",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)")),
-        conditionalPanel(condition="output.Ind==1",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP)",style="color:green")),
+        conditionalPanel(condition="output.Ind==0",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)")),
+        conditionalPanel(condition="output.Ind==1",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)",style="color:green")),
 
         hr(),
 
         fluidRow(
           column(1),
-          column(11,style="height:155px",
+          column(11,style="height:285px",
 
                  fluidRow(
 
@@ -944,6 +945,8 @@ shinyUI(
                             h5("Application MSE not run yet", style = "color:grey")
                           ),
                           conditionalPanel(condition="output.DataInd==1",
+                                           sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
+                                           sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01),
                                            actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
                           )
 
@@ -952,7 +955,8 @@ shinyUI(
                    column(6,style="padding:19px",
                         h5("A similar data file to step A2 can be loaded here with extended data for years after operating model conditioning",style = "color:grey"),
                         h5("These data can be compared against the predicted data of the Application operating model and used to detect exceptional
-                             circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey")
+                             circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey"),
+                        h5("Resolution refers to the size of time block over which the indicator is evaluated. For example, the default, 6 years, calculates slopes and means in quantities such as catch and abundance indices over the first 6 years (you need new data for at least this many years)",style = "color:grey")
 
                    )
 
@@ -1156,16 +1160,18 @@ shinyUI(
           )
       ), # end of Results
 
-      column(12,style="height:100px"),
-      hr(),
+      column(12,style="height:100px",
+      hr()
+      ),
 
       column(8,style="height:40px"),
       column(2,style="height:40px; padding:9px",textOutput("SessionID")),
-      column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
-        #column(12,style="height:100px"),
-      column(12, actionButton("debug", "Debug")),
+      column(2,style="height:40px", h6("copyright (c) NRDC 2018"))
 
-      column(12, textInput("Debug1", "Debug window", ""))
+        #column(12,style="height:100px"),
+      #column(12, actionButton("debug", "Debug")),
+
+      #column(12, textInput("Debug1", "Debug window", ""))
 
      #) # end of fluid row
     ) # end of fluid page

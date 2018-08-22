@@ -13,9 +13,9 @@ makeOM<-function(PanelState,nsim=48,nyears=NA,maxage=NA){
   OM@R0<-100000
   OM@nsim<-nsim
 
-  OM@Linf<-c(3,3)
-  OM@L50<-c(1.3,2.4)
-  OM@L50_95<-c(0.2,0.2)
+  OM@Linf<-c(100,100)
+  OM@L50<-NaN
+  OM@K<-NaN
   OM@isRel<-"FALSE"
 
   OM@Name<-input$Name
@@ -57,13 +57,19 @@ makeOM<-function(PanelState,nsim=48,nyears=NA,maxage=NA){
 
   # Fishery characteristics -------
   OM@M<-getminmax(1,"M",PanelState)
+
   if(is.na(maxage)){
     OM@maxage=ceiling(-log(0.02)/min(OM@M))
   }else{
     OM@maxage=maxage
   }
 
-  if(OM@maxage)
+  OM<-LH2OM(OM, dist='norm')
+  OM@K<-quantile(OM@cpars$K,c(0.05,0.95))
+  OM@L50<-quantile(OM@cpars$L50,c(0.05,0.95))
+  OM@L50_95<-c(10,10)
+  OM@Linf<-c(100,100)
+  OM@M<-getminmax(1,"M",PanelState)
   OM@D<-getminmax(1,"D",PanelState)
   OM@h<-getminmax(1,"h",PanelState)
 

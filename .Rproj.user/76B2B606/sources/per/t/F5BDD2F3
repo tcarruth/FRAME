@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1534892752511.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3259607196",
+    "id" : "F5BDD2F3",
+    "lastKnownWriteTime" : 1534894665,
+    "last_content_update" : 1534894665819,
+    "path" : "~/GitHub/FRAME/inst/shiny_apps/FRAME/makeOM.R",
+    "project_path" : "inst/shiny_apps/FRAME/makeOM.R",
+    "properties" : {
+        "cursorPosition" : "38,0",
+        "scrollLine" : "30"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

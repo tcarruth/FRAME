@@ -5,7 +5,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
 
   MPcols[MPcols=="green"]<-"darkgreen"
 
-  layout(matrix(c(1,2,1,3,1,4),nrow=2),heights=c(1,0.7))
+  layout(matrix(c(1,2,3,1,2,4,1,2,5),nrow=3),heights=c(1,1,0.7))
 
   par(mai=c(0.8,0.3,0.1,0.1),omi=c(0.001,0.4,0.3,0.01))
   yrs<-curyr+(1:MSEobj@proyears)
@@ -13,9 +13,8 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   Brel<-MSEobj@B_BMSY[,1,]*100
   ylim<-c(0,quantile(Brel,0.92))
   ylim[2]<-max(200,ylim[2])
-  matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent(fcol,80),lty=1,lwd=2,ylim=ylim,yaxs="i",xlab="",ylab="")
-  Brel2<-MSEobj_reb@B_BMSY[,1,]*100
-  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",80),lty=1,lwd=2,add=T)
+  matplot(yrs,t(Brel),type='l',xlim=c(curyr+1,curyr+61),col=makeTransparent("#00ff00",60),lty=1,lwd=3,ylim=ylim,yaxs="i",xlab="",ylab="")
+
 
   MGTline=mean(MSEobj@OM$MGT)*2
 
@@ -30,38 +29,51 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   col2<-'red'
   col3<-'orange'
 
-  cond1<-Brel>50 & yra < (curyr+burnin)
-  cond2<-Brel>100 & yra < (curyr+burnin)
-  points(yra[cond2],Brel[cond2],pch=3,cex=1.4,col=col2)
-  points(yra[cond1],Brel[cond1],pch=19,cex=0.88,col=col1)
+  cond1<-Brel>50 & yra < (curyr+burnin)+0.5
+  cond2<-Brel>100 & yra < (curyr+burnin)+0.5
+  points(yra[cond2],Brel[cond2],pch=19,cex=1.4,col=col2)
+  points(yra[cond1],Brel[cond1],pch=3,cex=0.88,col=col1)
 
-  cond3<-Brel2>100 & yra > MGTa+0.5 & yra < 1.5+MGTa
-  cond4=Brel>50 & yra > (curyr+burnin)
-  cond5<-Brel>100 & yra > (curyr+burnin)
-  points(yra[cond5],Brel[cond5],pch=4,cex=1.4,col=col2)
-  points(yra[cond4],Brel[cond4],cex=1,col=col1)
-  points(yra[cond3],Brel2[cond3],pch=17,cex=1.7,col=col3)
+  cond4=Brel>50 & yra > (curyr+burnin)+0.5
+  cond5<-Brel>100 & yra > (curyr+burnin)+0.5
+  points(yra[cond5],Brel[cond5],cex=1.4,col=col2)
+  points(yra[cond4],Brel[cond4],pch=4,cex=1,col=col1)
+
 
   text(curyr+burnin/2,10,paste0("Burn-in years (",burnin,"-",MSEobj@proyears,")"),col='dark grey',font=2,cex=1.2)
-  text(curyr+MGTline+3,25,"2MGT",col='green',font=2,cex=1.2)
+
   text(curyr+47,10,"Year 50",col='dark grey',font=2,cex=1.2)
 
   P111a<-round(100*sum(cond1)/(burnin*MSEobj@nsim),0)
   P111b<-round(100*sum(cond2)/(burnin*MSEobj@nsim),0)
-  P112<-round(100*sum(cond3)/MSEobj@nsim,0)
+
   P121a<-round(100*sum(cond4)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
   P121b<-round(100*sum(cond5)/((MSEobj@proyears-burnin)*MSEobj@nsim),0)
 
 
   legend('topright',legend=c(paste0("1.1.1a (",P111a,"%)"),
                              paste0("1.1.1b (",P111b,"%)"),
-                             paste0("1.1.2 (",P112,"%)"),
                              paste0("1.2.1a (",P121a,"%)"),
                              paste0("1.2.1b (",P121b,"%)")),
-         col=c(col1,col2,col3,col1,col2),text.col=c(col1,col2,col3,col1,col2),bty='n',pch=c(19,3,17,1,4),text.font=2)
+         col=c(col1,col2,col1,col2),text.col=c(col1,col2,col1,col2),bty='n',pch=c(3,19,4,1),text.font=2)
 
-  legend('right',legend=c("Specified OM","Rebuilding analysis (1.1.2)"),
-         col=c(makeTransparent(fcol,99),makeTransparent("#00ff00",99)),bty='n',lwd=c(3,3),text.font=2)
+  #legend('right',legend="Specified OM", bty='n',text.font=2)
+
+  mtext("Biomass relative to BMSY (%)",2,line=2.8)
+  mtext("MSE Projection Year",1,line=2.8)
+
+  Brel2<-MSEobj_reb@B_BMSY[,1,]*100
+  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",60),lty=1,lwd=3,ylim=ylim,xlim=c(curyr+1,curyr+61))
+  cond3<-Brel2>100 & yra > MGTa+0.5 & yra < 1.5+MGTa
+  cond3x<-Brel2<100 & yra > MGTa+0.5 & yra < 1.5+MGTa
+  points(yra[cond3],Brel2[cond3],pch=17,cex=1.7,col=col3)
+  points(yra[cond3x],Brel2[cond3x],pch=2,cex=1.7,col=col3)
+  abline(h=100,lwd=3,lty=1,col="#99999980")
+  P112<-round(100*sum(cond3)/MSEobj@nsim,0)
+  text(curyr+MGTline+3,ylim[2]*0.95,"2MGT",col='orange',font=2,cex=1.2)
+  legend('topright',legend=paste0("1.1.2 (",P112,"%)"),col=col3,text.col=col3,bty='n',pch=17,text.font=2)
+
+  legend('right',legend="Rebuilding analysis (1.1.2)",bty='n',text.font=2)
 
 
   mtext("Biomass relative to BMSY (%)",2,line=2.8)
@@ -73,34 +85,21 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   xvar<-Brel[,1:burnin]
   xlim<-c(0,quantile(xvar,0.98))
   dens<-density(xvar,from=0)
-  plot(dens,main="",xlab="",ylab="",xlim=xlim)
+  plot(dens,main="",xlab="",ylab="",xlim=xlim,col='green')
   abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
   subdens<-getsegment(dens,50,lower=F)
   polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
   subdens<-getsegment(dens,100,lower=F)
   polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
-  lines(dens)
+  lines(dens,col="green")
   mtext("Posterior density",2,line=2.8)
   legend('topright',legend=c("1.1.1a","1.1.1b"),text.col=c("blue","red"),bty='n',text.font=2)
   mtext(paste0("Burn-in years (",0,"-",burnin,")"),3,line=labline,cex=labcex,col='dark grey',font=2)
 
-  cond3b<-yra > MGTa+0.5 & yra < 1.5+MGTa
-  xvar<-Brel2[cond3b]
-  xlim<-c(0,quantile(xvar,0.98))
-  dens<-density(xvar,from=0)
-  plot(dens,main="",xlab="",ylab="",xlim=xlim)
-  abline(v=100,lwd=2,lty=1,col="#99999980")
-  subdens<-getsegment(dens,100,lower=F)
-  polygon(y=subdens$x,x=subdens$y,col="orange",border=NA)
-  lines(dens)
-  mtext("Biomass relative to BMSY",1,line=2.8)
-  legend('topright',legend="1.1.2",text.col="orange",bty='n',text.font=2)
-  mtext("After 2MGT",3,line=labline,cex=labcex,col='dark grey',font=2)
-
   xvar<-Brel[,(burnin+1):MSEobj@proyears]
   xlim<-c(0,quantile(xvar,0.98))
   dens<-density(xvar,from=0)
-  plot(dens,main="",xlab="",ylab="",xlim=xlim)
+  plot(dens,main="",xlab="",ylab="",xlim=xlim,col='green')
   abline(v=c(50,100),lwd=2,lty=1,col="#99999980")
   subdens<-getsegment(dens,50,lower=F)
   polygon(y=subdens$x,x=subdens$y,col="blue",border=NA)
@@ -108,8 +107,21 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   polygon(y=subdens$x,x=subdens$y,col="red",border=NA)
   legend('topright',legend=c("1.2.1a","1.2.1b"),text.col=c("blue","red"),bty='n',text.font=2)
   mtext(paste0("Years ",burnin,"-",MSEobj@proyears),3,line=labline,cex=labcex,col='dark grey',font=2)
-  lines(dens)
+  lines(dens,col="green")
   mtext(MSEobj@MPs[1],3,line=0.3,col=MPcols[1],outer=T,font=2)
+
+  cond3b<-yra > MGTa+0.5 & yra < 1.5+MGTa
+  xvar<-Brel2[cond3b]
+  xlim<-c(0,quantile(xvar,0.98))
+  dens<-density(xvar,from=0)
+  plot(dens,main="",xlab="",ylab="",xlim=xlim,col='green')
+  abline(v=100,lwd=2,lty=1,col="#99999980")
+  subdens<-getsegment(dens,100,lower=F)
+  polygon(y=subdens$x,x=subdens$y,col="orange",border=NA)
+  lines(dens,col='green')
+  mtext("Biomass relative to BMSY",1,line=2.8)
+  legend('topright',legend="1.1.2",text.col="orange",bty='n',text.font=2)
+  mtext("After 2MGT",3,line=labline,cex=labcex,col='dark grey',font=2)
 }
 
 plotquant<-function(x,p=c(0.05,0.25,0.75,0.95),yrs,qcol,lcol,addline=T,ablines=NA){
