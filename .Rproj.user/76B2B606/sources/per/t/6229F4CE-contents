@@ -1,6 +1,7 @@
 
 library(shiny)
 library(DLMtool)
+library(MSEtool)
 library(kableExtra)
 library(formattable)
 library(knitr)
@@ -402,6 +403,7 @@ shinyServer(function(input, output, session) {
   })
 
   # Indicator Data load
+
   observeEvent(input$Load_Data_Ind,{
 
     filey<-input$Load_Data_Ind
@@ -495,13 +497,13 @@ shinyServer(function(input, output, session) {
     if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
     if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
     if(input$Data_Rich){
-      SCA_4010 <- make_MP(SCA, HCR40_10)
-      SCA_MSY <- make_MP(SCA, HCR_MSY)
-      DDSS_4010 <- make_MP(DD_SS, HCR40_10)
-      DDSS_MSY <- make_MP(DD_SS, HCR_MSY)
-      SPSS_4010 <- make_MP(SP_SS, HCR40_10)
-      SPSS_MSY <- make_MP(SP_SS, HCR_MSY)
-      MPs<-c(MPs,"SCA_4010","SCA_MSY","DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+      #SCA_4010 <<- make_MP(SCA, HCR40_10)
+      #SCA_MSY <<- make_MP(SCA, HCR_MSY)
+      #DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
+      #DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
+      #SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
+      #SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
+      #MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
     }
 
     nsim<<-input$nsim
@@ -674,6 +676,16 @@ shinyServer(function(input, output, session) {
     output$mdist<-renderPlot(plot_mdist(indPPD,indData,alpha=input$Ind_Alpha),height =550 ,width=550)
 
   }
+
+
+  observeEvent(input$Default_thres,{
+    updateSliderInput(session,"P111a",value=70)
+    updateSliderInput(session,"P111b",value=50)
+    updateSliderInput(session,"P112",value=70)
+    updateSliderInput(session,"P121a",value=80)
+    updateSliderInput(session,"P121b",value=50)
+
+  })
 
 
   CheckJust<-function(){

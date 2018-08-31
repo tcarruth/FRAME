@@ -73,7 +73,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation (MSC-DLMtool App v2.0)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.1)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -89,8 +89,8 @@ shinyUI(
 
     h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
     h5("FRAME links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool and MSEtool  to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
-    h5("In steps 1 and 2 the fishery is characterized and any available data are loaded. In step 3 an operating model is constructed that is used in step 4 to conduct MSE of feasible MPs (Evaluation mode),
-     apply a suitable MP (Application mode) or establishing indicators that can detect changes in system dynamics (Indicators mode).",style = "color:grey"),
+    h5("In step A the fishery is characterized and any available data are loaded. In step B an operating model is constructed that is used in step C to evaluate feasible MPs or
+     apply a suitable MP (Application). Finally, in step D indicators can be used to detect changes in system dynamics.",style = "color:grey"),
     h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
     h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
     h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
@@ -99,11 +99,34 @@ shinyUI(
     fluidRow(
 
       HTML("<br><br>"),
+      column(12,
+             h4("APPLICATION MODE"),
+             hr()
+             ),
+      column(1),
+      column(11,
+
+             column(4,
+
+               radioButtons("RA_MSE",label=NULL,choices=c("Risk Assessment","Management Strategy Evaluation"),selected="Risk Assessment")),
+
+               column(8,
+                      h5("FRAME contains two modes of differing complexity",style = "color:grey"),
+                      h5(" - Risk Assessment mode is an entirely questionnaire based description of fishery dynamics for calculation of biological risk where data are limited",style = "color:grey"),
+                      h5(" - Management Strategy EValuation mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
+               )
+
+      ),
+
+
+      column(12,HTML("<br><br>")),
 
       column(12,style="height:60px",
 
-            conditionalPanel(condition="output.Quest==0",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
-            conditionalPanel(condition="output.Quest==1",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+            conditionalPanel(condition="output.Quest==0&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
+            conditionalPanel(condition="output.Quest==1&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+            conditionalPanel(condition="output.Quest==0&input.RA_MSE=='Risk Assessment'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
+            conditionalPanel(condition="output.Quest==1&input.RA_MSE=='Risk Assessment'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
 
             hr()
       ),
@@ -553,7 +576,7 @@ shinyUI(
                              h5("Users can also determine the total number of simulations, the number of projected years and the management update interval (years between management recommendations in the projection).
                                  The burn-in is intended to represent a duration over which an MP has already been used. Burn-in is also the number of initial projected years correponding to some stock status performance indicators. ",style = "color:grey"),
                              h5("Users can also choose to exclude reference management procdures (e.g. zero catches, fishing at FMSY), activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).",style = "color:grey"),
-                             h5("Assessment and Indicator modes require the selection of a single MP. Other options include the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
+                             h5("The Application step requires the selection of a single MP. Other options include the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
                              h5(""),
                              h5("A more detailed guide to these options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey"),
                              h5(""),
@@ -660,51 +683,55 @@ shinyUI(
        ), # end of Step 1 fluid row
 
        column(12,style="height:45px"),
-       conditionalPanel(condition="output.CondOM==0",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)")),
-       conditionalPanel(condition="output.CondOM==1",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)",style="color:green")),
 
-       hr(),
+       conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
 
-       fluidRow(
-          column(1),
-          column(11,style="height:155px",
+         conditionalPanel(condition="output.CondOM==0",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)")),
+         conditionalPanel(condition="output.CondOM==1",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)",style="color:green")),
 
-             fluidRow(
-               column(3,style="padding:7px;padding-left:14px",
-                      fileInput("Load_Data","Load available data")
-               ),
-               column(1),
-               column(6,style="padding:19px",
-                          h5("When formatted into a DLMtool/MSEtool csv data file, fishery data can be used to:",style = "color:grey"),
-                          h5(" - condition operating models",style = "color:grey"),
-                          h5(" - determine feasible MPs", style = "color:grey"),
-                          h5(" - assess the fishery status", style = "color:grey"),
-                          h5(" - test for exceptional circumstances.",style = "color:grey")
+         hr(),
+
+         fluidRow(
+            column(1),
+            column(11,style="height:155px",
+
+               fluidRow(
+                 column(3,style="padding:7px;padding-left:14px",
+                        fileInput("Load_Data","Load available data")
+                 ),
+                 column(1),
+                 column(6,style="padding:19px",
+                            h5("When formatted into a DLMtool/MSEtool csv data file, fishery data can be used to:",style = "color:grey"),
+                            h5(" - condition operating models",style = "color:grey"),
+                            h5(" - determine feasible MPs", style = "color:grey"),
+                            h5(" - assess the fishery status", style = "color:grey"),
+                            h5(" - test for exceptional circumstances.",style = "color:grey")
+
+                 )
 
                )
-
-             )
-          )
-        ),
-
-        fluidRow(
-            column(1),
-            column(6),
-            column(4,
-                  column(8),
-                  column(4,
-                         conditionalPanel(width=4,condition="output.Data==1",
-                          h5("Data Report",style="font-weight:bold"),
-                          downloadButton("Build_Data"," ")
-                         )
-                  )
             )
-        ),
+          ),
+
+          fluidRow(
+              column(1),
+              column(6),
+              column(4,
+                    column(8),
+                    column(4,
+                           conditionalPanel(width=4,condition="output.Data==1",
+                            h5("Data Report",style="font-weight:bold"),
+                            downloadButton("Build_Data"," ")
+                           )
+                    )
+              )
+          )
+        ),  # RA MSE conditional panel
 
         column(12,style="height:45px"),
 
-        conditionalPanel(condition="output.MadeOM==0",h4("STEP A3: BUILD OPERATING MODELS")),
-        conditionalPanel(condition="output.MadeOM==1",h4("STEP A3: BUILD OPERATING MODELS",style="color:green")),
+        conditionalPanel(condition="output.MadeOM==0",h4("STEP B: BUILD OPERATING MODELS")),
+        conditionalPanel(condition="output.MadeOM==1",h4("STEP B: BUILD OPERATING MODELS",style="color:green")),
 
 
         hr(),
@@ -716,7 +743,7 @@ shinyUI(
               fluidRow(
 
                 column(4,
-                numericInput("nsim", label = "No. MSE simulations", value=24,min=8,max=1000),
+                numericInput("nsim", label = "No. simulations", value=24,min=8,max=1000),
 
                 conditionalPanel(condition="output.Data==1", checkboxInput("OM_cond",label="Condition OM via S-SRA",value=FALSE)),
 
@@ -730,9 +757,9 @@ shinyUI(
                        h5("Operating models are specified from the responses in the questionnaire (Step 1)", style = "color:grey"),
                        h5("Alternatively, where possible, users can use upload their data and condition models using
                           stochastic SRA ",a("(Walters et al. 2006)", href="https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB", target="_blank"),style = "color:grey"),
-                       h5("For demonstration purposes a small number of MSE simulations (e.g. n = 24) is enough. For MP comparisons in 'Evaluation' mode,
+                       h5("For demonstration purposes a small number of simulations (e.g. n = 24) is enough. For MP comparisons in 'Evaluation' mode,
                           100 simulations is generally sufficient to get convergence in performance rankings. In more detailed Application or Indicator
-                          MSE testing of specific MPs a larger number is recommended (e.g. n = 200) to get stable absolute performance", style = "color:grey")
+                          steps where specific MPs are tested, a larger number is recommended (e.g. n = 200) to get stable absolute performance", style = "color:grey")
 
                       )
 
@@ -779,8 +806,10 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        conditionalPanel(condition="output.Calc==0",h4("STEP B1: EVALUATION (MULTI-MP)")),
-        conditionalPanel(condition="output.Calc==1",h4("STEP B1: EVALUATION (MULTI-MP)",style="color:green")),
+        conditionalPanel(condition="output.Calc==0&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP C1: EVALUATION (MULTI-MP)")),
+        conditionalPanel(condition="output.Calc==1&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP C1: EVALUATION (MULTI-MP)",style="color:green")),
+        conditionalPanel(condition="output.Calc==0&input.RA_MSE=='Risk Assessment'",h4("STEP C: EVALUATION (MULTI-MP)")),
+        conditionalPanel(condition="output.Calc==1&input.RA_MSE=='Risk Assessment'",h4("STEP C: EVALUATION (MULTI-MP)",style="color:green")),
 
         hr(),
 
@@ -811,10 +840,10 @@ shinyUI(
 
                 column(6,
 
-                       h5("An MSE can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
+                       h5("Simulations can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
                        h5("In 'Demo' mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
                        h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run.", style = "color:grey"),
-                       h5("In situations where operating models are built with more than 48 simulations it can be much faster to run the MSE using parallel computing ('Parallel comp.)
+                       h5("In situations where operating models are built with more than 48 simulations it can be much faster to use parallel computing ('Parallel comp.)
                           although the progress bar will not longer work", style = "color:grey")
 
                )
@@ -854,129 +883,131 @@ shinyUI(
 
         column(12,style="height:45px"),
 
-        conditionalPanel(condition="output.App==0",h4("STEP B2: APPLICATION (SINGLE MP)")),
-        conditionalPanel(condition="output.App==1",h4("STEP B2: APPLICATION (SINGLE MP)",style="color:green")),
+        conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+          conditionalPanel(condition="output.App==0",h4("STEP C2: APPLICATION (SINGLE MP)")),
+          conditionalPanel(condition="output.App==1",h4("STEP C2: APPLICATION (SINGLE MP)",style="color:green")),
 
-        hr(),
+          hr(),
 
-        fluidRow(
-          column(1),
-          column(11,
-                 fluidRow(
-                   column(4,
-                     conditionalPanel(condition="output.MadeOM>0",
-                      column(6,numericInput("proyears_app", label = "Projected years", value=50,min=25,max=100)),
-                      column(6,numericInput("interval_app", label = "Management interval", value=8,min=2,max=10)),
-                      column(6,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
-                      column(6,checkboxInput("Parallel_app", label = "Parallel comp.", value = FALSE)),
+          fluidRow(
+            column(1),
+            column(11,
+                   fluidRow(
+                     column(4,
+                       conditionalPanel(condition="output.MadeOM>0",
+                        column(6,numericInput("proyears_app", label = "Projected years", value=50,min=25,max=100)),
+                        column(6,numericInput("interval_app", label = "Management interval", value=8,min=2,max=10)),
+                        column(6,selectInput("sel_MP", label = "Selected MP", choices=character(0),selected=character(0)),style="padding:10px"),
+                        column(6,checkboxInput("Parallel_app", label = "Parallel comp.", value = FALSE)),
 
-                      column(12,
-                             actionButton("Calculate_app",h5("      RUN APPLICATION     ",style="color:red"))
-                      )
+                        column(12,
+                               actionButton("Calculate_app",h5("      RUN APPLICATION     ",style="color:red"))
+                        )
 
+                       ),
+                       conditionalPanel(condition="output.MadeOM==0",
+
+                             h5("Operating model not built yet", style = "color:grey")
+
+                       )
                      ),
-                     conditionalPanel(condition="output.MadeOM==0",
+                     column(6,
 
-                           h5("Operating model not built yet", style = "color:grey")
+                            h5("In the application mode, a single MP is tested over a greater number of simulations.", style = "color:grey")
 
-                     )
+
+                            )
+                   )
+            )
+          ),
+
+          fluidRow(
+            column(1),
+            column(6),
+            column(4,
+                   column(6,style="padding:10px",
+                          fileInput("Load_App","Load")
                    ),
-                   column(6,
 
-                          h5("In the application mode, an MSE is run for a single MP over a greater number of simulations.", style = "color:grey")
-
-
+                   column(2,
+                          conditionalPanel(condition="output.App==1",
+                                           h5("Save",style="font-weight:bold"),
+                                           downloadButton("Save_App","",width=70)
                           )
-                 )
-          )
-        ),
 
-        fluidRow(
-          column(1),
-          column(6),
-          column(4,
-                 column(6,style="padding:10px",
-                        fileInput("Load_App","Load")
-                 ),
-
-                 column(2,
-                        conditionalPanel(condition="output.App==1",
-                                         h5("Save",style="font-weight:bold"),
-                                         downloadButton("Save_App","",width=70)
-                        )
-
-                 ),
-                 column(4,
-
-                        conditionalPanel(condition="output.App==1",
-                               column(12,style="height:50px",
-                                      h5("Application Report",style="font-weight:bold"),
-                                      downloadButton("Build_App","")
-                               )
-                        )
-
-                 )
-          )
-        ),
-
-
-
-        column(12,style="height:45px"),
-
-        conditionalPanel(condition="output.Ind==0",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)")),
-        conditionalPanel(condition="output.Ind==1",h4("STEP B3: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)",style="color:green")),
-
-        hr(),
-
-        fluidRow(
-          column(1),
-          column(11,style="height:285px",
-
-                 fluidRow(
-
-                   column(3,style="padding:7px;padding-left:14px",
+                   ),
+                   column(4,
 
                           conditionalPanel(condition="output.App==1",
-
-                            fileInput("Load_Data_Ind","Load indicator data")
-
-                          ),
-                          conditionalPanel(condition="output.App==0",
-                            h5("Application MSE not run yet", style = "color:grey")
-                          ),
-                          conditionalPanel(condition="output.DataInd==1",
-                                           sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
-                                           sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01),
-                                           actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
+                                 column(12,style="height:50px",
+                                        h5("Application Report",style="font-weight:bold"),
+                                        downloadButton("Build_App","")
+                                 )
                           )
 
-                   ),
-                   column(1),
-                   column(6,style="padding:19px",
-                        h5("A similar data file to step A2 can be loaded here with extended data for years after operating model conditioning",style = "color:grey"),
-                        h5("These data can be compared against the predicted data of the Application operating model and used to detect exceptional
-                             circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey"),
-                        h5("Resolution refers to the size of time block over which the indicator is evaluated. For example, the default, 6 years, calculates slopes and means in quantities such as catch and abundance indices over the first 6 years (you need new data for at least this many years)",style = "color:grey")
-
                    )
-
-                 )
+            )
           )
         ),
 
-        fluidRow(
-          column(1),
-          column(6),
-          column(4,
-                 column(8),
-                 column(4,
-                        conditionalPanel(width=4,condition="output.DataInd==1",
-                                h5("Indicator Report",style="font-weight:bold"),
-                                downloadButton("Build_AI"," ")
-                        )
-                 )
-           )
-        ),
+        conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+          column(12,style="height:45px"),
+
+          conditionalPanel(condition="output.Ind==0",h4("STEP D: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)")),
+          conditionalPanel(condition="output.Ind==1",h4("STEP D: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)",style="color:green")),
+
+          hr(),
+
+          fluidRow(
+            column(1),
+            column(11,style="height:285px",
+
+                   fluidRow(
+
+                     column(3,style="padding:7px;padding-left:14px",
+
+                            conditionalPanel(condition="output.App==1",
+
+                              fileInput("Load_Data_Ind","Load indicator data")
+
+                            ),
+                            conditionalPanel(condition="output.App==0",
+                              h5("Application not run yet", style = "color:grey")
+                            ),
+                            conditionalPanel(condition="output.DataInd==1",
+                                             sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
+                                             sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01),
+                                             actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
+                            )
+
+                     ),
+                     column(1),
+                     column(6,style="padding:19px",
+                          h5("A similar data file to step A2 can be loaded here with extended data for years after operating model conditioning",style = "color:grey"),
+                          h5("These data can be compared against the predicted data of the Application operating model and used to detect exceptional
+                               circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey"),
+                          h5("Resolution refers to the size of time block over which the indicator is evaluated. For example, the default, 6 years, calculates slopes and means in quantities such as catch and abundance indices over the first 6 years (you need new data for at least this many years)",style = "color:grey")
+
+                     )
+
+                   )
+            )
+          ),
+
+          fluidRow(
+            column(1),
+            column(6),
+            column(4,
+                   column(8),
+                   column(4,
+                          conditionalPanel(width=4,condition="output.DataInd==1",
+                                  h5("Indicator Report",style="font-weight:bold"),
+                                  downloadButton("Build_AI"," ")
+                          )
+                   )
+             )
+          )
+        ), # input.RA_MSC conditional panel
 
         column(12,style="height:45px"),
 
@@ -994,7 +1025,7 @@ shinyUI(
                 numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
                 checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
 
-                column(4,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
+                column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
 
                 HTML("<br>"),
                 h5("Performance Thresholds",style="font-weight:bold"),
@@ -1003,7 +1034,8 @@ shinyUI(
                 sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
                 sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
                 sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
-                sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5)
+                sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
+                actionButton("Default_thres","Reset to default thresholds")
 
               ),
 
@@ -1079,8 +1111,11 @@ shinyUI(
                     ), value=1),
 
                     tabPanel(h4("Application",style = "color:black"),
-                             conditionalPanel(condition="output.App==0",
+                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Management Strategy Evaluation'",
                                      h5("Application MSE not run yet", style = "color:grey")
+                             ),
+                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Risk Assessment'",
+                                     h5("Application results are calculated in Management Strategy Evaluation mode only", style = "color:grey")
                              ),
                              conditionalPanel(condition="output.App==1",
 
@@ -1133,10 +1168,12 @@ shinyUI(
 
                     tabPanel(h4("Indicators",style = "color:black"),
 
-                             conditionalPanel(condition="output.Ind==0",
+                             conditionalPanel(condition="output.Ind==0&input.RA_MSE=='Management Strategy Evaluation'",
                                       h5("Indicators not calculated yet", style = "color:grey")
                              ),
-
+                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Risk Assessment'",
+                                              h5("Indicator results are calculated in Management Strategy Evaluation mode only", style = "color:grey")
+                             ),
                              conditionalPanel(condition="output.Ind==1",
                                column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
                                hr(),

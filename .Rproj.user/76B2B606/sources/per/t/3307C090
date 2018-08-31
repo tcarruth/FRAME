@@ -5,13 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2449882999",
+    "hash" : "864354182",
     "id" : "3307C090",
-    "lastKnownWriteTime" : 1534877128,
-    "last_content_update" : 1534877128,
+    "lastKnownWriteTime" : 1535664303,
+    "last_content_update" : 1535664303,
     "path" : "~/GitHub/DLMtool/R/Data_Functions.R",
     "project_path" : null,
     "properties" : {
+        "cursorPosition" : "0,0",
+        "scrollLine" : "0"
     },
     "relative_order" : 3,
     "source_on_save" : false,

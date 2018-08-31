@@ -55,7 +55,7 @@ This is a prototype of an automatic report that describes data that were provide
 
 # Data
 
-```{r sel,echo=F,results='asis'}
+```{r sel,echo=F,warning=F,error=F,results='asis',fig.width=10, fig.height=6}
 
 
 summary(params$dat,rmd=T,wait=F)
