@@ -277,7 +277,9 @@ A description of the observation error model is included in [Carruthers et al (2
 
 # Step A2: load data (MSE stream) (optional)
 
-Users have the option of loading a formatted data object
+Users have the option of loading a formatted data object of DLMtool class Data. This can be stored in an .xlsx or .csv file.  
+
+A summar
 
 
 # Step B: build an operating model

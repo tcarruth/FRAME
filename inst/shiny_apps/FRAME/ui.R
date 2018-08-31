@@ -9,7 +9,6 @@ shinyUI(
 
   fluidPage(
     useShinyjs(),
-    extendShinyjs(text = js_code, functions = 'browseURL'),
     useShinyalert(),
     tags$head(
       tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
