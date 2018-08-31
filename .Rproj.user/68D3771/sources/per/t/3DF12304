@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535732340059.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4216420286",
+    "id" : "3DF12304",
+    "lastKnownWriteTime" : 1535732732,
+    "last_content_update" : 1535732732608,
+    "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/Update_objects.R",
+    "project_path" : "inst/shiny_apps/FRAME/Update_objects.R",
+    "properties" : {
+        "cursorPosition" : "9,1",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

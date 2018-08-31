@@ -49,55 +49,19 @@ pre { /* Code block */
 
 # About this document
 
-This is a prototype of an automatic report that documents how an operating model was conditioned on data (for example by Stochastic Stock Reduction Analysis (DLMtool MCMC, Walters et al. 2003), Statistical Catch at Age (MSEtool TMB, Huynh 2018), state space delay difference model (MSEtool TMB, Huynh 2018).  
+This is a prototype of an automatic report that documents all dynamical features of an operating model whether it was defined by the Questionnaire in A1 or also conditioned using S-SRA in A2.  
 
 <br clear="both"/>
 
+```{r labs,echo=F,warning=F,error=F,results='asis'}
 
-# Spawning stock biomass
-
-```{r SSB,echo=F,warning=F,error=F,results='asis',fig.width=10, fig.height=6}
-
-myMSE<-runMSE(params$OM,Hist=T)
-SSB<-t(myMSE$TSdata$SSB)
-matplot(t(SSB),type='l',xlab="Historical Year",ylab="SSB")
-
-        
-#plot(params$OM) 
+plot(params$OM,rmd=T)
 
 ```
 
 <br clear="both"/>
 
-# Stock depletion
 
-```{r Dep,echo=F,warning=F,error=F,results='asis',fig.width=10, fig.height=6}
-
-
-D<-SSB/SSB[,1]
-matplot(t(D),type='l',xlab="Historical Year",ylab="Stock depletion",ylim=c(0,1))
-
-        
-#plot(params$OM) 
-
-```
-
-<br clear="both"/>
-
-# Selectivity
-
-```{r sel,echo=F,warning=F,error=F,results='asis',fig.width=10, fig.height=6}
-
-
-sel<-myMSE$AtAge$Sl_age[,,1]
-matplot(t(sel),type='l',xlab="Age",ylab="Selectivity")
-
-        
-#plot(params$OM) 
-
-```
-
-<br clear="both"/>
 # Version Notes
 
 The package is subject to ongoing testing. If you find a bug or a problem please send a report to <t.carruthers@oceans.ubc.ca> so that it can be fixed!  

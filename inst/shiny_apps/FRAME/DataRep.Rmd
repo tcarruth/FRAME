@@ -55,10 +55,10 @@ This is a prototype of an automatic report that describes data that were provide
 
 # Data
 
-```{r sel,echo=F,results='asis'}
+```{r sel,echo=F,results='asis',fig.width=9,fig.height=9}
 
 
-summary(params$dat,rmd=T,wait=F)
+summary(params$dat,wait=F) # rmd =T
 
 
 ```

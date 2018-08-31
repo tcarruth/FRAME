@@ -2,10 +2,14 @@ library(shinyalert)
 library(shiny)
 library(shinyjs)
 
+
+#js_code <- "shinyjs.browseURL = function(url) {window.open(url,'_blank')}"
+
 shinyUI(
 
   fluidPage(
     useShinyjs(),
+    extendShinyjs(text = js_code, functions = 'browseURL'),
     useShinyalert(),
     tags$head(
       tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
@@ -113,7 +117,7 @@ shinyUI(
                column(8,
                       h5("FRAME contains two modes of differing complexity",style = "color:grey"),
                       h5(" - Risk Assessment mode is an entirely questionnaire based description of fishery dynamics for calculation of biological risk where data are limited",style = "color:grey"),
-                      h5(" - Management Strategy EValuation mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
+                      h5(" - Management Strategy Evaluation mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
                )
 
       ),
@@ -661,7 +665,7 @@ shinyUI(
 
 
                  column(6,style="padding:10px",
-                        fileInput("Load","Load",accept=c("frame",".frame"))
+                        fileInput("Load","Load  (.frame)",accept=c("frame",".frame"))
                  ),
 
                  column(2,
@@ -697,7 +701,7 @@ shinyUI(
 
                fluidRow(
                  column(3,style="padding:7px;padding-left:14px",
-                        fileInput("Load_Data","Load available data")
+                        fileInput("Load_Data","Load available data  (.csv)")
                  ),
                  column(1),
                  column(6,style="padding:19px",
@@ -773,7 +777,7 @@ shinyUI(
           column(4,
 
                 column(6,style="padding:10px",
-                       fileInput("Load_OM","Load")
+                       fileInput("Load_OM","Load  (.OM)")
                 ),
 
                 column(2,
@@ -860,7 +864,7 @@ shinyUI(
           column(6),
           column(4,
                  column(6,style="padding:10px",
-                        fileInput("Load_Eval","Load")
+                        fileInput("Load_Eval","Load  (.Eval)")
                  ),
 
                  column(2,
@@ -926,7 +930,7 @@ shinyUI(
             column(6),
             column(4,
                    column(6,style="padding:10px",
-                          fileInput("Load_App","Load")
+                          fileInput("Load_App","Load  (.App)")
                    ),
 
                    column(2,
@@ -1020,22 +1024,23 @@ shinyUI(
 
             fluidRow(
               column(2,
+                conditionalPanel(width=4,condition="(output.Eval==1|output.Calc==1)&(input.Res_Tab==1|input.Res_Tab==2)",
+                  numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
+                  numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
+                  checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
 
-                numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
-                numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
-                checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
+                  column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
 
-                column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
-
-                HTML("<br>"),
-                h5("Performance Thresholds",style="font-weight:bold"),
-                hr(),
-                sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
-                sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
-                sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
-                sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
-                sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
-                actionButton("Default_thres","Reset to default thresholds")
+                  HTML("<br>"),
+                  h5("Performance Thresholds",style="font-weight:bold"),
+                  hr(),
+                  sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
+                  sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
+                  sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
+                  sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
+                  sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
+                  actionButton("Default_thres","Reset to default thresholds")
+                ) # end of app or indicator control panel
 
               ),
 
@@ -1196,6 +1201,44 @@ shinyUI(
             )
           )
       ), # end of Results
+
+
+      h4("HELP"),
+      hr(),
+
+      fluidRow(
+        column(1),
+        column(11,
+
+               fluidRow(
+                 column(2,
+
+                   selectInput("help_MP", label = "MP help", choices=c("AvC","AvC_MLL",      "BK" ,          "BK_CC" ,       "BK_ML",        "CC1" ,         "CC2",
+                                                                       "CC3",          "CC4",          "CC5",          "CompSRA",      "CompSRA4010",  "curE",         "curE75",
+                                                                       "DAAC",         "DBSRA",        "DBSRA_40",     "DBSRA4010",   "DCAC",        "DCAC_40",     "DCAC_ML",
+                                                                       "DCAC4010",    "DCACs",       "DD",          "DD4010",      "DDe",         "DDe75",       "DDes",
+                                                                       "DepF",        "DTe40",       "DTe50",       "DynF",        "EtargetLopt", "Fadapt",      "Fdem",
+                                                                       "Fdem_CC",     "Fdem_ML",     "FMSYref",     "FMSYref50",   "FMSYref75",   "Fratio",      "Fratio_CC",
+                                                                       "Fratio_ML",   "Fratio4010",  "GB_CC",       "GB_slope",    "GB_target",   "Gcontrol",    "HDAAC",
+                                                                       "ICI",         "ICI2",        "Iratio",      "Islope1",     "Islope2",     "Islope4",     "IT10",
+                                                                       "IT5",         "Itarget1",    "Itarget1_MPA","Itarget2",    "Itarget3",    "Itarget4",    "ItargetE1",
+                                                                       "ItargetE2",   "ItargetE3",   "ItargetE4",   "ITe10",       "ITe5",        "ITM",         "L95target",
+                                                                       "LBSPR",       "Lratio_BHI",  "Lratio_BHI2", "LstepCC1",    "LstepCC2",    "LstepCC3",    "LstepCC4",
+                                                                       "LstepCE1",    "LstepCE2",    "Ltarget1",    "Ltarget2",    "Ltarget3",    "Ltarget4",    "LtargetE1",
+                                                                       "LtargetE4",   "matlenlim",   "matlenlim2",  "MCD",         "MCD4010",     "minlenLopt1", "MRnoreal",
+                                                                       "MRreal",      "NFref",       "Rcontrol",    "Rcontrol2",   "SBT1",        "SBT2",        "slotlim",
+                                                                       "SPmod",       "SPMSY",       "SPslope",     "SPSRA",       "SPSRA_ML",    "YPR",         "YPR_CC",
+                                                                       "YPR_ML")
+                               ,selected=character(0))),
+
+                 column(2, style="padding-top:25px",
+                   actionButton("getMPhelp","Open documentation for MP")
+
+
+                 )
+               )
+        )
+      ),
 
       column(12,style="height:100px",
       hr()

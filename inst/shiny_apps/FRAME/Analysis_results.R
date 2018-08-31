@@ -63,7 +63,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   mtext("MSE Projection Year",1,line=2.8)
 
   Brel2<-MSEobj_reb@B_BMSY[,1,]*100
-  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",60),lty=1,lwd=3,ylim=ylim,xlim=c(curyr+1,curyr+61))
+  matplot(yrs,t(Brel2),type='l',col=makeTransparent("#00ff00",60),lty=1,lwd=3,ylim=ylim,xlim=c(curyr+1,curyr+61),yaxs="i",ylab="",xlab="")
   cond3<-Brel2>100 & yra > MGTa+0.5 & yra < 1.5+MGTa
   cond3x<-Brel2<100 & yra > MGTa+0.5 & yra < 1.5+MGTa
   points(yra[cond3],Brel2[cond3],pch=17,cex=1.7,col=col3)
@@ -108,6 +108,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   legend('topright',legend=c("1.2.1a","1.2.1b"),text.col=c("blue","red"),bty='n',text.font=2)
   mtext(paste0("Years ",burnin,"-",MSEobj@proyears),3,line=labline,cex=labcex,col='dark grey',font=2)
   lines(dens,col="green")
+  mtext("Biomass relative to BMSY",1,line=2.8)
   mtext(MSEobj@MPs[1],3,line=0.3,col=MPcols[1],outer=T,font=2)
 
   cond3b<-yra > MGTa+0.5 & yra < 1.5+MGTa
@@ -119,7 +120,7 @@ MSC_PMs<-function(MSEobj,MSEobj_reb,curyr=2018,MGTmult=2,MPcols=NA){
   subdens<-getsegment(dens,100,lower=F)
   polygon(y=subdens$x,x=subdens$y,col="orange",border=NA)
   lines(dens,col='green')
-  mtext("Biomass relative to BMSY",1,line=2.8)
+
   legend('topright',legend="1.1.2",text.col="orange",bty='n',text.font=2)
   mtext("After 2MGT",3,line=labline,cex=labcex,col='dark grey',font=2)
 }

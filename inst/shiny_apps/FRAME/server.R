@@ -38,6 +38,7 @@ shinyServer(function(input, output, session) {
   # Miscellaneous
   source("./Misc.R",local=TRUE)
   #source('./modSampCpars.R',local=TRUE)
+  source("./Update_objects.R",local=TRUE) # functions that update stored objects, panelstate justification etc
   source('./Fease_Functions.R',local=TRUE )
   source('./SSRA.R',local=TRUE ) # Stochastic SRA wrapper
   source('./StochasticSRA_MSC.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
@@ -103,7 +104,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"1.0"
+  FRAMEversion<<-"2.0"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -115,17 +116,17 @@ shinyServer(function(input, output, session) {
   Mpanel_names<-c("M1_list","IB_list","IV_list")
   Dpanel_names<-c("D1_list","CB_list","Beta_list","Err_list")
 
-  MasterList<-list(Fpanel_names,Mpanel_names,Dpanel_names)
+  MasterList<<-list(Fpanel_names,Mpanel_names,Dpanel_names)
 
-  PanelState<-list(Fpanel=lapply(Fpanel_names, makeState),
+  PanelState<<-list(Fpanel=lapply(Fpanel_names, makeState),
                    Mpanel=lapply(Mpanel_names, makeState),
                    Dpanel=lapply(Dpanel_names, makeState))
 
-  PanelState[[3]][[4]]<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
+  PanelState[[3]][[4]]<<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
 
   getinputnames<-function(x)strsplit(x,"_")[[1]][1]
 
-  inputnames<-list(Fpanel=lapply(Fpanel_names,getinputnames),
+  inputnames<<-list(Fpanel=lapply(Fpanel_names,getinputnames),
                    Mpanel=lapply(Mpanel_names,getinputnames),
                    Dpanel=lapply(Dpanel_names,getinputnames))
 
@@ -141,29 +142,30 @@ shinyServer(function(input, output, session) {
       }
     }
 
-
   })
 
 
   # == File I/O ==========================================================================
 
+
   # Questionnaire save
   output$Save<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".frame"),
+    filename = function()paste0(namconv(input$Name),".frame"),
 
     content=function(file){
+      Des<<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
 
-      Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
       doprogress("Saving Questionnaire")
       saveRDS(MSClog,file)
 
-
     }
 
-
   )
+
+
+
 
   # Questionnaire load
   observeEvent(input$Load,{
@@ -260,7 +262,7 @@ shinyServer(function(input, output, session) {
   # OM save
   output$Save_OM<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".OM"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+    filename = function()paste0(namconv(input$Name),".OM"),
 
     content=function(file){
 
@@ -304,11 +306,11 @@ shinyServer(function(input, output, session) {
   # Eval save
   output$Save_Eval<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".Eval"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+    filename = function()paste0(namconv(input$Name),".Eval"),
 
     content=function(file){
 
-      doprogress("Saving Evaluation MSE data")
+      doprogress("Saving Evaluation data")
       saveRDS(list(MSEobj=MSEobj,MSEobj_reb=MSEobj_reb),file)
 
 
@@ -326,7 +328,7 @@ shinyServer(function(input, output, session) {
       listy<-readRDS(file=filey$datapath)
     },
     error = function(e){
-      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+      shinyalert("File read error", "This does not appear to be a FRAME evaluation object", type = "error")
       return(0)
     }
     )
@@ -346,7 +348,7 @@ shinyServer(function(input, output, session) {
       redoEval(fease=T)
       updateTabsetPanel(session,"Res_Tab",selected="1")
     }else{
-      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+      shinyalert("File read error", "This does not appear to be a FRAME evaluation object", type = "error")
     }
 
   })
@@ -354,11 +356,11 @@ shinyServer(function(input, output, session) {
   # App save
   output$Save_App<- downloadHandler(
 
-    filename = paste0(namconv(input$Name),".App"), #paste0(getwd(),"/",namconv(input$Name),".msc"),
+    filename = function()paste0(namconv(input$Name),".App"),
 
     content=function(file){
 
-      doprogress("Saving Application MSE data")
+      doprogress("Saving Application data")
       saveRDS(list(MSEobj_app=MSEobj_app,MSEobj_reb_app=MSEobj_reb_app),file)
 
 
@@ -376,7 +378,7 @@ shinyServer(function(input, output, session) {
       listy<-readRDS(file=filey$datapath)
     },
     error = function(e){
-      shinyalert("File read error", "This does not appear to be a FRAME evaluation MSE object", type = "error")
+      shinyalert("File read error", "This does not appear to be a FRAME Evaluation object", type = "error")
       return(0)
     }
     )
@@ -396,7 +398,7 @@ shinyServer(function(input, output, session) {
       redoApp(fease=T)
       updateTabsetPanel(session,"Res_Tab",selected="2")
     }else{
-      shinyalert("File read error", "This does not appear to be a FRAME application MSE object", type = "error")
+      shinyalert("File read error", "This does not appear to be a FRAME Application object", type = "error")
     }
 
 
@@ -421,6 +423,13 @@ shinyServer(function(input, output, session) {
       }
     )
 
+
+  })
+
+  observeEvent(input$getMPhelp,{
+
+        browseURL(MPurl(input$help_MP))
+        #js$browseURL(MPurl(input$help_MP))
 
   })
 
@@ -497,13 +506,13 @@ shinyServer(function(input, output, session) {
     if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
     if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
     if(input$Data_Rich){
-      #SCA_4010 <<- make_MP(SCA, HCR40_10)
-      #SCA_MSY <<- make_MP(SCA, HCR_MSY)
-      #DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
-      #DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
-      #SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
-      #SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
-      #MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+      SCA_4010 <<- make_MP(SCA, HCR40_10)
+      SCA_MSY <<- make_MP(SCA, HCR_MSY)
+      DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
+      DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
+      SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
+      SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
+      MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
     }
 
     nsim<<-input$nsim
@@ -519,33 +528,43 @@ shinyServer(function(input, output, session) {
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
-    withProgress(message = "Running Evaluation MSE", value = 0, {
+
+  tryCatch({
+    withProgress(message = "Running Evaluation", value = 0, {
       MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
-    })
+      MGT2<-ceiling(MSEobj@OM$MGT*2)
+      MGT2[MGT2<5]<-5
+      MGT2[MGT2>20]<-20
 
-    MGT2<-ceiling(MSEobj@OM$MGT*2)
-    MGT2[MGT2<5]<-5
-    MGT2[MGT2>20]<-20
+      OM_reb<-OM
+      OM@proyears<-max(MGT2)+2 # only have to compute to this year
+      OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
-    OM_reb<-OM
-    OM@proyears<-max(MGT2)+2 # only have to compute to this year
-    OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
-
-    withProgress(message = "Rebuilding Analysis", value = 0, {
+      withProgress(message = "Rebuilding Analysis", value = 0, {
         MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
-    })
-    save(MSEobj_reb,file="MSEobj_reb")
+      })
+      save(MSEobj_reb,file="MSEobj_reb")
 
-    save(MSEobj,file="MSEobj")
-    save(PanelState,file="PanelState")
+      save(MSEobj,file="MSEobj")
+      save(PanelState,file="PanelState")
 
-    # ==== Types of reporting ==========================================================
+      # ==== Types of reporting ==========================================================
 
-    redoEval(fease=T)
-    Calc(1)
-    updateTabsetPanel(session,"Res_Tab",selected="1")
+      redoEval(fease=T)
+      Calc(1)
+      updateTabsetPanel(session,"Res_Tab",selected="1")
+    }) # with progress
 
-  })
+    },
+    error = function(e){
+      shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                 For example a short lived stock a low stock depletion with recently declining effort.
+                 Try revising operating model parameters.", type = "info")
+      return(0)
+    }
+   )
+
+  }) # press calculate
 
 
   # ------------------------------------------------------------------------------------------------------------------------------------
@@ -566,29 +585,38 @@ shinyServer(function(input, output, session) {
       }
     }
 
-    withProgress(message = "Running Application MSE", value = 0, {
-      MSEobj_app<<-runMSE(OM,MPs=selectedMP,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
-    })
+    tryCatch({
+        withProgress(message = "Running Application", value = 0, {
+          MSEobj_app<<-runMSE(OM,MPs=selectedMP,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+        })
 
-    MGT2<-ceiling(MSEobj_app@OM$MGT*2)
-    MGT2[MGT2<5]<-5
-    MGT2[MGT2>20]<-20
+        MGT2<-ceiling(MSEobj_app@OM$MGT*2)
+        MGT2[MGT2<5]<-5
+        MGT2[MGT2>20]<-20
 
-    OM_reb<-OM
-    OM@proyears<-max(MGT2)+2 # only have to compute to this year
-    OM_reb@cpars$D<-MSEobj_app@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
+        OM_reb<-OM
+        OM@proyears<-max(MGT2)+2 # only have to compute to this year
+        OM_reb@cpars$D<-MSEobj_app@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
-    withProgress(message = "Rebuilding Analysis", value = 0, {
-      MSEobj_reb_app<<-runMSE(OM_reb,MPs=selectedMP,silent=T,control=list(progress=T),parallel=parallel)
-    })
-    save(MSEobj_reb_app,file="MSEobj_reb_app")
+        withProgress(message = "Rebuilding Analysis", value = 0, {
+          MSEobj_reb_app<<-runMSE(OM_reb,MPs=selectedMP,silent=T,control=list(progress=T),parallel=parallel)
+        })
+        save(MSEobj_reb_app,file="MSEobj_reb_app")
 
-    save(MSEobj_app,file="MSEobj_app")
-    App(1)
-    redoApp(fease=T)
-    updateTabsetPanel(session,"Res_Tab",selected="2")
+        save(MSEobj_app,file="MSEobj_app")
+        App(1)
+        redoApp(fease=T)
+        updateTabsetPanel(session,"Res_Tab",selected="2")
+      },
+      error = function(e){
+        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                   For example a short lived stock a low stock depletion with recently declining effort.
+                   Try revising operating model parameters.", type = "info")
+        return(0)
+      }
+    ) # try catch
 
-  })
+  }) # calculate MSE app
 
   observeEvent(input$Calculate_Ind,{
 
@@ -632,7 +660,7 @@ shinyServer(function(input, output, session) {
     MPcols_app<<-temp[[2]]
     output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app,thresh=thresh)
     output$App_threshtable<-function()Thresh_tab(thresh)
-    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=1200,width=1000)
+    output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=1000,width=900)
     output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_wormplot2<-renderPlot(Pplot4(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
@@ -759,18 +787,22 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$D1,{
     if(Calc()==1){
+      UpPanelState()
       redoEval(fease=T)
     }
     if(App()==1){
+      UpPanelState()
       redoApp(fease=T)
     }
   })
 
   observeEvent(input$M1,{
     if(Calc()!=0){
+      UpPanelState()
       redoEval(fease=T)
     }
     if(App()==1){
+      UpPanelState()
       redoApp(fease=T)
     }
   })
@@ -857,7 +889,7 @@ shinyServer(function(input, output, session) {
 
     content = function(file) {
       doprogress("Building Conditioning report",1)
-      OM<<-makeOM(PanelState,nsim=nsim)
+      #OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('CondRep.Rmd')
 
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)

@@ -95,8 +95,11 @@ makeOM<-function(PanelState,nsim=48,nyears=NA,maxage=NA){
   # --- Selectivity -----------------------
   Sel50<-getminmax(1,"sel",PanelState)
   Sel50sim<-runif(nsim,Sel50[1],Sel50[2])
-  L5<-Sel50sim*0.8
-  LFS<-Sel50sim*1.2
+
+  OM@L5<-OM@L50*mean(Sel50sim)*0.8
+  OM@LFS<-OM@L50*mean(Sel50sim)*1.2
+  OM@cpars$L5<-OM@cpars$L50*Sel50sim*0.8
+  OM@cpars$LFS<-OM@cpars$L50*Sel50sim*1.2
 
   OM@Vmaxlen<-getminmax(1,"dome",PanelState)
   OM@DR<-getminmax(1,"DR",PanelState)
@@ -119,8 +122,8 @@ makeOM<-function(PanelState,nsim=48,nyears=NA,maxage=NA){
   D<-runif(nsim,OM@D[1],OM@D[2])
 
   # Custom parameters
-  OM@cpars<-list(D=D,Find=Find, L5=L5, LFS = LFS,Size_area_1=Size_area_1,
-                 Frac_area_1=Frac_area_1,Cbias=Cbias)
+  OM@cpars<-c(OM@cpars,list(D=D,Find=Find, Size_area_1=Size_area_1,
+                 Frac_area_1=Frac_area_1,Cbias=Cbias))
 
   saveRDS(OM,"OM_autosave.rda")
   OM

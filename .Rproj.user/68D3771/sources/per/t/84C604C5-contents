@@ -38,6 +38,7 @@ shinyServer(function(input, output, session) {
   # Miscellaneous
   source("./Misc.R",local=TRUE)
   #source('./modSampCpars.R',local=TRUE)
+  source("./Update_objects.R",local=TRUE) # functions that update stored objects, panelstate justification etc
   source('./Fease_Functions.R',local=TRUE )
   source('./SSRA.R',local=TRUE ) # Stochastic SRA wrapper
   source('./StochasticSRA_MSC.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
@@ -115,17 +116,17 @@ shinyServer(function(input, output, session) {
   Mpanel_names<-c("M1_list","IB_list","IV_list")
   Dpanel_names<-c("D1_list","CB_list","Beta_list","Err_list")
 
-  MasterList<-list(Fpanel_names,Mpanel_names,Dpanel_names)
+  MasterList<<-list(Fpanel_names,Mpanel_names,Dpanel_names)
 
-  PanelState<-list(Fpanel=lapply(Fpanel_names, makeState),
+  PanelState<<-list(Fpanel=lapply(Fpanel_names, makeState),
                    Mpanel=lapply(Mpanel_names, makeState),
                    Dpanel=lapply(Dpanel_names, makeState))
 
-  PanelState[[3]][[4]]<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
+  PanelState[[3]][[4]]<<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
 
   getinputnames<-function(x)strsplit(x,"_")[[1]][1]
 
-  inputnames<-list(Fpanel=lapply(Fpanel_names,getinputnames),
+  inputnames<<-list(Fpanel=lapply(Fpanel_names,getinputnames),
                    Mpanel=lapply(Mpanel_names,getinputnames),
                    Dpanel=lapply(Dpanel_names,getinputnames))
 
@@ -140,7 +141,6 @@ shinyServer(function(input, output, session) {
         PanelState[[i]][[j]] <<- get(MasterList[[i]][j])%in%value
       }
     }
-
 
   })
 
@@ -159,9 +159,7 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Questionnaire")
       saveRDS(MSClog,file)
 
-
     }
-
 
   )
 
@@ -759,18 +757,22 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$D1,{
     if(Calc()==1){
+      UpPanelState()
       redoEval(fease=T)
     }
     if(App()==1){
+      UpPanelState()
       redoApp(fease=T)
     }
   })
 
   observeEvent(input$M1,{
     if(Calc()!=0){
+      UpPanelState()
       redoEval(fease=T)
     }
     if(App()==1){
+      UpPanelState()
       redoApp(fease=T)
     }
   })
@@ -857,7 +859,7 @@ shinyServer(function(input, output, session) {
 
     content = function(file) {
       doprogress("Building Conditioning report",1)
-      OM<<-makeOM(PanelState,nsim=nsim)
+      #OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('CondRep.Rmd')
 
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
