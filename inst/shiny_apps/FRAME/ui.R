@@ -95,7 +95,7 @@ shinyUI(
     h5("In step A the fishery is characterized and any available data are loaded. In step B an operating model is constructed that is used in step C to evaluate feasible MPs or
      apply a suitable MP (Application). Finally, in step D indicators can be used to detect changes in system dynamics.",style = "color:grey"),
     h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
-    h5("The DLMtool paper is also available ", a("here.", href="https://drive.google.com/open?id=10sr5HZEhY-ACSFyxdBvwmONMHZXIMkCy", target="_blank"),style = "color:grey"),
+    h5("The DLMtool paper is also available ", a("here.", href="https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.13081", target="_blank"),style = "color:grey"),
     h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
 
 
@@ -708,7 +708,8 @@ shinyUI(
                             h5(" - condition operating models",style = "color:grey"),
                             h5(" - determine feasible MPs", style = "color:grey"),
                             h5(" - assess the fishery status", style = "color:grey"),
-                            h5(" - test for exceptional circumstances.",style = "color:grey")
+                            h5(" - test for exceptional circumstances.",style = "color:grey"),
+                            h5("A description of the data object can be found ",a("here", href="https://drive.google.com/open?id=1CwLXDfj6ZDxKpB4AH8BOHF-cnJCnfvAf", target="_blank"),style = "color:grey")
 
                  )
 
@@ -847,7 +848,8 @@ shinyUI(
                        h5("In 'Demo' mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
                        h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run.", style = "color:grey"),
                        h5("In situations where operating models are built with more than 48 simulations it can be much faster to use parallel computing ('Parallel comp.)
-                          although the progress bar will not longer work", style = "color:grey")
+                          although the progress bar will not longer work. ",style="color:grey"),
+                          h5("Documentation of the various MPs can be found below in the help section or online ",a("here", href="https://dlmtool.github.io/DLMtool/reference/index.html", target="_blank"),style = "color:grey")
 
                )
              )
@@ -1023,7 +1025,7 @@ shinyUI(
 
             fluidRow(
               column(2,
-                conditionalPanel(width=4,condition="(output.Eval==1|output.Calc==1)&(input.Res_Tab==1|input.Res_Tab==2)",
+                conditionalPanel(width=4,condition="(output.App==1|output.Calc==1)&(input.Res_Tab==1|input.Res_Tab==2)",
                   numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
                   numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
                   checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
@@ -1202,6 +1204,8 @@ shinyUI(
       ), # end of Results
 
 
+     column(12,style="height:45px"),
+
       h4("HELP"),
       hr(),
 
@@ -1212,7 +1216,7 @@ shinyUI(
                fluidRow(
                  column(2,
 
-                   selectInput("help_MP", label = "MP help", choices=c("AvC","AvC_MLL",      "BK" ,          "BK_CC" ,       "BK_ML",        "CC1" ,         "CC2",
+                   selectInput("help_MP", label = "Management Procedure", choices=c("AvC","AvC_MLL",      "BK" ,          "BK_CC" ,       "BK_ML",        "CC1" ,         "CC2",
                                                                        "CC3",          "CC4",          "CC5",          "CompSRA",      "CompSRA4010",  "curE",         "curE75",
                                                                        "DAAC",         "DBSRA",        "DBSRA_40",     "DBSRA4010",   "DCAC",        "DCAC_40",     "DCAC_ML",
                                                                        "DCAC4010",    "DCACs",       "DD",          "DD4010",      "DDe",         "DDe75",       "DDes",
@@ -1238,6 +1242,24 @@ shinyUI(
                )
         )
       ),
+
+
+
+
+      column(12,style="height:45px"),
+
+      h4("ADVANCED"),
+      hr(),
+
+      fluidRow(
+        column(1),
+        column(11,
+
+               fluidRow(
+                 column(2,
+                        fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
+                 )))),
+
 
       column(12,style="height:100px",
       hr()

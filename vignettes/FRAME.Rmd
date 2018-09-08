@@ -59,20 +59,23 @@ pre { /* Code block */
 * OM conditioning by stochastic SRA (e.g. Walters 2008) 
 * Data report (html floating headings will work with next DLMtool version (5.2.3))
 * Inclusion of data-rich MPs designed in TMB such as Statistical catch at age (SCA), state-space delay-different and state-space surplus production models (of MSEtook Huyhn et al. 2018)
+* Guides to all MPs
 
 <br>
 
 
 # Introduction
 
-FRAME is a fishery risk assessment tool that links a streamlined user interface to an advanced operating model, using management strategy evaluation to identify sustainable fishery management procedures (MPs). The Application includes interactive help and links to external documentation. This document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
+FRAME is a fishery risk assessment tool that links a streamlined user interface to an advanced operating model, using management strategy evaluation to identify sustainable fishery management procedures (MPs).
+
+The online App includes interactive help and links to external documentation. This document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
 
 There are two streams to FRAME. 
 
 The first is the Risk Assessment (RA) stream that is less complex and uses the quantitative questionnaire to parameterize a operating model for risk assessment of multiple MPs. The second, the Management Strategy Evaluation (MSE) stream includes tools for conditioning operating models on data, doing detailed MSE analysis of a single selected MP and also detecting 'exceptional circumstances' via auxillary indicator data. 
 
 
-# Step A. Quantitative Questionnaire (RA and MSE streams). 
+# Step A. Quantitative Questionnaire. 
 
 A large number of simulations were carried out to identify the most important aspects of fishery dynamics that determine the performance ranking of management procedures. 
 
@@ -279,27 +282,70 @@ A description of the observation error model is included in [Carruthers et al (2
 
 Users have the option of loading a formatted data object of DLMtool class Data. This can be stored in an .xlsx or .csv file.  
 
-A summar
+[Here](https://drive.google.com/open?id=1IFvKdCVGtnPzBxL-NAPIOVVo7MqC0k9p) is an example data file and a description is available [here](https://drive.google.com/open?id=1CwLXDfj6ZDxKpB4AH8BOHF-cnJCnfvAf)
 
+
+<br><br>
 
 # Step B: build an operating model
 
+At the heart of FRAME is OMx, a rapid and flexible operating model developed for DLMtool, ( [Carruthers and Hordyk 2018](https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.13081)) and the management strategy evaluation toolkit (MSEtool, Huynh et al. 2018).
 
-At the heart of FRAME is OMx, a rapid and flexible operating model developed for the data-limited methods toolkit (DLMtool, Carruthers and Hordyk 2018) and the management strategy evaluation toolkit (MSEtool, Carruthers et al. 2018).
+An operating model is built that has a number of simulations (independent realizations of past and future fishery dynamics). A small number of simulations (e.g. 24) is needed to demonstrate the app. Evaluations of multiple MPs typically only require around 100 simulations to get stable rankings and stable absolute performance. To be sure of absolute performance for an Application of a single MP, 200 simulations or more is recommended. 
 
-The application is currently in Beta testing, all feedback can be submitted to <t.carruthers@oceans.ubc.ca>
+Users in the MSE stream that have uploaded data may also use stochastic SRA of [Walters et al.](https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB) to condition their operating models. Stochastic SRA is a Bayesian approach that obtains posterior samples of selectivity parameters (time invariant), recruitment deviations and unfished recruitment. The minimum data requirements are a complete catch history (from unfished) and a recent sample of catch composition (either length or age) data. However this version of S-SRA can also make use of patchy indices, mean length and other composition data.  
+
 <br><br>
 
+# Step C: Run an Evaluation (multiple MPs)
 
-# The Options Tab
+In the evaluation step, multiple MPs are tested side-by-side under identical simulated conditions. 
 
-Analysis Type: The Demo mode runs a small diverse range of management procedures for a small number of simulations to demonstrate the features of the FRAME application; The Risk Evaluation mode provides generic risk assessment outputs over a longer projected time period of 100 years; The FIP (Fishery Improvement Project) mode provides MSC-specific guidance to help fisheries progress towards certification: The Certification mode generates a standard calculation and reporting of quantities relevant to MSC certification.
+The user must select the future time horizon for simulation testing (the number of projected years) and the interval over which management updates will occur. For example for an interval of 4, a management recommendation would occur in years 2019, 2023, 2027.
 
-Users can also determine the total number of simulations, projected years and the management update interval (years between management recommendations in the projection)
+DLMtool contains over 100 management procedures and MSEtool can combine many harvest control rules with assessments to generate numerous possible MPs. There is a dedicated webpage for each DLMtool MP that is linked in the help section at the bottom of the FRAME app and found online [here](https://dlmtool.github.io/DLMtool/reference/index.html).
 
-Other options include selecting a management procedure for Ancillary Indicator analysis, the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)
-Users can also choose to ignor reference management procdures (e.g. zero catches, fishing at FMSY) and also activate parallel computation (which is much faster but there is no MSE progress bar).
+The demo mode only includes a handful of fast-running MPs. Users have the option of removing reference MPs (e.g. MSY management and zero catches) including data rich MPs from MSEtool (these take longer to run). In situations where more than 48 simulations are included in the operating model, it can be much faster to select parallel processing (although this breaks the progress bar)
 
+<br><br>
+
+# Step C2: Run an Application (single MP) (MSE stream)
+
+The Application mode is very similar to the Evaluation mode but is applied to a single MP and unlocks the potential for testing exceptional circumstances in Step D. 
+
+<br><br>
+
+# Step D: Ancillary indicators (MSE stream)
+
+It is possible to detect circumstances where, once using an MP, the observations of the fishery are not consistent with those predicted by the operating model. Here we use the multivariate approach of [Carruthers and Hordyk 2018](https://drive.google.com/open?id=1V3KMFMqd0TZvbqVKwGnIZ_rZSz_Lg_2n) that was designed for this application. 
+
+In ancillary indicators, users fill out the same data object as in step A2 but they include the most recent years of data (collected since the MP was first used). These data can then be compared statistically to those of the OM simulations under projection. If they look similar the operating model may not be rejected. Of course if they differ, the latest data may be loaded into the app in step A2 and used to condition the operating model in step B. 
+
+Users must decide the time blocking of indicator data and the level of type I error (alpha - the probability of incorrectly rejecting the operating model).
+
+<br><br>
+
+# Results
+
+## Evaluations and Applications
+
+Users can determine the burn-in period that determines the projection years over which performance metrics 1.1.1a, 1.1.1b, 1.2.1a and 1.2.1b are calculated.
+
+For each performance metric users can alter the threshold levels leading to recalculation of results in tables and figures. 
+
+Management question 1 and Data question 1 also determine the feasibility of MPs. If for example TAC management is ruled out, many MPs will become color coded black in tables and figures. The 'reason not feasible' column of the results table keeps track of the reason for non-feasible MPs (M=Management, D=Data)
+
+## Indicators
+
+The indicator results show the location in multivariate space of the real data (an orange cross) with respect to the simulated posterior data of the MSE (blue dots). Below these plots is a summary plot that summarizes whether the observations are far from the cloud of simulated data (dissimilar and OM is rejected). 
+
+<br><br>
+
+# Help
+
+The help section is yet to be fleshed out but currently includes links to the documentation for each MP. 
+
+<br><br>
 
 # Report on the App or this Document
 
