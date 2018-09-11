@@ -2,7 +2,7 @@
 ---
 title: "`r params$set_title`"
 subtitle: "`r params$set_type`"
-author: "`r params$author`"
+author: "`r params$OM@Source`"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -49,17 +49,13 @@ pre { /* Code block */
 
 # About this document
 
-This is a prototype of an automatic report that describes data that were provided to FRAME.  
+This is a prototype of an automatic report that documents all dynamical features of an operating model whether it was defined by the Questionnaire in A1 or also conditioned using S-SRA in A2.  
 
 <br clear="both"/>
 
-# Data
+```{r labs,echo=F,warning=F,error=F,results='asis',fig.width=9,fig.height=9}
 
-```{r sel,echo=F,results='asis'}
-
-
-summary(params$dat,rmd=T,wait=F) # rmd =T
-
+plot(params$OM) # rmd = T
 
 ```
 

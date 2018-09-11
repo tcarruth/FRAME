@@ -139,3 +139,6 @@ Beta_maxes<-c( 3,                2,             1.25,          0.8,         0.50
 Err_list<<-list("Perfect" = "Err_perf","Good (accurate and precise)" = "Err_good","Data moderate (some what inaccurate and imprecise)"="Err_Mod",
                 "Data poor (inaccurate and imprecise)" = "Err_bad")
 
+
+
+
