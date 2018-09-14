@@ -708,7 +708,7 @@ shinyUI(
                             h5(" - determine feasible MPs", style = "color:grey"),
                             h5(" - assess the fishery status", style = "color:grey"),
                             h5(" - test for exceptional circumstances.",style = "color:grey"),
-                            h5("A description of the data object can be found ",a("here", href="https://drive.google.com/open?id=1CwLXDfj6ZDxKpB4AH8BOHF-cnJCnfvAf", target="_blank"),style = "color:grey")
+                            h5("A description of the data object can be found ",a("here", href="https://dlmtool.github.io/DLMtool/cheat_sheets/Data", target="_blank"),style = "color:grey")
 
                  )
 
