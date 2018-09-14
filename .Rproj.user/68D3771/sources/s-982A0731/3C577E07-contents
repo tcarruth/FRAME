@@ -138,7 +138,6 @@ shinyUI(
       column(11,
              fluidRow(
 
-
                column(width = 4, style="height:360px",
                       tabsetPanel( id = "tabs1",selected=1,
                         tabPanel(h4("Fishery",style = "color:black"),
@@ -759,7 +758,7 @@ shinyUI(
                 column(6,style="padding-left:8px",
                        style="padding:19px",
                        h5("Operating models are specified from the responses in the questionnaire (Step 1)", style = "color:grey"),
-                       h5("Alternatively, where possible, users can use upload their data and condition models using
+                       h5("Alternatively, in MSE mode, users can use upload their data and condition models using
                           stochastic SRA ",a("(Walters et al. 2006)", href="https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB", target="_blank"),style = "color:grey"),
                        h5("For demonstration purposes a small number of simulations (e.g. n = 24) is enough. For MP comparisons in 'Evaluation' mode,
                           100 simulations is generally sufficient to get convergence in performance rankings. In more detailed Application or Indicator
@@ -777,11 +776,13 @@ shinyUI(
           column(4,
 
                 column(6,style="padding:10px",
-                       fileInput("Load_OM","Load  (.OM)")
+                       conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+
+                       fileInput("Load_OM","Load  (.OM)"))
                 ),
 
                 column(2,
-                       conditionalPanel(condition='output.MadeOM==1',
+                       conditionalPanel(condition="output.MadeOM==1&input.RA_MSE=='Management Strategy Evaluation'",
                          h5("Save",style="font-weight:bold"),
                          downloadButton("Save_OM","",width=70)
                        )

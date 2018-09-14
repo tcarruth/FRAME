@@ -76,7 +76,6 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   Datslot<-c("Cat","Cat","Ind",  "Ind","Ind","CAL","CAA","vbK","Abun")
   yrrange<-c(ndaty, 5,    ndaty,  5,    ndaty,        2,                2, NA, NA)
 
- # if(fease){
 
     for(i in 1:length(Datslot)){
       if(cond[i]){ # if user has specified that data are available
@@ -113,28 +112,6 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
     totneeded<-apply(type,1,sum)
     speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
     MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
-
-    #if(Eval){
-    #  DFeasible_Eval<<-DFeasible
-    #  MFeasible_Eval<<-MFeasible
-    #}else{
-    #  DFeasible_App<<-DFeasible
-    #  MFeasible_App<<-MFeasible
-    #}
-
-
-  #}else{ # Not a feasibility run - use old values (much improved response time for sliders)
-
-    #if(Eval){  # if an evaluation
-    #  DFeasible<-DFeasible_Eval
-    #  MFeasible<-MFeasible_Eval
-    #}else{ # if an application
-    #  DFeasible<-DFeasible_App
-    #  MFeasible<-MFeasible_App
-    #}
-
-
-  #}
 
   MP_Type<-rep("TAC",length(MPs))
   MP_Type[type[,2]==1]<-"TAE"
@@ -180,7 +157,6 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
 
   Ptab2 %>%
     mutate(
-      #MP = row.names(.),
       MP =  cell_spec(MP, "html", color = cols),
       Type =  cell_spec(Type, "html"),
       PI.111a = ifelse(PI.111a >= thresh[1],
@@ -202,7 +178,6 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
       feasible =  cell_spec(feasible, "html")
 
     )%>%
-    #select(everything())%>%
     knitr::kable("html", escape = F,align = "c") %>%
     kable_styling("striped", full_width = F)%>%
     column_spec(5, width = "3cm") %>%

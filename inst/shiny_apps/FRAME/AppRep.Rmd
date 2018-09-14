@@ -71,10 +71,8 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
- Ptab1<-Ptab(params$MSEobj,params$MSEobj_reb,burnin=params$burnin,rnd=0)
- Ptab2<<-Ptab_ord(Ptab1,burnin=burnin,ntop=params$ntop)
- Ptab_formatted(Ptab2,cols=params@MPcols)
- Thresh_tab()
+ Ptab_formatted(params$Ptab2_app,burnin=params$burnin,cols=params$MPcols,thresh=params$thresh)
+ Thresh_tab(params$thresh)
 
 ```
 
@@ -90,7 +88,7 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 ```{r MSC_PMs,echo=F,warning=F,error=F,message=F,fig.width=11,fig.height=11}
 
-  MSC_PMs(params$MSEobj,params$MSEobj_reb,MPcols=params$MPcols)
+  MSC_PMs(params$MSEobj_app,params$MSEobj_reb_app,MPcols=params$MPcols)
  
 
 ```
@@ -104,13 +102,13 @@ For each MP a 50 year projection is presented showing the possible range of valu
 
 ```{r pencil,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
- nMPs<-length(params$MSEobj@MPs)
+ nMPs<-length(params$MSEobj_app@MPs)
  panelsperplot<-1
  nplots<-ceiling(nMPs/panelsperplot)
  plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
  
  for(i in 1:length(plots)){
-   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+   MSEobj2<-Sub(params$MSEobj_app,MPs=params$MSEobj_app@MPs[unlist(plots[i])])
    Pplot3(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
@@ -126,13 +124,13 @@ For each MP a 50 year projection is presented showing the possible range of valu
 
 ```{r pencil2,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
- nMPs<-length(params$MSEobj@MPs)
+ nMPs<-length(params$MSEobj_app@MPs)
  panelsperplot<-1
  nplots<-ceiling(nMPs/panelsperplot)
  plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
  
  for(i in 1:length(plots)){
-   MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+   MSEobj2<-Sub(params$MSEobj_app,MPs=params$MSEobj_app@MPs[unlist(plots[i])])
    Pplot4(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
@@ -149,13 +147,13 @@ A second MSE was run to determine how likely management procedures are to rebuil
 
 ```{r rebuild,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
- nMPs<-length(params$MSEobj_reb@MPs)
+ nMPs<-length(params$MSEobj_reb_app@MPs)
  panelsperplot<-8
  nplots<-ceiling(nMPs/panelsperplot)
  plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
  
  for(i in 1:length(plots)){
-   MSEobj2<-Sub(params$MSEobj_reb,MPs=params$MSEobj_reb@MPs[unlist(plots[i])])
+   MSEobj2<-Sub(params$MSEobj_reb_app,MPs=params$MSEobj_reb_app@MPs[unlist(plots[i])])
    Rplot(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
@@ -171,7 +169,7 @@ Each MP was tested over a number of simulated fisheries. Each simulation behaves
 
 ```{r uncertain,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
- MSC_uncertain(params$MSEobj,MPcols=params$MPcols,maxMPs=params$MSEobj@nMPs, LTL=F,inc_thresh = F,burnin=params$burnin)
+ MSC_uncertain(params$MSEobj_app,MPcols=params$MPcols,maxMPs=params$MSEobj_app@nMPs, LTL=F,inc_thresh = F,burnin=params$burnin)
 
  
 
@@ -186,13 +184,13 @@ When answering questions in the Fishery, Management and Data panels above, you m
 
 
 ```{r CCU1,echo=F,warning=F,error=F,message=F,include=F}
-nMPs<-length(params$MSEobj@MPs)
+nMPs<-length(params$MSEobj_app@MPs)
 panelsperplot<-6
 nplots<-ceiling(nMPs/panelsperplot)
 plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
 VOIout<-new('list')
 for(i in 1:length(plots)){
-  MSEobj2<-Sub(params$MSEobj,MPs=params$MSEobj@MPs[unlist(plots[i])])
+  MSEobj2<-Sub(params$MSEobj_app,MPs=params$MSEobj_app@MPs[unlist(plots[i])])
   VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
 }
 
@@ -200,11 +198,11 @@ for(i in 1:length(plots)){
 
 
 
-```{r CCU2,echo=F,warning=F,error=F,message=F,fig.width=15, fig.height=10}
+```{r CCU2,echo=F,warning=F,error=F,message=F,fig.width=8, fig.height=8}
 
 
 for(i in 1:length(plots)){
-  MSEobj2<-Sub(params$MSEobj,MPs=MSEobj@MPs[unlist(plots[i])])
+  MSEobj2<-Sub(params$MSEobj_app,MPs=params$MSEobj_app@MPs[unlist(plots[i])])
   CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=1,maxcol=1)
 }
 
@@ -217,7 +215,7 @@ This is similar to cost-of-current uncertainties but identifies those data error
 ```{r VOI,echo=F,warning=F,error=F,message=F,fig.width=8, fig.height=8}
 
 
-VOI_MSC(params$MSEobj,MPcols=params$MPcols)
+VOI_MSC(params$MSEobj_app,MPcols=params$MPcols)
 
 
 ```
