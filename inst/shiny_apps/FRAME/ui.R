@@ -76,7 +76,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.2)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.3)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -1027,9 +1027,10 @@ shinyUI(
             fluidRow(
               column(2,
                 conditionalPanel(width=4,condition="(output.App==1|output.Calc==1)&(input.Res_Tab==1|input.Res_Tab==2)",
+
                   numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
                   numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
-                  checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
+                  #checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
 
                   column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
 
@@ -1042,6 +1043,7 @@ shinyUI(
                   sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
                   sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
                   actionButton("Default_thres","Reset to default thresholds")
+
                 ) # end of app or indicator control panel
 
               ),
@@ -1259,8 +1261,8 @@ shinyUI(
         column(11,
 
                fluidRow(
-                 column(2,
-                        fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
+                 column(2
+                      #  fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
                  )))),
 
 

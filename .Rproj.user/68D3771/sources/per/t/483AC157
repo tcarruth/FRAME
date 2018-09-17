@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1537195292207.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1010812594",
+    "id" : "483AC157",
+    "lastKnownWriteTime" : 1537153092,
+    "last_content_update" : 1537153092,
+    "path" : "C:/GitHub/FRAME/inst/shiny_apps/FRAME/IndRep.Rmd",
+    "project_path" : "inst/shiny_apps/FRAME/IndRep.Rmd",
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

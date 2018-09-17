@@ -104,7 +104,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"2.2"
+  FRAMEversion<<-"2.3"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -434,10 +434,14 @@ shinyServer(function(input, output, session) {
   # End of file I/O ===================================================================================
 
 
-  observeEvent(input$nsim, {
-    if(input$nsim<48) shinyjs::disable("Parallel")
-    if(input$nsim>47) shinyjs::enable("Parallel")
-  })
+  #observeEvent(input$nsim, {
+   # nsim<<-as.numeric(input$nsim)
+    #updateTextInput(session,"Debug1",value=nsim)
+    #if(nsim>0){
+    #  if(nsim<48) shinyjs::disable("Parallel")
+    #  if(nsim>47) shinyjs::enable("Parallel")
+    #}
+  #})
 
   observeEvent(input$sel_MP,{
     selectedMP<<-input$sel_MP
@@ -573,7 +577,7 @@ shinyServer(function(input, output, session) {
 
     selectedMP<<-input$sel_MP
 
-    nsim<<-input$nsim_app
+    nsim<<-input$nsim
     parallel=F
     if(input$Parallel){
 
