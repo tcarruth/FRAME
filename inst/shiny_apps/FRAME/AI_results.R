@@ -136,9 +136,6 @@ plot_mdist<-function(indPPD,indData,alpha=0.05){
   thresh<-quantile(dists,1-alpha)
   abline(v=thresh,lty=2,lwd=2)
   text(thresh+0.5*(xlim[2]-thresh),max(dens$y)*0.9,paste0("V (alpha = ",alpha*100,"%)"))
-  legend('right',legend=c(paste0("Critical value = ",round(thresh,2)),
-                          paste0("Test statistic = ",round(dist,2))),
-         text.col=c('black','orange'))
 
   mtext("Mahanobis distance, D",1,line=2)
   mtext("Density",2,line=2)
@@ -152,6 +149,11 @@ plot_mdist<-function(indPPD,indData,alpha=0.05){
     lcol="green"
   }
   abline(v=dist,lwd=2,col="orange")
+
+  legend('right',legend=c(paste0("Critical value = ",round(thresh,2)),
+                          paste0("Test statistic = ",round(dist,2))),
+         text.col=c('black','orange'))
+
   text(dist,max(dens$y)*0.05,"D (observed data)",font=2,col="orange")
   legend('top',legend=leg,text.col=lcol,text.font=2)
   mtext(paste("AI Analysis for",MSEobj_app@MPs[1]),3,line=0.1)

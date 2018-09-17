@@ -71,6 +71,8 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
+ incrate<-1/9
+ incProgress(incrate)
  Ptab_formatted(params$Ptab2_app,burnin=params$burnin,cols=params$MPcols,thresh=params$thresh)
  Thresh_tab(params$thresh)
 
@@ -89,7 +91,7 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 ```{r MSC_PMs,echo=F,warning=F,error=F,message=F,fig.width=11,fig.height=11}
 
   MSC_PMs(params$MSEobj_app,params$MSEobj_reb_app,MPcols=params$MPcols)
- 
+  incProgress(incrate)
 
 ```
 
@@ -112,7 +114,7 @@ For each MP a 50 year projection is presented showing the possible range of valu
    Pplot3(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
- 
+  incProgress(incrate)
 
 ```
 
@@ -134,7 +136,7 @@ For each MP a 50 year projection is presented showing the possible range of valu
    Pplot4(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
- 
+ incProgress(incrate)
 
 ```
 
@@ -157,7 +159,7 @@ A second MSE was run to determine how likely management procedures are to rebuil
    Rplot(MSEobj2,MPcols=params$MPcols[plots[[i]]],maxcol=1,maxrow=2)
  }
 
- 
+ incProgress(incrate)
 
 ```
 
@@ -171,7 +173,7 @@ Each MP was tested over a number of simulated fisheries. Each simulation behaves
  
  MSC_uncertain(params$MSEobj_app,MPcols=params$MPcols,maxMPs=params$MSEobj_app@nMPs, LTL=F,inc_thresh = F,burnin=params$burnin)
 
- 
+ incProgress(incrate)
 
 ```
 
@@ -194,6 +196,8 @@ for(i in 1:length(plots)){
   VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
 }
 
+incProgress(incrate)
+
 ```
 
 
@@ -206,6 +210,8 @@ for(i in 1:length(plots)){
   CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=1,maxcol=1)
 }
 
+incProgress(incrate)
+
 ```
 
 # Value of information
@@ -216,7 +222,7 @@ This is similar to cost-of-current uncertainties but identifies those data error
 
 
 VOI_MSC(params$MSEobj_app,MPcols=params$MPcols)
-
+incProgress(incrate)
 
 ```
 

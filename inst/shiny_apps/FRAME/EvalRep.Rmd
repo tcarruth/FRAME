@@ -61,6 +61,14 @@ This is a prototype of an automatic report that describes the results of a demon
 
 <br>
 
+```{r progresssetup,echo=F}
+
+ incrate<-1/8
+ incProgress(incrate)
+
+```
+ 
+
 # Performance Indicator Table
 
 The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  
@@ -73,6 +81,7 @@ MPs colored green are feasible and pass all of the performance indicator thresho
 
  Ptab_formatted(params$Ptab2,burnin=params$burnin,cols=params$MPcols,thresh=params$thresh)
  Thresh_tab(params$thresh)
+ incProgress(incrate)
 
 ```
 
@@ -99,7 +108,7 @@ Long term yield (LTY) vs probability biomass is greater than half BMSY in years 
 
 ```{r P3_LTY,echo=F,warning=F,error=F,message=F,fig.width=10, fig.height=10}
 P3_LTY_plot(params$MSEobj_top,MSEobj_reb_top,MPcols=params$MPcols)
-
+incProgress(incrate)
 ```
 
 <br>
@@ -123,13 +132,14 @@ For each MP a 50 year projection is presented showing the possible range of valu
  }
 
  
-
+  incProgress(incrate)
 ```
 
 # Rebuilding 
 
 A second MSE was run to determine how likely management procedures are to rebuild the stock were it from low stock levels (PI 1.1.2)
 
+The rebuilding analysis simulates the fishery currently in a depleted state even if the user-specified depletion in the operating model is higher.  In these cases, the rebuilding analysis provides added assurance whether a particular management procedure would be likely to rebuild the stock if the user-specified depletion level is overly optimistic and the stock status is more depleted in actuality, and thus in need of rebuilding.
 
 ```{r rebuild,echo=F,warning=F,error=F,message=F,results='asis',fig.width=12, fig.height=9}
  
@@ -144,7 +154,7 @@ A second MSE was run to determine how likely management procedures are to rebuil
  }
 
  
-
+incProgress(incrate)
 ```
 
 
@@ -157,7 +167,7 @@ Each MP was tested over a number of simulated fisheries. Each simulation behaves
  
  MSC_uncertain(params$MSEobj_top,MPcols=params$MPcols,maxMPs=params$MSEobj_top@nMPs, LTL=F,inc_thresh = F,burnin=params$burnin)
 
- 
+ incProgress(incrate)
 
 ```
 
@@ -179,7 +189,7 @@ for(i in 1:length(plots)){
   MSEobj2<-Sub(params$MSEobj_top,MPs=params$MSEobj_top@MPs[unlist(plots[i])])
   VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
 }
-
+incProgress(incrate)
 ```
 
 
@@ -191,6 +201,7 @@ for(i in 1:length(plots)){
   MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
   CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
 }
+incProgress(incrate)
 
 ```
 

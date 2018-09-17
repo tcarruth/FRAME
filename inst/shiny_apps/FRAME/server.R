@@ -104,7 +104,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"2.0"
+  FRAMEversion<<-"2.2"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -839,7 +839,8 @@ shinyServer(function(input, output, session) {
     #updateTextInput(session, "Name", value = input$Name),
     filename =  function(){  paste0(namconv(input$Name),"_OM.html") },
     content = function(file) {
-      doprogress("Building OM report",1)
+      withProgress(message = "Building questionnaire report", value = 0, {
+      #doprogress("Building OM report",1)
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OMRep.Rmd')
 
@@ -866,7 +867,7 @@ shinyServer(function(input, output, session) {
 
       output<-render(input="OMRep.Rmd",output_format="html_document", params = params)
       file.copy(output, file)
-
+      }) # end of progress meter
     }
   )
 
@@ -876,7 +877,8 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_data.html")}, #"report.html",
 
     content = function(file) {
-      doprogress("Building Data report",2)
+      withProgress(message = "Building data report", value = 0, {
+      nsim<<-input$nsim
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('DataRep.Rmd')
 
@@ -898,10 +900,12 @@ shinyServer(function(input, output, session) {
                      SessionID=SessionID,
                      copyright="copyright (c) NRDC 2018"
       )
-
+      incProgress(0.2)
       output<-render(input="DataRep.Rmd",output_format="html_document", params = params)
+      incProgress(0.7)
       file.copy(output, file)
-
+      incProgress(0.1)
+      }) # end of progress
     }
   )
 
@@ -911,7 +915,9 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_Cond.html")}, #"report.html",
 
     content = function(file) {
-      doprogress("Building Conditioning report",1)
+      withProgress(message = "Building conditioning report", value = 0, {
+
+      incProgress(0.1)
       #OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('CondRep.Rmd')
 
@@ -935,10 +941,11 @@ shinyServer(function(input, output, session) {
                      SessionID=SessionID,
                      copyright="copyright (c) NRDC 2018"
       )
-
+      incProgress(0.1)
       output<-render(input="CondRep.Rmd",output_format="html_document", params = params)
+      incProgress(0.8)
       file.copy(output, file)
-
+      }) # end of progress
     }
   )
 
@@ -948,10 +955,10 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_full_OM.html")}, #"report.html",
 
     content = function(file) {
-      doprogress("Building OM report",1)
+      withProgress(message = "Building conditioning report", value = 0, {
       OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OM_full_Rep.Rmd')
-
+      incProgress(0.1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -972,10 +979,11 @@ shinyServer(function(input, output, session) {
                      SessionID=SessionID,
                      copyright="copyright (c) NRDC 2018"
       )
-
+      incProgress(0.1)
       output<-render(input="OM_full_Rep.Rmd",output_format="html_document", params = params)
+      incProgress(0.8)
       file.copy(output, file)
-
+      })
     }
   )
 
@@ -985,9 +993,8 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_Eval.html")}, #"report.html",
 
     content = function(file) {
-
+      withProgress(message = "Building evaluation report", value = 0, {
       src <- normalizePath('EvalRep.Rmd')
-      doprogress("Building evaluation report",1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -1026,7 +1033,7 @@ shinyServer(function(input, output, session) {
 
       out<-render("EvalRep.Rmd", params = params)
       file.rename(out, file)
-
+      })
     }
 
   )
@@ -1037,9 +1044,10 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_App.html")}, #"report.html",
 
     content = function(file) {
+      withProgress(message = "Building application report", value = 0, {
 
       src <- normalizePath('AppRep.Rmd')
-      doprogress("Building evaluation report",1)
+      #doprogress("Building evaluation report",1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
       MSClog<-list(PanelState, Just, Des)
 
@@ -1077,7 +1085,7 @@ shinyServer(function(input, output, session) {
 
       out<-render("AppRep.Rmd", params = params)
       file.rename(out, file)
-
+      })
     }
 
   )
@@ -1087,7 +1095,7 @@ shinyServer(function(input, output, session) {
     # For PDF output, change this to "report.pdf"
     filename = function(){paste0(namconv(input$Name),"_AI.html")}, #"report.html",
     content = function(file) {
-      doprogress("Building AI report",1)
+      withProgress(message = "Building indicators report", value = 0, {
       src <- normalizePath('IndRep.Rmd')
 
       test<-match(input$sel_MP,MPs)
@@ -1121,7 +1129,7 @@ shinyServer(function(input, output, session) {
 
       out<-render("IndRep.Rmd", params = params)
       file.rename(out, file)
-
+      })
     }
   )
 

@@ -76,7 +76,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.1)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.2)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -1102,7 +1102,9 @@ shinyUI(
                                   plotOutput("wormplot",height="auto"),
 
                                   column(width = 12,h5("Rebuilding analysis",style="font-weight:bold")),
-                                  column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
+                                  column(width=12,h5("Projections of biomass relative to MSY and unfished (B0) levels. The rebuilding analysis simulates the fishery currently in a depleted state even if the user-specified depletion in the operating model is higher.
+                                                     In these cases, the rebuilding analysis provides added assurance whether a particular management procedure would be likely to rebuild the stock if the user-specified depletion level is overly optimistic and the stock status is more depleted in actuality, and thus in need of rebuilding.
+                                                     The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
                                   plotOutput("wormplot2",height="auto"),
 
                                   column(width = 12,h5("PI.1.1.1 uncertainties",style = "font-weight:bold")),

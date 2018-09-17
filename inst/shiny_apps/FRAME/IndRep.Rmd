@@ -68,7 +68,8 @@ In this preliminary analysis, seven data types are monitored in the posterior pr
 <br>
 
 ```{r CC,echo=F,warning=F,error=F,message=F,fig.width=11, fig.height=11}
-
+ incrate<-1/3
+ incProgress(incrate)
 PPD<-params$MSEobj@Misc[[params$mm]]
 
 tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
@@ -79,7 +80,7 @@ indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
 indData<-matrix(indPPD[,1,1],ncol=1)
 
 CC(indPPD,indData,pp=1,res=res)
-
+incProgress(incrate)
 ```
 
 <br>
@@ -93,7 +94,7 @@ The Mahalanobis distance plot shows the distances of all simulated points from t
 ```{r P1_LTY,echo=F,warning=F,error=F,message=F,fig.width=8, fig.height=8}
 
 plot_mdist(indPPD,indData)
-
+incProgress(incrate)
 ```
 
 

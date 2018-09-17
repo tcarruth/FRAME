@@ -54,7 +54,9 @@ This is a prototype of an automatic report that documents how the user specified
 <br clear="both"/>
 
 ```{r labs,echo=F,warning=F,error=F,results='asis'}
-
+ incrate<-1/21
+ incProgress(incrate)
+ 
  Flabs<-c("","Longevity","Depletion","Resilence","Pattern of historical exploitation", "Variability in historical exploitation", "Fishery selectivity relative to maturity","Vulnerability of large individuals","Discard rate","Post-release mortality rate","Recruitment variability","Changes in fishing efficiency","Size of an prospective marine reserve","Stock viscosity (movement in/out of marine reserve)")
 
 Flists<-c("","M_list","D_list","h_list","FP_list","F_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","q_list","A_list","V_list")
@@ -127,9 +129,12 @@ for(ff in 2:14){
   cat("\n")
   do.call(paste0("plot",temp),args=list(dummy="1"))
   cat("\n\n")
-  
+  incProgress(incrate)
   
 }
+
+
+
 ```
 
 <br clear="both"/>
@@ -145,6 +150,7 @@ for(ff in 2:14){
   Justification=data.frame(Just[[2]][1])
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
+  incProgress(incrate)
 
 ```
 
@@ -160,6 +166,7 @@ for(ff in 2:14){
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
   plotIB()
+  incProgress(incrate)
 
 ```
 
@@ -175,6 +182,7 @@ for(ff in 2:14){
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
   plotIV()
+  incProgress(incrate)
 
 ```
 
@@ -191,6 +199,7 @@ for(ff in 2:14){
   Justification=data.frame(Just[[3]][1])
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
+  incProgress(incrate)
 
 ```
 
@@ -206,6 +215,7 @@ for(ff in 2:14){
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
   plotCB()
+  incProgress(incrate)
 
 ```
 
@@ -221,6 +231,7 @@ for(ff in 2:14){
   doQJust(Answer,selected,Justification)
   cat("\n\n") 
   plotBeta()
+  incProgress(incrate)
 
 ```
 
@@ -235,6 +246,7 @@ for(ff in 2:14){
   Justification=data.frame(Just[[3]][4])
   doQJust(Answer,selected,Justification)
   cat(" \n") 
+  incProgress(incrate)
  
 
 ```
