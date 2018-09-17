@@ -757,20 +757,20 @@ VOI_MSC<-function(MSEobj,LTL=F,lev=80, ncomp = 10, nbins = 5,maxrow = 8,yrs=46:5
 
   Ut <- array(NA, c(nsim, nMPs))
   for(mp in 1:nMPs){
-    Ut[, mp]=apply(MSEobj@C[,mp,1:10],1,mean)/MSEobj@OM$RefY
+    Ut[, mp]=apply(MSEobj@C[,mp,1:10],1,mean,na.rm=T)/MSEobj@OM$RefY
       #as.integer(MSC_Usim(MSEobj, MPno=mp,LTL=F, lev=80)>1, yrs=yrs)
   }
 
   # remove correlative variables and those that are constant
   onlycor <- c("RefY", "A", "MSY", "Linf", "t0", "OFLreal", "Spat_targ")
-  vargood <- (apply(MSEobj@OM, 2, sd)/(apply(MSEobj@OM, 2, mean)^2)^0.5) >  0.05
+  vargood <- (apply(MSEobj@OM, 2, sd,na.rm=T)/(apply(MSEobj@OM, 2, mean,na.rm=T)^2)^0.5) >  0.05
   vargood[is.na(vargood)]<-FALSE
   vargood[grep("qvar", names(MSEobj@OM))] <- FALSE
   allunique<-function(x)length(unique(x))==length(x)
   continuous<-apply(MSEobj@OM,2,allunique)
   MSEobj@OM <- MSEobj@OM[, which((!names(MSEobj@OM) %in% onlycor) & vargood & continuous)]
 
-  obsgood <- (apply(MSEobj@Obs, 2, sd)/(apply(MSEobj@Obs, 2, mean)^2)^0.5) >  0.05
+  obsgood <- (apply(MSEobj@Obs, 2, sd,na.rm=T)/(apply(MSEobj@Obs, 2, mean,na.rm=T)^2)^0.5) >  0.05
   obsgood[is.na(obsgood)]<-FALSE
   MSEobj@Obs <- MSEobj@Obs[, obsgood]
 
@@ -814,20 +814,23 @@ VOI_MSC<-function(MSEobj,LTL=F,lev=80, ncomp = 10, nbins = 5,maxrow = 8,yrs=46:5
 
   for(mp in 1:nMPs){
 
-    pp<-mean(Ut[, mp])
+    pp<-mean(Ut[, mp],na.rm=T)
     nsamp<-floor(nsim/nbins)
     samped<-matrix(rbinom(1000*nbins,nsamp,pp)/nsamp,c(1000,nbins))
-    sds<-apply(samped,1,sd)
-    mus<-quantile(sds,p=c(0.75,0.95,0.99))
+    sds<-apply(samped,1,sd,na.rm=T)
+    mus<-quantile(sds,p=c(0.75,0.95,0.99),na.rm=T)
 
     samped2<-matrix(rbinom(1000*nbins,floor(nsamp/4),pp)/floor(nsamp/4),c(1000,nbins))
-    sds2<-apply(samped2,1,sd)
+    sds2<-apply(samped2,1,sd,na.rm=T)
 
     ncols <- 100
     greenlim<-mus[1]
-    redlim<-quantile(sds2,p=0.99)
-    maxobs<-sd(c(rep(0,floor(nbins/2)),rep(1,ceiling(nbins/2))))
+    if(is.na(greenlim))greenlim=0.4
+    redlim<-quantile(sds2,p=0.99,na.rm=T)
+    if(is.na(redlim))redlim=0.8
+    maxobs<-sd(c(rep(0,floor(nbins/2)),rep(1,ceiling(nbins/2))),na.rm=T)
     totcols<-ceiling(ncols*maxobs/(redlim-greenlim))
+    if(is.na(totcols))totcols<-ceiling(ncols*0.2)
 
     coly <- rainbow(ncols, start = 0.0, end = 0.25)[ncols:1]
     colsse<-rep(coly[1],totcols)
