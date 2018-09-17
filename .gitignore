@@ -4,3 +4,6 @@
 *.Rhistory
 .Rproj.user/shared/notebooks/paths
 .Rhistory
+*.frame
+*.dcf
+.Rproj.user/shared/notebooks/paths
