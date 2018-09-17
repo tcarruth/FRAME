@@ -1,0 +1,52 @@
+
+
+# ================================================================================================================
+# ===== A script for installing and testing FRAME (the MSC-DLMtool App) ==========================================
+# ================================================================================================================
+
+# === September 1st 2018 =========================
+
+# This script is to run the development version of FRAME on your local computer
+# Eventually this app will be hosted online and will be useable from a web browser alone
+
+# ----- INSTALLATION 1: install devtools on your computer if you don't have it already --------- (one time only)
+
+rm(list = ls())               # remove all items in workspace
+install.packages("devtools")  # needed to install latest FRAME directly from github
+
+
+# ----- INSTALLATION 2: install dependencies --------------------------------------------------- (one time only)
+
+remove.packages("DLMtool")    # make sure you get rid of any development version of DLMtool
+rm(list = ls())               # remove all items in workspace
+
+install.packages("DLMtool")
+install.packages("corpcor")
+install.packages("formattable")
+install.packages("kableExtra")
+install.packages("knitr")
+install.packages("shiny")
+install.packages("dplyr")
+install.packages("shinyjs")
+install.packages("httpuv")
+install.packages("shinyalert")
+install.packages("tinytex")
+install.packages("MSEtool")
+
+
+# --- RUN THE APP 1: get updated version  ----------------------------------------------
+
+devtools::install_github("tcarruth/FRAME", type="source",auth_token="ac5d7d3e60823a4dd37a1c00fb0a4f0f99b21aba")
+
+
+# --- RUN THE APP 2: launch the App --------------------------- (only run these lines to retest after steps above)
+
+rm(list = ls())  # remove all items in workspace
+library(FRAME)   # load the FRAME library
+Shiny(FRAME)     # launch app
+
+
+# =============================================
+
+
+
