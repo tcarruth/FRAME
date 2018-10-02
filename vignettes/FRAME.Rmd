@@ -70,9 +70,9 @@ FRAME is a fishery risk assessment tool that links a streamlined user interface 
 
 The online App includes interactive help and links to external documentation. This document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
 
-There are two streams to FRAME. 
+There are two modes to FRAME. 
 
-The first is the Risk Assessment (RA) stream that is less complex and uses the quantitative questionnaire to parameterize a operating model for risk assessment of multiple MPs. The second, the Management Strategy Evaluation (MSE) stream includes tools for conditioning operating models on data, doing detailed MSE analysis of a single selected MP and also detecting 'exceptional circumstances' via auxillary indicator data. 
+The first is the Streamlined mode that is less complex and uses the quantitative questionnaire to parameterize a operating model for risk assessment of multiple MPs. The second, the Advanced mode includes tools for conditioning operating models on data, doing detailed MSE analysis of a single selected MP and also detecting 'exceptional circumstances' via auxillary indicator data. 
 
 
 # Step A. Quantitative Questionnaire. 
@@ -278,7 +278,7 @@ A description of the observation error model is included in [Carruthers et al (2
 <br><br>
 
 
-# Step A2: load data (MSE stream) (optional)
+# Step A2: load data (Advanced model) (optional)
 
 Users have the option of loading a formatted data object of DLMtool class Data. This can be stored in an .xlsx or .csv file.  
 
@@ -293,7 +293,7 @@ At the heart of FRAME is OMx, a rapid and flexible operating model developed for
 
 An operating model is built that has a number of simulations (independent realizations of past and future fishery dynamics). A small number of simulations (e.g. 24) is needed to demonstrate the app. Evaluations of multiple MPs typically only require around 100 simulations to get stable rankings and stable absolute performance. To be sure of absolute performance for an Application of a single MP, 200 simulations or more is recommended. 
 
-Users in the MSE stream that have uploaded data may also use stochastic SRA of [Walters et al.](https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB) to condition their operating models. Stochastic SRA is a Bayesian approach that obtains posterior samples of selectivity parameters (time invariant), recruitment deviations and unfished recruitment. The minimum data requirements are a complete catch history (from unfished) and a recent sample of catch composition (either length or age) data. However this version of S-SRA can also make use of patchy indices, mean length and other composition data.  
+Users in the Advanced mode that have uploaded data may also use stochastic SRA of [Walters et al.](https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB) to condition their operating models. Stochastic SRA is a Bayesian approach that obtains posterior samples of selectivity parameters (time invariant), recruitment deviations and unfished recruitment. The minimum data requirements are a complete catch history (from unfished) and a recent sample of catch composition (either length or age) data. However this version of S-SRA can also make use of patchy indices, mean length and other composition data.  
 
 <br><br>
 
@@ -309,13 +309,13 @@ The demo mode only includes a handful of fast-running MPs. Users have the option
 
 <br><br>
 
-# Step C2: Run an Application (single MP) (MSE stream)
+# Step C2: Run an Application (single MP) (Advanced mode)
 
 The Application mode is very similar to the Evaluation mode but is applied to a single MP and unlocks the potential for testing exceptional circumstances in Step D. 
 
 <br><br>
 
-# Step D: Ancillary indicators (MSE stream)
+# Step D: Ancillary indicators (Advanced mode)
 
 It is possible to detect circumstances where, once using an MP, the observations of the fishery are not consistent with those predicted by the operating model. Here we use the multivariate approach of [Carruthers and Hordyk 2018](https://drive.google.com/open?id=1V3KMFMqd0TZvbqVKwGnIZ_rZSz_Lg_2n) that was designed for this application. 
 

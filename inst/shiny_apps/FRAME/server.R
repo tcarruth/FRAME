@@ -10,10 +10,15 @@ library(httpuv)
 library(shinyalert)
 
 options(shiny.maxRequestSize=100*1024^2)
+
 source("./global.R")
+
+
 
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
+
+  #options(browser = false)
 
   # -------------------------------------------------------------
   # Explanatory figures
@@ -104,7 +109,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"2.3"
+  FRAMEversion<<-"2.4"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -170,6 +175,7 @@ shinyServer(function(input, output, session) {
 
     filey<-input$Load
     tryCatch({
+
         MSClog<-readRDS(file=filey$datapath)
         cond<-length(MSClog)==3 & sum(names(MSClog[[1]])==c("Fpanel","Mpanel","Dpanel"))==3
 
@@ -177,6 +183,7 @@ shinyServer(function(input, output, session) {
           PanelState<<-MSClog[[1]]
           Just<<-MSClog[[2]]
 
+          # All panels except radio button on D4
           for(i in 1:length(PanelState)){
             for(j in 1:length(PanelState[[i]])) {
               if(!(i==3&j==4)){ # not the radio button
@@ -189,6 +196,7 @@ shinyServer(function(input, output, session) {
             }
           }
 
+          # update the radio button D4
           i<-3
           j<-4
           state<-as.vector(unlist(PanelState[[i]][j]))
@@ -284,9 +292,7 @@ shinyServer(function(input, output, session) {
       error = function(e){
         shinyalert("File read error", "This does not appear to be a DLMtool OM object, saved by saveRDS()", type = "error")
         return(0)
-      }
-      )
-
+      })
 
       if(class(OM)=='OM'){
         MPs<<-getMPs()
@@ -311,9 +317,7 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Evaluation data")
       saveRDS(list(MSEobj=MSEobj,MSEobj_reb=MSEobj_reb),file)
 
-
     }
-
 
   )
 
@@ -361,10 +365,7 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Application data")
       saveRDS(list(MSEobj_app=MSEobj_app,MSEobj_reb_app=MSEobj_reb_app),file)
 
-
     }
-
-
   )
 
   # App load
@@ -399,7 +400,6 @@ shinyServer(function(input, output, session) {
       shinyalert("File read error", "This does not appear to be a FRAME Application object", type = "error")
     }
 
-
   })
 
   # Indicator Data load
@@ -421,18 +421,20 @@ shinyServer(function(input, output, session) {
       }
     )
 
-
   })
 
   observeEvent(input$getMPhelp,{
 
-        browseURL(MPurl(input$help_MP))
+    #browseURL(MPurl(input$help_MP))
+    js$browseURL(MPurl(input$help_MP))
+    #output$MPdoc<-renderUI({
+    #  HTML(readLines('http://dlmtool.github.io/DLMtool/reference/DCAC.html'))
+    #})
         #js$browseURL(MPurl(input$help_MP))
 
   })
 
   # End of file I/O ===================================================================================
-
 
   #observeEvent(input$nsim, {
    # nsim<<-as.numeric(input$nsim)
@@ -502,23 +504,8 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Calculate,{
 
     Fpanel(1)
-
     MPs<<-getMPs()
-
-    if(input$Ex_Ref_MPs)MPs<<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
-    if(input$Demo)MPs<<-c("DCAC","matlenlim","MCD","AvC","curE75","IT10")
-    if(input$Data_Rich){
-      SCA_4010 <<- make_MP(SCA, HCR40_10)
-      SCA_MSY <<- make_MP(SCA, HCR_MSY)
-      DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
-      DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
-      SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
-      SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
-      MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
-    }
-
     nsim<<-input$nsim
-
     parallel=F
     if(input$Parallel){
 
@@ -529,7 +516,6 @@ shinyServer(function(input, output, session) {
     }
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
-
 
   tryCatch({
     withProgress(message = "Running Evaluation", value = 0, {
@@ -589,7 +575,8 @@ shinyServer(function(input, output, session) {
 
     tryCatch({
         withProgress(message = "Running Application", value = 0, {
-          MSEobj_app<<-runMSE(OM,MPs=selectedMP,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+          AppMPs<-c("FMSYref",input$sel_MP)
+          MSEobj_app<<-runMSE(OM,MPs=AppMPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
         })
 
         MGT2<-ceiling(MSEobj_app@OM$MGT*2)
@@ -601,7 +588,7 @@ shinyServer(function(input, output, session) {
         OM_reb@cpars$D<-MSEobj_app@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
         withProgress(message = "Rebuilding Analysis", value = 0, {
-          MSEobj_reb_app<<-runMSE(OM_reb,MPs=selectedMP,silent=T,control=list(progress=T),parallel=parallel)
+          MSEobj_reb_app<<-runMSE(OM_reb,MPs=AppMPs,silent=T,control=list(progress=T),parallel=parallel)
         })
         save(MSEobj_reb_app,file="MSEobj_reb_app")
 
@@ -667,8 +654,9 @@ shinyServer(function(input, output, session) {
       incrate<-1/5
       incProgress(incrate)
 
+
       burnin<<-input$burnin
-      Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0)
+      Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0,App=T)
       thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
       temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,fease=fease,thresh=thresh)
       incProgress(incrate)
@@ -678,6 +666,9 @@ shinyServer(function(input, output, session) {
       output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app,thresh=thresh)
       output$App_threshtable<-function()Thresh_tab(thresh)
       incProgress(incrate)
+
+      MSEobj_app<-Sub(MSEobj_app,MSEobj_app@MPs[2])
+      MSEobj_reb_app<-Sub(MSEobj_reb_app,MSEobj_reb_app@MPs[2])
 
       output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=1000,width=900)
       output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
@@ -697,7 +688,7 @@ shinyServer(function(input, output, session) {
   redoInd<-function(){
 
     styr=MSEobj_app@nyears
-    PPD<-MSEobj_app@Misc[[1]]
+    PPD<-MSEobj_app@Misc[[2]]
 
     # Standardization
     PPD@Cat<-PPD@Cat/PPD@Cat[,styr]
@@ -729,7 +720,6 @@ shinyServer(function(input, output, session) {
 
   }
 
-
   observeEvent(input$Default_thres,{
     updateSliderInput(session,"P111a",value=70)
     updateSliderInput(session,"P111b",value=50)
@@ -739,14 +729,9 @@ shinyServer(function(input, output, session) {
 
   })
 
-
-
-
-
   CheckJust<-function(){
 
     isjust<-function(x)sum(x=="No justification was provided")
-
     as.integer(sum(unlist(lapply(Just,isjust)))==0)
 
   }
@@ -1144,7 +1129,6 @@ shinyServer(function(input, output, session) {
     RecJust()
   })
 
-
   observeEvent(input$tabs1, {
 
     UpJust()
@@ -1189,7 +1173,6 @@ shinyServer(function(input, output, session) {
     MSCsave_auto()
 
   })
-
 
   # ---- Fishery all switches -----------------
 
@@ -1371,11 +1354,8 @@ shinyServer(function(input, output, session) {
   output$plotBeta <- renderPlot(plotBeta())
   output$plotCB <- renderPlot(plotCB())
 
-
-
   observeEvent(input$debug,
-
-               updateTextAreaInput(session,"Debug1",value=MadeOM())
+              updateTextAreaInput(session,"Debug1",value=MadeOM())
   )
 
 })

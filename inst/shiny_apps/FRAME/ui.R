@@ -3,12 +3,17 @@ library(shiny)
 library(shinyjs)
 
 
-#js_code <- "shinyjs.browseURL = function(url) {window.open(url,'_blank')}"
-
+#js_code <<- "shinyjs.browseURL = function(url) {window.open(url,'_blank')}"
+js_code <- "
+shinyjs.browseURL = function(url) {
+  window.open(url,'_blank');
+}
+"
 shinyUI(
 
   fluidPage(
     useShinyjs(),
+    extendShinyjs(text = js_code, functions = 'browseURL'),
     useShinyalert(),
     tags$head(
       tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
@@ -76,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.3)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.4)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -101,9 +106,9 @@ shinyUI(
 
     fluidRow(
 
-      HTML("<br><br>"),
+      HTML("<br>"),
       column(12,
-             h4("APPLICATION MODE"),
+             h4("MODE"),
              hr()
              ),
       column(1),
@@ -111,25 +116,25 @@ shinyUI(
 
              column(4,
 
-               radioButtons("RA_MSE",label=NULL,choices=c("Risk Assessment","Management Strategy Evaluation"),selected="Risk Assessment")),
+               radioButtons("Mode",label=NULL,choices=c("Streamlined","Advanced"),selected="Streamlined")),
 
                column(8,
                       h5("FRAME contains two modes of differing complexity",style = "color:grey"),
-                      h5(" - Risk Assessment mode is an entirely questionnaire based description of fishery dynamics for calculation of biological risk where data are limited",style = "color:grey"),
-                      h5(" - Management Strategy Evaluation mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
+                      h5(" - Streamlined mode is an entirely questionnaire based description of fishery dynamics for calculation of biological risk where data are limited",style = "color:grey"),
+                      h5(" - Advanced mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
                )
 
       ),
 
 
-      column(12,HTML("<br><br>")),
+      column(12,HTML("<br>")),
 
       column(12,style="height:60px",
 
-            conditionalPanel(condition="output.Quest==0&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
-            conditionalPanel(condition="output.Quest==1&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
-            conditionalPanel(condition="output.Quest==0&input.RA_MSE=='Risk Assessment'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
-            conditionalPanel(condition="output.Quest==1&input.RA_MSE=='Risk Assessment'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+            conditionalPanel(condition="output.Quest==0&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
+            conditionalPanel(condition="output.Quest==1&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+            conditionalPanel(condition="output.Quest==0&input.Mode=='Streamlined'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
+            conditionalPanel(condition="output.Quest==1&input.Mode=='Streamlined'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
 
             hr()
       ),
@@ -642,8 +647,6 @@ shinyUI(
 
                  column(width=4,#style="height:180px",
                         conditionalPanel(condition="output.Fpanel>0|output.Ppanel>0|output.Dpanel>0|output.Fpanel!=undefined|output.Mpanel!=undefined|output.Dpanel!=undefined",
-                                         #h4("Progress",style="color:grey"),
-                                         #hr(),
                                          textOutput("Fpanelout"),
                                          textOutput("Mpanelout"),
                                          textOutput("Dpanelout")
@@ -658,9 +661,7 @@ shinyUI(
 
            column(2),
 
-
            column(4,style="height:50px",
-
 
                  column(6,style="padding:10px",
                         fileInput("Load","Load  (.frame)",accept=c("frame",".frame"))
@@ -670,8 +671,7 @@ shinyUI(
 
                           h5("Save",style="font-weight:bold"),
                           downloadButton("Save","",width=70)
-
-                 ),
+                ),
 
                  column(4,
                        h5("Questionnaire Report",style="font-weight:bold"),
@@ -679,14 +679,13 @@ shinyUI(
                  )
            )
 
-
           )
         )
        ), # end of Step 1 fluid row
 
-       column(12,style="height:45px"),
+       column(12,style="height:25px"),
 
-       conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+       conditionalPanel(condition="input.Mode=='Advanced'",
 
          conditionalPanel(condition="output.CondOM==0",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)")),
          conditionalPanel(condition="output.CondOM==1",h4("STEP A2: LOAD AVAILABLE DATA (OPTIONAL)",style="color:green")),
@@ -711,8 +710,7 @@ shinyUI(
                             h5("A description of the data object can be found ",a("here", href="https://dlmtool.github.io/DLMtool/cheat_sheets/Data", target="_blank"),style = "color:grey")
 
                  )
-
-               )
+              )
             )
           ),
 
@@ -736,7 +734,6 @@ shinyUI(
         conditionalPanel(condition="output.MadeOM==0",h4("STEP B: BUILD OPERATING MODELS")),
         conditionalPanel(condition="output.MadeOM==1",h4("STEP B: BUILD OPERATING MODELS",style="color:green")),
 
-
         hr(),
 
         fluidRow(
@@ -754,7 +751,6 @@ shinyUI(
 
                 ),
 
-
                 column(6,style="padding-left:8px",
                        style="padding:19px",
                        h5("Operating models are specified from the responses in the questionnaire (Step 1)", style = "color:grey"),
@@ -766,7 +762,6 @@ shinyUI(
 
                       )
 
-
               )
            )
         ),
@@ -776,13 +771,13 @@ shinyUI(
           column(4,
 
                 column(6,style="padding:10px",
-                       conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+                       conditionalPanel(condition="input.Mode=='Advanced'",
 
                        fileInput("Load_OM","Load  (.OM)"))
                 ),
 
                 column(2,
-                       conditionalPanel(condition="output.MadeOM==1&input.RA_MSE=='Management Strategy Evaluation'",
+                       conditionalPanel(condition="output.MadeOM==1&input.Mode=='Advanced'",
                          h5("Save",style="font-weight:bold"),
                          downloadButton("Save_OM","",width=70)
                        )
@@ -808,13 +803,12 @@ shinyUI(
           )
         ),
 
-
         column(12,style="height:45px"),
 
-        conditionalPanel(condition="output.Calc==0&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP C1: EVALUATION (MULTI-MP)")),
-        conditionalPanel(condition="output.Calc==1&input.RA_MSE=='Management Strategy Evaluation'",h4("STEP C1: EVALUATION (MULTI-MP)",style="color:green")),
-        conditionalPanel(condition="output.Calc==0&input.RA_MSE=='Risk Assessment'",h4("STEP C: EVALUATION (MULTI-MP)")),
-        conditionalPanel(condition="output.Calc==1&input.RA_MSE=='Risk Assessment'",h4("STEP C: EVALUATION (MULTI-MP)",style="color:green")),
+        conditionalPanel(condition="output.Calc==0&input.Mode=='Advanced'",h4("STEP C1: EVALUATION (MULTI-MP)")),
+        conditionalPanel(condition="output.Calc==1&input.Mode=='Advanced'",h4("STEP C1: EVALUATION (MULTI-MP)",style="color:green")),
+        conditionalPanel(condition="output.Calc==0&input.Mode=='Streamlined'",h4("STEP C: EVALUATION (MULTI-MP)")),
+        conditionalPanel(condition="output.Calc==1&input.Mode=='Streamlined'",h4("STEP C: EVALUATION (MULTI-MP)",style="color:green")),
 
         hr(),
 
@@ -827,11 +821,18 @@ shinyUI(
                    column(6,numericInput("proyears", label = "Projected years", value=50,min=25,max=100)),
                    column(6,numericInput("interval", label = "Management interval", value=8,min=2,max=10)),
 
-                   column(4,checkboxInput("Demo", label = "Demo mode", value=TRUE)),
-                   column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE)),
-                   column(4,checkboxInput("Data_Rich", label = "Data-rich MPs", value = FALSE)),
+                   #column(4,checkboxInput("Demo", label = "Demo mode", value=TRUE)),
+                   column(12,radioButtons('MPset',label="MP set",choices=c("Risk Assessment","Top 20","All","Demo"),selected="Demo",inline=T)),
 
-                   column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
+                   column(12,h5("Additional options",style="font-weight:bold"),style="height:22px"),
+                   #column(12,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE),
+                   #        checkboxInput("Data_Rich", label = "Data-rich MPs", value = FALSE),
+                   #
+                   #checkboxInput("Parallel", label = "Parallel comp.", value = FALSE)),
+
+                   column(4,checkboxInput("Ex_Ref_MPs", label = "No ref. MPs", value = FALSE),style="padding-top:0px"),
+                   column(4,checkboxInput("Data_Rich", label = "Data-rich MPs", value = FALSE),style="padding-top:0px"),
+                   column(4,checkboxInput("Parallel", label = "Parallel comp.", value = FALSE),style="padding-top:0px"),
 
                    column(12,actionButton("Calculate",h5("      RUN EVALUATION     ",style="color:red")))
 
@@ -854,7 +855,6 @@ shinyUI(
 
                )
              )
-
 
              )
 
@@ -887,9 +887,9 @@ shinyUI(
           )
         ),
 
-        column(12,style="height:45px"),
+        column(12,style="height:15px"),
 
-        conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
+        conditionalPanel(condition="input.Mode=='Advanced'",
           conditionalPanel(condition="output.App==0",h4("STEP C2: APPLICATION (SINGLE MP)")),
           conditionalPanel(condition="output.App==1",h4("STEP C2: APPLICATION (SINGLE MP)",style="color:green")),
 
@@ -956,8 +956,8 @@ shinyUI(
           )
         ),
 
-        conditionalPanel(condition="input.RA_MSE=='Management Strategy Evaluation'",
-          column(12,style="height:45px"),
+        conditionalPanel(condition="input.Mode=='Advanced'",
+          column(12,style="height:15px"),
 
           conditionalPanel(condition="output.Ind==0",h4("STEP D: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)")),
           conditionalPanel(condition="output.Ind==1",h4("STEP D: ANCILLARY INDICATORS (SINGLE MP - USES APPLICATION MSE OF STEP B2)",style="color:green")),
@@ -966,7 +966,7 @@ shinyUI(
 
           fluidRow(
             column(1),
-            column(11,style="height:285px",
+            column(11,#style="height:285px",
 
                    fluidRow(
 
@@ -1013,9 +1013,9 @@ shinyUI(
                    )
              )
           )
-        ), # input.RA_MSC conditional panel
+        ), # input.Mode conditional panel
 
-        column(12,style="height:45px"),
+        column(12,style="height:15px"),
 
         h4("RESULTS"),
         hr(),
@@ -1122,11 +1122,11 @@ shinyUI(
                     ), value=1),
 
                     tabPanel(h4("Application",style = "color:black"),
-                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Management Strategy Evaluation'",
+                             conditionalPanel(condition="output.App==0&input.Mode=='Advanced'",
                                      h5("Application MSE not run yet", style = "color:grey")
                              ),
-                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Risk Assessment'",
-                                     h5("Application results are calculated in Management Strategy Evaluation mode only", style = "color:grey")
+                             conditionalPanel(condition="output.App==0&input.Mode=='Streamlined'",
+                                     h5("Application results are calculated in Advanced mode only", style = "color:grey")
                              ),
                              conditionalPanel(condition="output.App==1",
 
@@ -1179,11 +1179,11 @@ shinyUI(
 
                     tabPanel(h4("Indicators",style = "color:black"),
 
-                             conditionalPanel(condition="output.Ind==0&input.RA_MSE=='Management Strategy Evaluation'",
+                             conditionalPanel(condition="output.Ind==0&input.Mode=='Advanced'",
                                       h5("Indicators not calculated yet", style = "color:grey")
                              ),
-                             conditionalPanel(condition="output.App==0&input.RA_MSE=='Risk Assessment'",
-                                              h5("Indicator results are calculated in Management Strategy Evaluation mode only", style = "color:grey")
+                             conditionalPanel(condition="output.App==0&input.Mode=='Streamlined'",
+                                              h5("Indicator results are calculated in Advanced mode only", style = "color:grey")
                              ),
                              conditionalPanel(condition="output.Ind==1",
                                column(width=12,h5("In this demonstration version of the ancillary indicators function, an example observed data point after 6 years (blue cross) is compared to the posterior predictive data of the operating model. The Mahalanobis distance is the multivariate distance from the posterior mean, taking account of data cross-correlation. When the observed data are within the 95th percentile the data are considered consistent with the operating model")),
@@ -1209,7 +1209,7 @@ shinyUI(
       ), # end of Results
 
 
-     column(12,style="height:45px"),
+     column(12,style="height:15px"),
 
       h4("HELP"),
       hr(),
@@ -1243,7 +1243,8 @@ shinyUI(
                    actionButton("getMPhelp","Open documentation for MP")
 
 
-                 )
+                 ),
+                 column(12,htmlOutput("MPdoc"))
                )
         )
       ),

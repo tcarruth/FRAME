@@ -1,5 +1,5 @@
 
-Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0){
+Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0,App=F){
 
   # PI 1.1.1
   nMPs<-MSEobj@nMPs
@@ -25,8 +25,8 @@ Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0){
   MP<-MSEobj@MPs
 
   tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,LTY)
-
-  tab<-tab[order(tab$LTY,decreasing=T),]
+  if(App)tab<-tab[2,]
+  if(!App)tab<-tab[order(tab$LTY,decreasing=T),]
   tab
 
 }
