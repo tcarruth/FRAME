@@ -915,17 +915,12 @@ shinyUI(
 
                        ),
                        conditionalPanel(condition="output.MadeOM==0",
-
-                             h5("Operating model not built yet", style = "color:grey")
-
-                       )
+                            h5("Operating model not built yet", style = "color:grey")
+                      )
                      ),
                      column(6,
-
-                            h5("In the application mode, a single MP is tested over a greater number of simulations.", style = "color:grey")
-
-
-                            )
+                         h5("In the application mode, a single MP is tested over a greater number of simulations.", style = "color:grey")
+                     )
                    )
             )
           ),
@@ -996,10 +991,8 @@ shinyUI(
                           h5("These data can be compared against the predicted data of the Application operating model and used to detect exceptional
                                circumstances using the method of ",a("Carruthers and Hordyk (2018)", href="https://drive.google.com/open?id=1Liif_ugfDbzIKZMBusHNemgfi3cohvtr", target="_blank"),style = "color:grey"),
                           h5("Resolution refers to the size of time block over which the indicator is evaluated. For example, the default, 6 years, calculates slopes and means in quantities such as catch and abundance indices over the first 6 years (you need new data for at least this many years)",style = "color:grey")
-
                      )
-
-                   )
+                 )
             )
           ),
 
@@ -1118,7 +1111,12 @@ shinyUI(
 
                                   column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
                                   column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
-                                  plotOutput("CCU",height="auto")
+                                  plotOutput("CCU",height="auto"),
+
+                                  column(width = 12,h5("MSE convergence diagnostics",style = "font-weight:bold")),
+                                  column(width=12,h5("Have enough simulations been carried out to interpret results? Ideally the lines in the graphs below should be flat and parallel to each other. If they are just parallel, the MP ranking may be stable but absolute MP performance is not")),
+                                  plotOutput("Eval_Converge",height="auto")
+
                                 ) # end of fluid row
 
 
@@ -1173,6 +1171,7 @@ shinyUI(
                              column(width = 12,h5("Value of information analysis",style = "font-weight:bold")),
                              column(width=12,h5("This is similar to cost-of-current uncertainties but identifies those data errors and biases that are most likely to impact the long-term yield performance of the MP.")),
                              plotOutput("App_VOI",height="auto")
+
 
                           )
                       )

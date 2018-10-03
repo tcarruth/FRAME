@@ -25,7 +25,7 @@ namconv<-function(nam){
 getMPs<-function(){
 
   if(input$MPset=="Demo"){
-    MPs<<-c('FMSYref',"DCAC","matlenlim","MCD","AvC","curE75","IT10")
+    MPs<<-c('FMSYref',"DCAC","matlenlim","MRreal","curE75","IT10")
   }else if(input$MPset=="Risk Assessment"){
     MPs<<-c('FMSYref',"NFref","AvC","curE","curE75","FMSYref75")
   }else if(input$MPset=="Top20"){

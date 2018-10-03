@@ -174,22 +174,29 @@ MSC_Uplot<-function(MSEobj,MPno=1,LTL=F,pcex=0.8,lev=80,labs=T,plot=T,highlight=
 
   Status=rep("None",MSEobj@nsim)
   xs<-ys<-c(-20,0,20,40,60,80,100)
+  nsim<-MSEobj@nsim
 
   if(!LTL){
 
     B50<-100*apply(MSEobj@B_BMSY[,MPno ,1:burnin]>0.5,1,mean)
     B100<-100*apply(MSEobj@B_BMSY[,MPno,1:burnin]>1, 1, mean)
+    B50[B50<60]<-60
+
+    agg<-aggregate(rep(1,nsim),by=list(B50,B100),sum)
+    names(agg)<-c("B50","B100","N")
+    maxcex=2.5
+    cexy<-0.15+sqrt(agg$N)/max(sqrt(agg$N))*maxcex
 
     if(plot){
 
-      plot(B50, B100, col = "white", xlab = "", ylab = "", axes = F,ylim=c(0,100),xlim=c(60,100))
+      plot(agg$B50, agg$B100, col = "white", xlab = "", ylab = "", axes = F,ylim=c(0,100),xlim=c(60,100))
       MSC_status_zones(highlight=highlight)
 
       axis(1, xs, xs)
       axis(2, ys, ys)
-      points(B50, B100, pch = 3, cex = pcex,lwd=2)
-      cond<-B50<60
-      points(rep(60,sum(cond)),B50[cond],pch=3,cex = pcex,lwd=2)
+      points(agg$B50, agg$B100, pch = 19, cex = cexy,lwd=2,col="red")
+      #cond<-B50<60
+      #points(rep(60,sum(cond)),B50[cond],pch=3,cex = pcex,lwd=2)
       if(labs)mtext("Probability Biomass > 50% BMSY", 1, line = 2.5)
       if(labs)mtext("Probability Biomass > BMSY", 2, line = 2.5)
 
@@ -395,8 +402,8 @@ MSC_uncertain<-function(MSEobj,maxMPs=8,lev=80,LTL=F,inc_thresh=F,burnin=10,MPco
   for(i in 1:maxMPs){
 
     score<-MSC_Uplot(MSEobj,MPno=i,labs=F,lev=lev,LTL=LTL,inc_thresh=inc_thresh,burnin=burnin)
-    if(i ==1 & inc_thresh)legend('topleft',legend=c("a simulation","selection threshold"),pch=c(3,NA),lwd=c(2,2),lty=c(NA,1),col=c('black','red'),cex=0.9,text.col=c("black","red"))
-    if(i ==1 & !inc_thresh)legend('topleft',legend="a simulation",pch=3,lwd=2,lty=NA,col='black',cex=0.9,text.col="black")
+    if(i ==1 & inc_thresh)legend('topleft',legend=c("a simulation","selection threshold"),pch=c(19,NA),lwd=c(2,2),lty=c(NA,1),col=c('red','red'),cex=0.9,text.col=c("black","red"))
+    if(i ==1 & !inc_thresh)legend('topleft',legend="a simulation",pch=19,lwd=2,lty=NA,col='red',cex=0.9,text.col="black")
 
     if(inc_thresh)mtext(paste0(MSEobj@MPs[i]," (",score,")"),3,col=MPcols[i],line=0.4,adj=0.8,font=2)
     if(!inc_thresh)mtext(MSEobj@MPs[i],3,col=MPcols[i],line=0.4,adj=0.8,font=2)

@@ -63,7 +63,7 @@ This is a prototype of an automatic report that describes the results of a demon
 
 ```{r progresssetup,echo=F}
 
- incrate<-1/8
+ incrate<-1/9
  incProgress(incrate)
 
 ```
@@ -201,6 +201,19 @@ for(i in 1:length(plots)){
   MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
   CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
 }
+incProgress(incrate)
+
+```
+
+
+# MSE convergence diagnostics
+
+Have enough simulations been carried out to interpret results? Ideally the lines in the graphs below should be flat and parallel to each other. If they are just parallel, the MP ranking may be stable but absolute MP performance is not.
+
+
+```{r Converge,echo=F,warning=F,error=F,message=F,fig.width=11, fig.height=5}
+
+Converge(MSEobj_top,PMs = list(Yield, P10),ncol=2,nrow=1)
 incProgress(incrate)
 
 ```
