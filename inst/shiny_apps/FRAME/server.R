@@ -8,6 +8,7 @@ library(knitr)
 library(dplyr)
 library(httpuv)
 library(shinyalert)
+library(DT)
 
 options(shiny.maxRequestSize=100*1024^2)
 
@@ -40,6 +41,9 @@ shinyServer(function(input, output, session) {
   # Reporting
   source("./OM_report.R",local=TRUE)
 
+  # Advice
+  source("./Advice.R",local=TRUE)
+
   # Miscellaneous
   source("./Misc.R",local=TRUE)
   #source('./modSampCpars.R',local=TRUE)
@@ -67,6 +71,7 @@ shinyServer(function(input, output, session) {
   DataInd<-reactiveVal(0) # Indicator data loaded
   Ind<-reactiveVal(0)  # Have run Indicator (single MP)
 
+
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
   output$Dpanel <- reactive({ Dpanel()})
@@ -81,6 +86,8 @@ shinyServer(function(input, output, session) {
   output$App      <- reactive({ App()})
   output$DataInd  <- reactive({ DataInd()})
   output$Ind      <- reactive({ Ind()})
+
+
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
@@ -97,6 +104,8 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"App",suspendWhenHidden=FALSE)
   outputOptions(output,"DataInd",suspendWhenHidden=FALSE)
   outputOptions(output,"Ind",suspendWhenHidden=FALSE)
+
+
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -149,9 +158,7 @@ shinyServer(function(input, output, session) {
 
   })
 
-
   # == File I/O ==========================================================================
-
 
   # Questionnaire save
   output$Save<- downloadHandler(
@@ -168,7 +175,6 @@ shinyServer(function(input, output, session) {
     }
 
   )
-
 
   # Questionnaire load
   observeEvent(input$Load,{
@@ -235,7 +241,6 @@ shinyServer(function(input, output, session) {
       }
     )
 
-
   })
 
   # Data load
@@ -275,9 +280,7 @@ shinyServer(function(input, output, session) {
       doprogress("Saving Operating Model")
       saveRDS(OM,file)
 
-
     }
-
 
   )
 
@@ -305,7 +308,6 @@ shinyServer(function(input, output, session) {
       }
 
   })
-
 
   # Eval save
   output$Save_Eval<- downloadHandler(
@@ -817,6 +819,31 @@ shinyServer(function(input, output, session) {
       UpPanelState()
       redoApp(fease=T)
     }
+  })
+
+
+  # Advice ------------------------------------
+
+  observeEvent(input$calcAdvice,{
+
+    SCA_4010 <<- make_MP(SCA, HCR40_10)
+    SCA_MSY <<- make_MP(SCA, HCR_MSY)
+    DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
+    DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
+    SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
+    SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
+    MPs<-avail('MP')
+    cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
+    cond2<-!MPs%in%c("YPR","YPR_CC","YPR_ML")
+    MPs<-c(MPs[!cond&cond2])
+    MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+
+    withProgress(message = "Calculating management advice",value=0, {
+      out<-runMP_MSC(dat,MPs=MPs)
+      output$Advice <- DT::renderDataTable(out[[1]],options = list(lengthMenu = c(10, 25, 50), pageLength = 10))
+      output$Advice_TAC<-renderPlot(plot(out[[2]]),height =900 ,width=900)
+    })
+
   })
 
 

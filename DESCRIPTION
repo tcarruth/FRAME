@@ -18,4 +18,5 @@ Imports: corpcor,
          shinyjs,
          shinyalert,
          MSEtool,
-         tinytex
+         tinytex,
+         DT

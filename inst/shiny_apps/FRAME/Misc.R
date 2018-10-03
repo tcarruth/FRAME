@@ -55,6 +55,7 @@ getMPs<-function(){
 
 
 LowSlopes<-function(OMin, except = NULL) {
+
   nms <- slotNames(OMin)
   # exceptions
   if (is.null(except)) except <- "EVERYTHING"
@@ -68,6 +69,7 @@ LowSlopes<-function(OMin, except = NULL) {
   }
 
   return(OMin)
+
 }
 
 Data_parse<-function(file){

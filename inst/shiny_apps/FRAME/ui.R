@@ -753,7 +753,7 @@ shinyUI(
 
                 column(6,style="padding-left:8px",
                        style="padding:19px",
-                       h5("Operating models are specified from the responses in the questionnaire (Step 1)", style = "color:grey"),
+                       h5("Operating models are specified from the responses in the questionnaire (Step A)", style = "color:grey"),
                        h5("Alternatively, in MSE mode, users can use upload their data and condition models using
                           stochastic SRA ",a("(Walters et al. 2006)", href="https://drive.google.com/open?id=10kpQwOsvsDCojN2MyUYgRj9-IUQMQmAB", target="_blank"),style = "color:grey"),
                        h5("For demonstration purposes a small number of simulations (e.g. n = 24) is enough. For MP comparisons in 'Evaluation' mode,
@@ -847,10 +847,13 @@ shinyUI(
                 column(6,
 
                        h5("Simulations can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
-                       h5("In 'Demo' mode only a handful of MPs are used in order to reduce computation time", style = "color:grey"),
-                       h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run.", style = "color:grey"),
+                       h5("The 'Risk Assessment' set of MPs reflect current status quo management but also include reference management approaches to frame performance", style = "color:grey"),
+                       h5("The 'Top 20' set of MPs are a subset that generally perform well in many cases but may not be appropriate for your operating model", style = "color:grey"),
+                       h5("When selecting 'All' users will run an MSE for all available MPs (~100) which can take 20 minutes or more depending on the longevity of the species and the number of simulations", style = "color:grey"),
+                       h5("The 'Demo' set are a small selection of fast-running MPs for FRAME demonstration purposes only", style = "color:grey"),
+                       h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run", style = "color:grey"),
                        h5("In situations where operating models are built with more than 48 simulations it can be much faster to use parallel computing ('Parallel comp.)
-                          although the progress bar will not longer work. ",style="color:grey"),
+                          although the progress bar will not longer work ",style="color:grey"),
                           h5("Documentation of the various MPs can be found below in the help section or online ",a("here", href="https://dlmtool.github.io/DLMtool/reference/index.html", target="_blank"),style = "color:grey")
 
                )
@@ -978,7 +981,7 @@ shinyUI(
 
                             ),
                             conditionalPanel(condition="output.App==0",
-                              h5("Application not run yet", style = "color:grey")
+                              h5("Application not run yet (Step C2)", style = "color:grey")
                             ),
                             conditionalPanel(condition="output.DataInd==1",
                                              sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
@@ -1052,7 +1055,7 @@ shinyUI(
                tabsetPanel( id = "Res_Tab",selected=1,
                 tabPanel(h4("Evaluation",style = "color:black"),
                          conditionalPanel(condition="output.Calc==0",
-                                          h5("Evaluation MSE not run yet", style = "color:grey")
+                                          h5("Evaluation MSE not run yet (Step C1)", style = "color:grey")
                          ),
                          conditionalPanel(condition="output.Calc==1",
 
@@ -1123,7 +1126,7 @@ shinyUI(
 
                     tabPanel(h4("Application",style = "color:black"),
                              conditionalPanel(condition="output.App==0&input.Mode=='Advanced'",
-                                     h5("Application MSE not run yet", style = "color:grey")
+                                     h5("Application MSE not run yet (Step C2)", style = "color:grey")
                              ),
                              conditionalPanel(condition="output.App==0&input.Mode=='Streamlined'",
                                      h5("Application results are calculated in Advanced mode only", style = "color:grey")
@@ -1209,6 +1212,61 @@ shinyUI(
       ), # end of Results
 
 
+      conditionalPanel(width=12,condition="input.Mode=='Advanced'",
+
+        column(12,style="height:15px"),
+
+        h4("ADVICE"),
+        hr(),
+
+        conditionalPanel(width=4,condition="output.Data==0",{
+
+
+          fluidRow(
+            column(1),
+            column(11,h5("Data not loaded (Step A2)", style = "color:grey")
+
+
+            )
+          )
+
+        }),
+
+        conditionalPanel(width=4,condition="output.Data==1",{
+
+
+          fluidRow(
+            column(1),
+            column(11,
+
+                   fluidRow(
+                     column(2,
+                            actionButton("calcAdvice","Calculate Advice")
+                           ),
+
+
+                     column(10,
+
+                            tabsetPanel( id = "Res_Tab",selected=1,
+                                         tabPanel(h4("All MPs",style = "color:black"),
+                                            column(12,style="height:25px"),
+                                            DT::dataTableOutput('Advice'),value=1),
+                                         tabPanel(h4("TAC plotted",style = "color:black"),
+                                            plotOutput("Advice_TAC",height="auto"),value=2)
+                            )
+
+
+                    )
+                  )
+          )
+
+        )
+
+
+      })
+
+     ),
+
      column(12,style="height:15px"),
 
       h4("HELP"),
@@ -1267,9 +1325,8 @@ shinyUI(
                  )))),
 
 
-      column(12,style="height:100px",
-      hr()
-      ),
+      column(12,style="height:100px"),
+      hr(),
 
       column(8,style="height:40px"),
       column(2,style="height:40px; padding:9px",textOutput("SessionID")),
