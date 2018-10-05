@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.4)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.5)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -839,7 +839,7 @@ shinyUI(
                    ),
                    conditionalPanel(condition="output.MadeOM==0",
 
-                          h5("Operating model not built yet", style = "color:grey")
+                          h5("Operating model not built yet (Step B)", style = "color:grey")
 
                   )
                 ),
@@ -847,14 +847,14 @@ shinyUI(
                 column(6,
 
                        h5("Simulations can be run to test Multiple MPs over a certain number of projected years in which managment recommendations are updated every 'interval' years", style = "color:grey"),
-                       h5("The 'Risk Assessment' set of MPs reflect current status quo management but also include reference management approaches to frame performance", style = "color:grey"),
-                       h5("The 'Top 20' set of MPs are a subset that generally perform well in many cases but may not be appropriate for your operating model", style = "color:grey"),
-                       h5("When selecting 'All' users will run an MSE for all available MPs (~100) which can take 20 minutes or more depending on the longevity of the species and the number of simulations", style = "color:grey"),
-                       h5("The 'Demo' set are a small selection of fast-running MPs for FRAME demonstration purposes only", style = "color:grey"),
+                       h5("- Risk Assessment: a set of MPs reflecting status quo management including reference management approaches", style = "color:grey"),
+                       h5("- Top 20: MPs that generally perform well in many cases but may not be appropriate for your operating model", style = "color:grey"),
+                       h5("- All: an MSE is run for all available MPs (~100) which can take 20 minutes or more", style = "color:grey"),
+                       h5("- Demo: a small selection of fast-running MPs for FRAME demonstration purposes only", style = "color:grey"),
                        h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run", style = "color:grey"),
                        h5("In situations where operating models are built with more than 48 simulations it can be much faster to use parallel computing ('Parallel comp.)
                           although the progress bar will not longer work ",style="color:grey"),
-                          h5("Documentation of the various MPs can be found below in the help section or online ",a("here", href="https://dlmtool.github.io/DLMtool/reference/index.html", target="_blank"),style = "color:grey")
+                       h5("Documentation of the various MPs can be found as links in the results tables, below in the help section or online ",a("here", href="https://dlmtool.github.io/DLMtool/reference/index.html", target="_blank"),style = "color:grey")
 
                )
              )
@@ -915,7 +915,7 @@ shinyUI(
 
                        ),
                        conditionalPanel(condition="output.MadeOM==0",
-                            h5("Operating model not built yet", style = "color:grey")
+                            h5("Operating model not built yet (Step B)", style = "color:grey")
                       )
                      ),
                      column(6,
@@ -979,9 +979,7 @@ shinyUI(
                               h5("Application not run yet (Step C2)", style = "color:grey")
                             ),
                             conditionalPanel(condition="output.DataInd==1",
-                                             sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
-                                             sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01),
-                                             actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
+                                                 actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
                             )
 
                      ),
@@ -1010,6 +1008,49 @@ shinyUI(
              )
           )
         ), # input.Mode conditional panel
+
+        conditionalPanel(width=12,condition="input.Mode=='Advanced'",
+
+                     column(12,style="height:15px"),
+
+                     h4("STEP E: ADVICE"),
+                     hr(),
+
+                     conditionalPanel(width=4,condition="output.Data==0",{
+
+
+                       fluidRow(
+                         column(1),
+                         column(11,h5("Data not loaded (Step A2)", style = "color:grey")
+
+
+                         )
+                       )
+
+                     }),
+
+                     conditionalPanel(width=4,condition="output.Data==1",{
+
+
+                       fluidRow(
+                         column(1),
+                         column(11,
+
+                                fluidRow(
+                                  column(2,
+                                         actionButton("calcAdvice","Calculate Advice")
+                                  )
+
+                                )
+                         )
+
+                       )
+
+
+                     })
+
+        ), # end of ADVICE
+
 
         column(12,style="height:15px"),
 
@@ -1040,14 +1081,24 @@ shinyUI(
                   sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
                   actionButton("Default_thres","Reset to default thresholds")
 
-                ) # end of app or indicator control panel
+                ), # end of app or eval control panel
+
+                conditionalPanel(width=4,condition="output.Ind==1&input.Res_Tab==3",
+                                 sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
+                                 sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01)
+                )# end of indicator control panel
 
               ),
+
+
 
               column(10,
                tabsetPanel( id = "Res_Tab",selected=1,
                 tabPanel(h4("Evaluation",style = "color:black"),
-                         conditionalPanel(condition="output.Calc==0",
+                         conditionalPanel(condition="output.Calc==0&input.Mode=='Streamlined'",
+                                          h5("Evaluation MSE not run yet (Step C)", style = "color:grey")
+                         ),
+                         conditionalPanel(condition="output.Calc==0&input.Mode=='Advanced'",
                                           h5("Evaluation MSE not run yet (Step C1)", style = "color:grey")
                          ),
                          conditionalPanel(condition="output.Calc==1",
@@ -1182,7 +1233,7 @@ shinyUI(
                     tabPanel(h4("Indicators",style = "color:black"),
 
                              conditionalPanel(condition="output.Ind==0&input.Mode=='Advanced'",
-                                      h5("Indicators not calculated yet", style = "color:grey")
+                                      h5("Indicators not calculated yet (Step D)", style = "color:grey")
                              ),
                              conditionalPanel(condition="output.App==0&input.Mode=='Streamlined'",
                                               h5("Indicator results are calculated in Advanced mode only", style = "color:grey")
@@ -1203,7 +1254,23 @@ shinyUI(
                                )
                              ),
 
-                             value=3)
+                             value=3),
+
+
+                tabPanel(h4("Advice",style = "color:black"),
+                         conditionalPanel(condition="output.AdCalc==0&input.Mode=='Advanced'",
+                           h5("Advice not calculated yet (Step E)", style = "color:grey")
+                         ),
+                         conditionalPanel(condition="output.AdCalc==0&input.Mode=='Streamlined'",
+                           h5("Advice is calculated in Advanced mode only", style = "color:grey")
+                         ),
+                         conditionalPanel(condition="output.AdCalc==1",
+                           column(12,style="height:25px"),
+                           DT::dataTableOutput('Advice'),
+                           plotOutput("Advice_TAC",height="auto")
+                         ),
+                         value=4)
+
                )
               )
             )
@@ -1211,60 +1278,6 @@ shinyUI(
       ), # end of Results
 
 
-      conditionalPanel(width=12,condition="input.Mode=='Advanced'",
-
-        column(12,style="height:15px"),
-
-        h4("ADVICE"),
-        hr(),
-
-        conditionalPanel(width=4,condition="output.Data==0",{
-
-
-          fluidRow(
-            column(1),
-            column(11,h5("Data not loaded (Step A2)", style = "color:grey")
-
-
-            )
-          )
-
-        }),
-
-        conditionalPanel(width=4,condition="output.Data==1",{
-
-
-          fluidRow(
-            column(1),
-            column(11,
-
-                   fluidRow(
-                     column(2,
-                            actionButton("calcAdvice","Calculate Advice")
-                           ),
-
-
-                     column(10,
-
-                            tabsetPanel( id = "Res_Tab",selected=1,
-                                         tabPanel(h4("All MPs",style = "color:black"),
-                                            column(12,style="height:25px"),
-                                            DT::dataTableOutput('Advice'),value=1),
-                                         tabPanel(h4("TAC plotted",style = "color:black"),
-                                            plotOutput("Advice_TAC",height="auto"),value=2)
-                            )
-
-
-                    )
-                  )
-          )
-
-        )
-
-
-      })
-
-     ),
 
      column(12,style="height:15px"),
 

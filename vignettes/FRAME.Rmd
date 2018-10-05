@@ -1,5 +1,5 @@
 ---
-title: "FRAME User Guide (v2.0)"
+title: "FRAME User Guide (v2.5)"
 subtitle: "Fisheries Risk Assessment and Method Evaluation"
 author: "T. Carruthers (UBC)"
 date: "`r Sys.Date()`"
@@ -48,7 +48,16 @@ pre { /* Code block */
 
 # Version notes
 
-## v2.00
+Changes for version 2.5
+
+* App redesigned to Streamlined and Advanced modes
+* Risk assessment vs MSE now happens in Evaluation model with the Users choice of MPs
+* MSE convergence diagnostics in Evaluation mode
+* Management advice can now be calculated in-app
+* Bug ricky detected in Application mode now fixed (need to run FMSYref in addition to chosen MP to calculate relative yield)
+* Various bugs have been sorted relating to hosting of the app
+
+Changes for version 2.0
 
 * Overhauled to a linear step A-D design
 * Modals (warning pop ups) to prevent errors
@@ -61,23 +70,42 @@ pre { /* Code block */
 * Inclusion of data-rich MPs designed in TMB such as Statistical catch at age (SCA), state-space delay-different and state-space surplus production models (of MSEtook Huyhn et al. 2018)
 * Guides to all MPs
 
-<br>
+Coming soon:
 
+* Advice automated reporting
+* Power analysis for ancillary indicators
+* Bioeconomic component
+* Robustness questions (e.g. regime shifts, trends in natural mortality rate)
 
 # Introduction
 
-FRAME is a fishery risk assessment tool that links a streamlined user interface to an advanced operating model, using management strategy evaluation to identify sustainable fishery management procedures (MPs).
+FRAME is fishery risk assessment software that links a streamlined user interface to the advanced operating model of DLMtool and MSEtool, using management strategy evaluation to identify sustainable fishery management procedures (MPs).
 
 The online App includes interactive help and links to external documentation. This document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
 
 There are two modes to FRAME. 
 
-The first is the Streamlined mode that is less complex and uses the quantitative questionnaire to parameterize a operating model for risk assessment of multiple MPs. The second, the Advanced mode includes tools for conditioning operating models on data, doing detailed MSE analysis of a single selected MP and also detecting 'exceptional circumstances' via auxillary indicator data. 
+* Streamlined mode is less complex and uses the quantitative questionnaire to parameterize a operating model for risk assessment of multiple MPs. 
 
+* Advanced mode includes tools for conditioning operating models on data, doing detailed MSE analysis of a single selected MP, detecting 'exceptional circumstances' (when to reject an operating model) and calculation of real management advice
+
+As they work through the various steps the user can save their questionnaire, operating models, evaluation or application MSE runs. This allows the user to enter the process at any step without necessarily completing earlier steps. 
+
+At each step the user has the option of documenting their progress using automatic reports. These are .html reports that record specific aspects such as the questions answered and the justification for those answers. 
+
+<br>
+<br>
+
+<img src="FRAME_design.JPG" width="900">
+
+Figure 1. The features of the FRAME app in the 'Streamlined' and 'Advanced' modes. 
+
+<br>
+<br>
 
 # Step A. Quantitative Questionnaire. 
 
-A large number of simulations were carried out to identify the most important aspects of fishery dynamics that determine the performance ranking of management procedures. 
+A very large number of exploratory fishery simulations were used to identify the most important aspects of fishery dynamics that determine the performance ranking of various management procedures (MPs, e.g. size limits, catch control by DCAC, an area closure). 
 
 This analysis was used to design a quantitative questionnaire comprising of 21 questions: 
 
@@ -89,6 +117,7 @@ FRAME allows for a high degree of uncertainty over any of these attributes. By d
 
 At any time the user can move on to step B and build an operating model.  
 
+<br><br>
 
 ## The Fishery Tab
 
@@ -338,6 +367,12 @@ Management question 1 and Data question 1 also determine the feasibility of MPs.
 ## Indicators
 
 The indicator results show the location in multivariate space of the real data (an orange cross) with respect to the simulated posterior data of the MSE (blue dots). Below these plots is a summary plot that summarizes whether the observations are far from the cloud of simulated data (dissimilar and OM is rejected). 
+
+<br><br>
+
+# Step E. Advice
+
+If data are loaded in step A2, it is possible to calculate management advice for all feasible MPs. MPs differ in the type of advice they specify providing TACs (total allowable catches), TAE (total allowable effort as a fraction of todays effort), size limits and area closures. 
 
 <br><br>
 

@@ -154,10 +154,13 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
 
   dynheader<-c(1,1,2,1,2,1,1)
   names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", paste0("Biomass (yrs ",burnin,"-50)"), paste0("Yield (yrs ",burnin,"-50)"),"Reason")
+  MPurlconv<-function(x)MPurl(as.character(x))
+  linky<-sapply(Ptab2$MP,MPurlconv)
+  #linky<- paste0("<a href='",linko,"' target='_blank'>",linko,"</a>")
 
   Ptab2 %>%
     mutate(
-      MP =  cell_spec(MP, "html", color = cols),
+      MP =  cell_spec(MP, "html", color = cols,link=linky),
       Type =  cell_spec(Type, "html"),
       PI.111a = ifelse(PI.111a >= thresh[1],
                        cell_spec(PI.111a, "html", color = "green"),
@@ -178,7 +181,7 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
       feasible =  cell_spec(feasible, "html")
 
     )%>%
-    knitr::kable("html", escape = F,align = "c") %>%
+    knitr::kable("html", escape = FALSE,align = "c") %>%
     kable_styling("striped", full_width = F)%>%
     column_spec(5, width = "3cm") %>%
     add_header_above(c(" ", " ","> 0.5 BMSY" = 1, "> BMSY" = 1,

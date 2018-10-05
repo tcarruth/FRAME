@@ -70,7 +70,7 @@ shinyServer(function(input, output, session) {
   App<-reactiveVal(0)  # Have run Application (single MP)
   DataInd<-reactiveVal(0) # Indicator data loaded
   Ind<-reactiveVal(0)  # Have run Indicator (single MP)
-
+  AdCalc<-reactiveVal(0) # Has advice been calculated
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
@@ -87,6 +87,7 @@ shinyServer(function(input, output, session) {
   output$DataInd  <- reactive({ DataInd()})
   output$Ind      <- reactive({ Ind()})
 
+  output$AdCalc   <- reactive({ AdCalc()})
 
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
@@ -105,6 +106,7 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"DataInd",suspendWhenHidden=FALSE)
   outputOptions(output,"Ind",suspendWhenHidden=FALSE)
 
+  outputOptions(output,"AdCalc",suspendWhenHidden=FALSE)
 
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
@@ -118,7 +120,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"2.4"
+  FRAMEversion<<-"2.5"
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -259,6 +261,7 @@ shinyServer(function(input, output, session) {
         App(0)
         Ind(0)
         DataInd(0)
+        AdCalc(0)
       },
       error = function(e){
         shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
@@ -846,6 +849,9 @@ shinyServer(function(input, output, session) {
       output$Advice <- DT::renderDataTable(out[[1]],options = list(lengthMenu = c(10, 25, 50), pageLength = 10))
       output$Advice_TAC<-renderPlot(plot(out[[2]]),height =900 ,width=900)
     })
+
+    updateTabsetPanel(session,"Res_Tab",selected="4")
+    AdCalc(0)
 
   })
 
