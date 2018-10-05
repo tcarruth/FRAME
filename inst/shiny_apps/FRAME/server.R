@@ -19,6 +19,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
+  FRAMEversion<<-"2.6"
   #options(browser = false)
 
   # -------------------------------------------------------------
@@ -40,6 +41,9 @@ shinyServer(function(input, output, session) {
 
   # Reporting
   source("./OM_report.R",local=TRUE)
+
+  # MSE running / indicator calculation
+  source("./MSE_runs.R",local=TRUE)
 
   # Advice
   source("./Advice.R",local=TRUE)
@@ -120,7 +124,7 @@ shinyServer(function(input, output, session) {
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
   Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
-  FRAMEversion<<-"2.5"
+
 
   # Default simulation ttributes --------------------------------------------------------------------------------
   nyears<-68 # 1950-2018
@@ -262,6 +266,13 @@ shinyServer(function(input, output, session) {
         Ind(0)
         DataInd(0)
         AdCalc(0)
+        MPs<-getMPs(All=TRUE)
+        MPs<-MPs[!grepl("FMSYref",MPs)] # remove reference FMSY MPs
+        if(length(MPs)<3)MPs<-c("matlenlim","DCAC","curE") # just an error catch in case, for some reason getMPs returns less than three MPs
+        updateSelectInput(session,"Advice_MP1",choices=MPs,selected=MPs[1])
+        updateSelectInput(session,"Advice_MP2",choices=MPs,selected=MPs[2])
+        updateSelectInput(session,"Advice_MP3",choices=MPs,selected=MPs[3])
+        Calc_Advice(Advice_MPs=MPs[1:3])
       },
       error = function(e){
         shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
@@ -522,39 +533,39 @@ shinyServer(function(input, output, session) {
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
-  tryCatch({
-    withProgress(message = "Running Evaluation", value = 0, {
-      MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
-      MGT2<-ceiling(MSEobj@OM$MGT*2)
-      MGT2[MGT2<5]<-5
-      MGT2[MGT2>20]<-20
+    tryCatch({
+      withProgress(message = "Running Evaluation", value = 0, {
+        MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+        MGT2<-ceiling(MSEobj@OM$MGT*2)
+        MGT2[MGT2<5]<-5
+        MGT2[MGT2>20]<-20
 
-      OM_reb<-OM
-      OM@proyears<-max(MGT2)+2 # only have to compute to this year
-      OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
+        OM_reb<-OM
+        OM@proyears<-max(MGT2)+2 # only have to compute to this year
+        OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
-      withProgress(message = "Rebuilding Analysis", value = 0, {
-        MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
-      })
-      save(MSEobj_reb,file="MSEobj_reb")
+        withProgress(message = "Rebuilding Analysis", value = 0, {
+          MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
+        })
+        save(MSEobj_reb,file="MSEobj_reb")
 
-      save(MSEobj,file="MSEobj")
-      save(PanelState,file="PanelState")
+        save(MSEobj,file="MSEobj")
+        save(PanelState,file="PanelState")
 
-      # ==== Types of reporting ==========================================================
+        # ==== Types of reporting ==========================================================
 
-      redoEval(fease=T)
-      Calc(1)
-      updateTabsetPanel(session,"Res_Tab",selected="1")
-    }) # with progress
+        redoEval(fease=T)
+        Calc(1)
+        updateTabsetPanel(session,"Res_Tab",selected="1")
+      }) # with progress
 
-    },
-    error = function(e){
-      shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-                 For example a short lived stock a low stock depletion with recently declining effort.
-                 Try revising operating model parameters.", type = "info")
-      return(0)
-    }
+      },
+      error = function(e){
+        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                   For example a short lived stock a low stock depletion with recently declining effort.
+                   Try revising operating model parameters.", type = "info")
+        return(0)
+      }
    )
 
   }) # press calculate
@@ -620,113 +631,6 @@ shinyServer(function(input, output, session) {
 
   })
 
-  redoEval<-function(fease=F){
-
-    withProgress(message = "Calculating Evaluation results", value = 0, {
-      incrate<-1/5
-      incProgress(incrate)
-      burnin<<-input$burnin
-      Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-      incProgress(incrate)
-      thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
-      incProgress(incrate)
-      Ptab2<<-temp[[1]]
-      MPcols<<-temp[[2]]
-      MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
-      MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
-      #save(MSEobj_top,file="MSEobj_top")
-      #save(MSEobj_reb_top,file="MSEobj_reb_top")
-      nMPs<-length(MSEobj_top@MPs)
-      updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
-      output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
-      incProgress(incrate)
-      output$threshtable<-function()Thresh_tab(thresh)
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
-      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
-      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
-      output$wormplot<-renderPlot(Pplot3(MSEobj_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
-      output$wormplot2<-renderPlot(Rplot(MSEobj_reb_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
-      output$PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_top,MPcols=MPcols,maxMPs=MSEobj_top@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =ceiling(nMPs/6)*400 , width = 1100)
-
-      incProgress(incrate)
-      VOIout<<-getVOI(MSEobj_top)
-      output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
-      output$Eval_Converge<-renderPlot(Converge(MSEobj_top,PMs = list(Yield, P10),ncol=2,nrow=1),height =400 , width = 1300)
-    })
-  }
-
-  redoApp<-function(fease=F){
-    withProgress(message = "Calculating Application results", value = 0, {
-      incrate<-1/5
-      incProgress(incrate)
-
-
-      burnin<<-input$burnin
-      Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0,App=T)
-      thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-      temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,fease=fease,thresh=thresh)
-      incProgress(incrate)
-
-      Ptab2_app<<-temp[[1]]
-      MPcols_app<<-temp[[2]]
-      output$App_Ptable <- function()Ptab_formatted(Ptab2_app,burnin=burnin,cols=MPcols_app,thresh=thresh)
-      output$App_threshtable<-function()Thresh_tab(thresh)
-      incProgress(incrate)
-      MSEobj_app<-Sub(MSEobj_app,MSEobj_app@MPs[2])
-      MSEobj_reb_app<-Sub(MSEobj_reb_app,MSEobj_reb_app@MPs[2])
-
-      output$MSC_PMs<-renderPlot(MSC_PMs(MSEobj_app,MSEobj_reb_app,MPcols=MPcols_app),height=1000,width=900)
-      output$App_wormplot<-renderPlot(Pplot3(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
-      output$App_wormplot2<-renderPlot(Pplot4(MSEobj_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
-      output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
-      output$App_PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_app,MPcols=MPcols_app,maxMPs=MSEobj_app@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =450 , width =550)
-
-      VOIout_app<<-getVOI(MSEobj_app)
-      incProgress(incrate)
-
-      output$App_CCU<-renderPlot(CCU_plot(VOIout_app,MSEobj_app,MPcols=MPcols_app,maxrow=1,maxcol=1),height =550 , width =550)
-      output$App_VOI<-renderPlot(VOI_MSC(MSEobj_app,MPcols=MPcols_app),height =550 , width =550)
-
-      incProgress(incrate)
-
-    })
-  }
-
-  redoInd<-function(){
-
-    styr=MSEobj_app@nyears
-    PPD<-MSEobj_app@Misc[[2]]
-
-    # Standardization
-    PPD@Cat<-PPD@Cat/PPD@Cat[,styr]
-    PPD@Ind<-PPD@Ind/PPD@Ind[,styr]
-    PPD@ML<-PPD@ML/PPD@ML[,styr]
-
-    tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-    stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-    res<-input$Ind_Res
-    datayears<-dim(dat_ind@Cat)[2]
-
-    if(datayears-MSEobj_app@nyears < res){
-      res=datayears-MSEobj_app@nyears
-    }else if(datayears-MSEobj_app@nyears < 3){
-      return(0)
-    }
-
-    indPPD<-getinds(PPD,styr=styr,res=res,tsd=tsd,stat=stat)
-
-    # Standardization
-    dat_ind@Cat<-dat_ind@Cat/dat_ind@Cat[,styr]
-    dat_ind@Ind<-dat_ind@Ind/dat_ind@Ind[,styr]
-    dat_ind@ML<-dat_ind@ML/dat_ind@ML[,styr]
-
-    indData<-getinds(dat_ind,styr=styr,res=res,tsd=tsd,stat=stat)
-
-    output$CC<-renderPlot( CC(indPPD,indData,pp=1,res=res),height =900 ,width=900)
-    output$mdist<-renderPlot(plot_mdist(indPPD,indData,alpha=input$Ind_Alpha),height =550 ,width=550)
-
-  }
 
   observeEvent(input$Default_thres,{
     updateSliderInput(session,"P111a",value=70)
@@ -827,32 +731,32 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  observeEvent(input$Advice_MP1,{
+    if(Data()==1)Calc_Advice()
+  })
 
-  # Advice ------------------------------------
+  observeEvent(input$Advice_MP2,{
+    if(Data()==1)Calc_Advice()
+  })
 
-  observeEvent(input$calcAdvice,{
+  observeEvent(input$Advice_MP3,{
+    if(Data()==1)Calc_Advice()
+  })
 
-    SCA_4010 <<- make_MP(SCA, HCR40_10)
-    SCA_MSY <<- make_MP(SCA, HCR_MSY)
-    DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
-    DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
-    SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
-    SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
-    MPs<-avail('MP')
-    cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
-    cond2<-!MPs%in%c("YPR","YPR_CC","YPR_ML")
-    MPs<-c(MPs[!cond&cond2])
-    MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+  observeEvent(input$Advice_allMPs,{
+    if(Data()==1)Calc_Advice()
+  })
 
-    withProgress(message = "Calculating management advice",value=0, {
-      out<-runMP_MSC(dat,MPs=MPs)
-      output$Advice <- DT::renderDataTable(out[[1]],options = list(lengthMenu = c(10, 25, 50), pageLength = 10))
-      output$Advice_TAC<-renderPlot(plot(out[[2]]),height =900 ,width=900)
-    })
+  observeEvent(input$Advice_nE,{
+    if(Data()==1)Calc_Advice()
+  })
 
-    updateTabsetPanel(session,"Res_Tab",selected="4")
-    AdCalc(0)
+  observeEvent(input$Advice_nA,{
+    if(Data()==1)Calc_Advice()
+  })
 
+  observeEvent(input$Advice_nEA,{
+    if(Data()==1)Calc_Advice()
   })
 
 

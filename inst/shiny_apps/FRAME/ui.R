@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.5)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.6)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -1009,47 +1009,47 @@ shinyUI(
           )
         ), # input.Mode conditional panel
 
-        conditionalPanel(width=12,condition="input.Mode=='Advanced'",
+        #conditionalPanel(width=12,condition="input.Mode=='Advanced'",
 
-                     column(12,style="height:15px"),
+         #            column(12,style="height:15px"),
 
-                     h4("STEP E: ADVICE"),
-                     hr(),
+          #           h4("STEP E: ADVICE"),
+    #           hr(),
 
-                     conditionalPanel(width=4,condition="output.Data==0",{
-
-
-                       fluidRow(
-                         column(1),
-                         column(11,h5("Data not loaded (Step A2)", style = "color:grey")
+    #           conditionalPanel(width=4,condition="output.Data==0",{
 
 
-                         )
-                       )
-
-                     }),
-
-                     conditionalPanel(width=4,condition="output.Data==1",{
+    #    fluidRow(
+    # column(1),
+    #  column(11,h5("Data not loaded (Step A2)", style = "color:grey")
 
 
-                       fluidRow(
-                         column(1),
-                         column(11,
+    #   )
+    #  )
 
-                                fluidRow(
-                                  column(2,
-                                         actionButton("calcAdvice","Calculate Advice")
-                                  )
+    # }),
 
-                                )
-                         )
-
-                       )
+    # conditionalPanel(width=4,condition="output.Data==1",{
 
 
-                     })
+    #  fluidRow(
+    #   column(1),
+    #  column(11,
 
-        ), # end of ADVICE
+    #    fluidRow(
+    #   column(2,
+    #          actionButton("calcAdvice","Calculate Advice")
+    #   )
+
+    #   )
+    # )
+
+    # )
+
+
+    # })
+
+    # ), # end of ADVICE
 
 
         column(12,style="height:15px"),
@@ -1084,9 +1084,46 @@ shinyUI(
                 ), # end of app or eval control panel
 
                 conditionalPanel(width=4,condition="output.Ind==1&input.Res_Tab==3",
-                                 sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
-                                 sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01)
-                )# end of indicator control panel
+                  sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
+                  sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01)
+                ),# end of indicator control panel
+
+                conditionalPanel(width=4,condition="output.Data==1 & input.Res_Tab==4",
+
+                  conditionalPanel(width=4,condition="output.Calc==1 & output.App==1",
+
+                        radioButtons("Advice_allMPs",label="Calculate advice for a set of MPs",
+                                     choices = c("Custom MPs","Application MP","Evaluation MPs","All feasible MPs"),selected="Custom MPs")
+
+                  ),
+
+                  conditionalPanel(width=4,condition="output.Calc==0 & output.App==1",
+
+                       radioButtons("Advice_nE",label="Calculate advice for a set of MPs",
+                                    choices = c("Custom MPs","Application MP","All feasible MPs"),selected="Custom MPs")
+
+                  ),
+
+                  conditionalPanel(width=4,condition="output.Calc==1 & output.App==0",
+
+                       radioButtons("Advice_nA",label="Calculate advice for a set of MPs",
+                                    choices = c("Custom MPs","Evaluation MPs","All feasible MPs"),selected="Custom MPs")
+
+                  ),
+
+                  conditionalPanel(width=4,condition="output.Calc==0 & output.App==0",
+
+                       radioButtons("Advice_nEA",label="Calculate advice for a set of MPs",
+                                    choices = c("Custom MPs","All feasible MPs"),selected="Custom MPs")
+
+                  ),
+
+
+                  selectInput("Advice_MP1", label = "Custom MP 1", choices=c("AvC","curE"),selected=character(0)),
+                  selectInput("Advice_MP2", label = "Custom MP 2", choices=c("AvC","curE"),selected=character(0)),
+                  selectInput("Advice_MP3", label = "Custom MP 3", choices=c("AvC","curE"),selected=character(0))
+
+                )
 
               ),
 
@@ -1259,7 +1296,7 @@ shinyUI(
 
                 tabPanel(h4("Advice",style = "color:black"),
                          conditionalPanel(condition="output.AdCalc==0&input.Mode=='Advanced'",
-                           h5("Advice not calculated yet (Step E)", style = "color:grey")
+                           h5("Data not loaded yet (Step A2)", style = "color:grey")
                          ),
                          conditionalPanel(condition="output.AdCalc==0&input.Mode=='Streamlined'",
                            h5("Advice is calculated in Advanced mode only", style = "color:grey")

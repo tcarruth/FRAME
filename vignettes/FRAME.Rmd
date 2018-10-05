@@ -1,5 +1,5 @@
 ---
-title: "FRAME User Guide (v2.5)"
+title: "FRAME User Guide (v2.6)"
 subtitle: "Fisheries Risk Assessment and Method Evaluation"
 author: "T. Carruthers (UBC)"
 date: "`r Sys.Date()`"
@@ -48,13 +48,18 @@ pre { /* Code block */
 
 # Version notes
 
+Changes for 2.6
+
+* Advice is calculated automatically when data are loaded
+* Users can specify the sets of MPs to calculate advice: three custom MPs, the MP from the Application MSE, the MPs from the Evaluation MSE or all of the feasible MPs
+
 Changes for version 2.5
 
-* App redesigned to Streamlined and Advanced modes
-* Risk assessment vs MSE now happens in Evaluation model with the Users choice of MPs
+* App redesigned with 'Streamlined' and 'Advanced' modes
+* Risk assessment vs MSE is now about what MPs are selected and happens in Evaluation model
 * MSE convergence diagnostics in Evaluation mode
 * Management advice can now be calculated in-app
-* Bug ricky detected in Application mode now fixed (need to run FMSYref in addition to chosen MP to calculate relative yield)
+* The bug Ricky detected in Application mode is now fixed (need to run FMSYref in addition to chosen MP to calculate relative yield)
 * Various bugs have been sorted relating to hosting of the app
 
 Changes for version 2.0
@@ -72,6 +77,7 @@ Changes for version 2.0
 
 Coming soon:
 
+* Smart feasibility (use data to limit MP running or alternatively add labels to tables)
 * Advice automated reporting
 * Power analysis for ancillary indicators
 * Bioeconomic component
@@ -79,7 +85,7 @@ Coming soon:
 
 # Introduction
 
-FRAME is fishery risk assessment software that links a streamlined user interface to the advanced operating model of DLMtool and MSEtool, using management strategy evaluation to identify sustainable fishery management procedures (MPs).
+FRAME is software for conducting rigorous fishery risk assessment. It links a streamlined user interface to the advanced OMx operating model of DLMtool and MSEtool, using management strategy evaluation to identify sustainable fishery management procedures (MPs).
 
 The online App includes interactive help and links to external documentation. This document is intended to provide additional information and guidance for FRAME users beyond the help provided by the online App
 
@@ -370,9 +376,16 @@ The indicator results show the location in multivariate space of the real data (
 
 <br><br>
 
-# Step E. Advice
+# Advice
 
-If data are loaded in step A2, it is possible to calculate management advice for all feasible MPs. MPs differ in the type of advice they specify providing TACs (total allowable catches), TAE (total allowable effort as a fraction of todays effort), size limits and area closures. 
+If data are loaded in step A2, it is possible to calculate management advice for:
+
+* three user-specified custom MPs
+* the MP tested in the Application
+* the MPs tested in the Evaluation
+* all feasible MPs
+
+MPs differ in the type of advice they specify providing TACs (total allowable catches), TAE (total allowable effort as a fraction of todays effort), size limits and area closures. 
 
 <br><br>
 
