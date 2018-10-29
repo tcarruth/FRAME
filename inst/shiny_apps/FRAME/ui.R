@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.6)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.7)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -321,11 +321,6 @@ shinyUI(
                                                                      choices = Err_list, selected = "Err_bad"),
                                                   actionLink("All_Err","DEFAULT")),
                                  value=3)
-
-
-
-
-
 
                       )
 
@@ -1070,8 +1065,8 @@ shinyUI(
                   #checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
 
                   column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
-
-                  HTML("<br>"),
+                  actionButton("Redo",h5(" REFRESH RESULTS ",style="color:red")),
+                  HTML("<br>","<br>"),
                   h5("Performance Thresholds",style="font-weight:bold"),
                   hr(),
                   sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
@@ -1118,7 +1113,6 @@ shinyUI(
 
                   ),
 
-
                   selectInput("Advice_MP1", label = "Custom MP 1", choices=c("AvC","curE"),selected=character(0)),
                   selectInput("Advice_MP2", label = "Custom MP 2", choices=c("AvC","curE"),selected=character(0)),
                   selectInput("Advice_MP3", label = "Custom MP 3", choices=c("AvC","curE"),selected=character(0))
@@ -1126,7 +1120,6 @@ shinyUI(
                 )
 
               ),
-
 
 
               column(10,

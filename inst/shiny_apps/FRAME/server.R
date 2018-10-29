@@ -535,7 +535,8 @@ shinyServer(function(input, output, session) {
 
     tryCatch({
       withProgress(message = "Running Evaluation", value = 0, {
-        MSEobj<<-runMSE(OM,MPs=MPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+        silent=T
+        MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
         MGT2<-ceiling(MSEobj@OM$MGT*2)
         MGT2[MGT2<5]<-5
         MGT2[MGT2>20]<-20
@@ -545,7 +546,7 @@ shinyServer(function(input, output, session) {
         OM_reb@cpars$D<-MSEobj@OM$SSBMSY_SSB0/2#apply(MSEobj@SSB_hist[,,MSEobj@nyears,],1, sum)/(MSEobj@OM$SSB0*2) # start from half BMSY
 
         withProgress(message = "Rebuilding Analysis", value = 0, {
-          MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=T,control=list(progress=T),parallel=parallel)
+          MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=silent,control=list(progress=T),parallel=parallel)
         })
         save(MSEobj_reb,file="MSEobj_reb")
 
@@ -566,7 +567,8 @@ shinyServer(function(input, output, session) {
                    Try revising operating model parameters.", type = "info")
         return(0)
       }
-   )
+
+    )
 
   }) # press calculate
 
@@ -631,7 +633,6 @@ shinyServer(function(input, output, session) {
 
   })
 
-
   observeEvent(input$Default_thres,{
     updateSliderInput(session,"P111a",value=70)
     updateSliderInput(session,"P111b",value=50)
@@ -649,88 +650,28 @@ shinyServer(function(input, output, session) {
   }
 
 
-  # Update tables if...
-  observeEvent(input$burnin,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
+  # Update tables if ...
+
+  observeEvent(input$Redo,{
+    if(input$Res_Tab==1)  redoEval(fease=T)
+    if(input$Res_Tab==2)  redoApp(fease=T)
   })
 
-  observeEvent(input$ntop,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
+  observeEvent(input$Remake_App,{
+    redoApp(fease=T)
   })
 
-  observeEvent(input$P111a,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
-  })
-  observeEvent(input$P111b,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
-  })
-  observeEvent(input$P112,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
-  })
-  observeEvent(input$P121a,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
-  })
-  observeEvent(input$P121b,{
-    if(Calc()==1){
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      redoApp(fease=T)
-    }
-  })
-
+  # Update panelstate if ...
   observeEvent(input$D1,{
-    if(Calc()==1){
-      UpPanelState()
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      UpPanelState()
-      redoApp(fease=T)
-    }
+    UpPanelState()
   })
 
   observeEvent(input$M1,{
-    if(Calc()!=0){
-      UpPanelState()
-      redoEval(fease=T)
-    }
-    if(App()==1){
-      UpPanelState()
-      redoApp(fease=T)
-    }
+    UpPanelState()
   })
 
+
+  # Recalculate advice if ...
   observeEvent(input$Advice_MP1,{
     if(Data()==1)Calc_Advice()
   })
@@ -764,8 +705,10 @@ shinyServer(function(input, output, session) {
 
   # OM questionnaire report
   output$Build_OM <- downloadHandler(
+
     # For PDF output, change this to "report.pdf"
-    #updateTextInput(session, "Name", value = input$Name),
+    # updateTextInput(session, "Name", value = input$Name),
+
     filename =  function(){  paste0(namconv(input$Name),"_OM.html") },
     content = function(file) {
       withProgress(message = "Building questionnaire report", value = 0, {
@@ -796,6 +739,7 @@ shinyServer(function(input, output, session) {
 
       output<-render(input="OMRep.Rmd",output_format="html_document", params = params)
       file.copy(output, file)
+
       }) # end of progress meter
     }
   )

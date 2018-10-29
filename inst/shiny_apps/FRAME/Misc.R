@@ -28,8 +28,8 @@ getMPs<-function(All=FALSE){
     MPs<<-c('FMSYref',"DCAC","matlenlim","MRreal","curE75","IT10")
   }else if(input$MPset=="Risk Assessment"){
     MPs<<-c('FMSYref',"NFref","AvC","curE","curE75","FMSYref75")
-  }else if(input$MPset=="Top20"){
-    MPs<<-c('FMSYref',"DCAC","DBSRA","DD","DDe","DDe75",  "DD4010","MCD","MCD4010","IT10","IT5",  "MRreal","MRnoreal","matlenlim","matlenlim2","DCAC_40",   "DBSRA_40","Fratio","LBSPR","HDAAC","ITe10")
+  }else if(input$MPset=="Top 20"){
+    MPs<<-c('FMSYref',"DCAC","DBSRA","DD","DDe","DDe75",  "DD4010","MCD","MCD4010","IT10","IT5",  "MRreal","MRnoreal","matlenlim","matlenlim2","DCAC_40", "DBSRA_40","Fratio","HDAAC","ITe10")
   }else{
     MPs<<-avail('MP')
     cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
@@ -53,7 +53,7 @@ getMPs<-function(All=FALSE){
     MPs<<-avail('MP')
     cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
     MPs<-c('FMSYref',MPs[!cond])
-    MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML")]
+    MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML","LBSPR")]
     SCA_4010 <<- make_MP(SCA, HCR40_10)
     SCA_MSY <<- make_MP(SCA, HCR_MSY)
     DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
