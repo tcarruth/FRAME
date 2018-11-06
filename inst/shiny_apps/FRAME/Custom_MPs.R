@@ -1,0 +1,7 @@
+
+#DDSS_4010 <<- make_MP(DD_SS, HCR40_10)
+#DDSS_MSY <<- make_MP(DD_SS, HCR_MSY)
+SPSS_4010 <<- make_MP(SP_SS, HCR40_10)
+SPSS_MSY <<- make_MP(SP_SS, HCR_MSY)
+#SCA_4010 <- make_MP(SCA, HCR40_10)
+#SCA_MSY <- make_MP(SCA, HCR_MSY)

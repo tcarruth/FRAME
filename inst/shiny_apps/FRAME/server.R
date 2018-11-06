@@ -22,6 +22,10 @@ shinyServer(function(input, output, session) {
   FRAMEversion<<-"2.6"
   #options(browser = false)
 
+  # MPs
+
+
+
   # -------------------------------------------------------------
   # Explanatory figures
   source("./Fishery_figs.R",local=TRUE)
@@ -58,6 +62,10 @@ shinyServer(function(input, output, session) {
   source('./Backwards.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
   #assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
   #assignInNamespace("incProgress",shiny::incProgress, ns="DLMtool")
+
+
+  source('./Custom_MPs.R',local=TRUE)
+
   incProgress<-shiny::incProgress
 
   # --------------------------------------------------------------
@@ -528,12 +536,13 @@ shinyServer(function(input, output, session) {
       if(nsim>47){
         parallel=T
         setup()
+
       }
     }
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
-    tryCatch({
+    #tryCatch({
       withProgress(message = "Running Evaluation", value = 0, {
         silent=T
         MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
@@ -560,15 +569,15 @@ shinyServer(function(input, output, session) {
         updateTabsetPanel(session,"Res_Tab",selected="1")
       }) # with progress
 
-      },
-      error = function(e){
-        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-                   For example a short lived stock a low stock depletion with recently declining effort.
-                   Try revising operating model parameters.", type = "info")
-        return(0)
-      }
+      #},
+      #error = function(e){
+      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+      #             For example a short lived stock a low stock depletion with recently declining effort.
+      #             Try revising operating model parameters.", type = "info")
+      #  return(0)
+      #}
 
-    )
+   # )
 
   }) # press calculate
 

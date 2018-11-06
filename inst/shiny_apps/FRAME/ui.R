@@ -1354,8 +1354,10 @@ shinyUI(
 
       column(12,style="height:45px"),
 
-      h4("ADVANCED"),
-      hr(),
+      conditionalPanel(condition="input.Mode=='Advanced'",
+                       h4("ADVANCED"),
+                       hr()
+      ),
 
       fluidRow(
         column(1),
@@ -1365,6 +1367,7 @@ shinyUI(
                  column(2
                       #  fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
                  )))),
+
 
 
       column(12,style="height:100px"),
