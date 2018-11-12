@@ -22,6 +22,15 @@ namconv<-function(nam){
   substr(nam,1,15)[[1]]
 }
 
+getAllMPs<-function(){
+  MPs<-avail('MP')
+  cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
+  MPs<-c('FMSYref',MPs[!cond])
+  MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML","LBSPR")]
+  MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+  MPs[order(MPs)]
+}
+
 getMPs<-function(All=FALSE){
 
   if(input$MPset=="Demo"){
@@ -39,21 +48,11 @@ getMPs<-function(All=FALSE){
 
   if(input$Ex_Ref_MPs) MPs<-MPs[!MPs%in%c("FMSYref","FMSYref75","FMSYref50","NFref")]
 
-  if(input$Data_Rich){
+  if(input$Data_Rich)  MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
 
-    MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
-  }
+  if(All) MPs<-getAllMPs()
 
-  if(All){
-    MPs<-avail('MP')
-    cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
-    MPs<-c('FMSYref',MPs[!cond])
-    MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML","LBSPR")]
-
-    MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
-  }
-
-  MPs
+  MPs[order(MPs)]
 
 }
 

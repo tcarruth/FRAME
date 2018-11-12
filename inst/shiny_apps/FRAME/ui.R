@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.7)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.8)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -1364,23 +1364,29 @@ shinyUI(
         column(11,
 
                fluidRow(
-                 column(2
-                      #  fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
-                 )))),
+                 column(2,
+                      fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
+                 ),
+                 column(1),
+                 column(2,
 
-
+                        checkboxInput("Debug","Debug mode",value=FALSE)
+                 )
+               )
+      )),
 
       column(12,style="height:100px"),
       hr(),
 
       column(8,style="height:40px"),
       column(2,style="height:40px; padding:9px",textOutput("SessionID")),
-      column(2,style="height:40px", h6("copyright (c) NRDC 2018"))
+      column(2,style="height:40px", h6("copyright (c) NRDC 2018")),
 
         #column(12,style="height:100px"),
       #column(12, actionButton("debug", "Debug")),
-
-      #column(12, textInput("Debug1", "Debug window", ""))
+      conditionalPanel(condition="input.Debug",
+        column(12, textInput("Debug1", "Debug window", ""))
+      )
 
      #) # end of fluid row
     ) # end of fluid page

@@ -15,11 +15,10 @@ options(shiny.maxRequestSize=100*1024^2)
 source("./global.R")
 
 
-
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"2.6"
+  FRAMEversion<<-"2.8"
   #options(browser = false)
 
   # MPs
@@ -172,6 +171,10 @@ shinyServer(function(input, output, session) {
 
   })
 
+  observeEvent(input$Mode,{
+    updateSelectInput(session=session,inputId="sel_MP",choices=getAllMPs()) # update MP selection in Application
+  })
+
   # == File I/O ==========================================================================
 
   # Questionnaire save
@@ -321,7 +324,6 @@ shinyServer(function(input, output, session) {
 
       if(class(OM)=='OM'){
         MPs<<-getMPs()
-        updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
         MadeOM(1)
         CondOM(0)
         Quest(0)
@@ -330,6 +332,11 @@ shinyServer(function(input, output, session) {
       }
 
   })
+
+  observeEvent(input$MPset,{
+    getMPs()
+  })
+
 
   # Eval save
   output$Save_Eval<- downloadHandler(
@@ -473,6 +480,21 @@ shinyServer(function(input, output, session) {
     selectedMP<<-input$sel_MP
   })
 
+  observeEvent(input$Load_anything,{
+   #tryCatch(
+    #  {
+        filey<-input$Load_anything
+        updateTextInput(session,"Debug1",value=filey$datapath)
+        source(file=filey$datapath)
+        updateSelectInput(session=session,inputId="sel_MP",choices=getAllMPs()) # update MP selection in Application
+
+    #},
+    #  error = function(e){
+        #shinyalert("File read error", "Your source code did not load correctly. Try sourcing this file in an R session to debug errors", type = "error")
+    #  }
+    #)
+
+  })
 
   # ======= OM building =============================
 
@@ -484,8 +506,10 @@ shinyServer(function(input, output, session) {
 
       OM<<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
 
-      saveRDS(OM,"OM_autosave.rda")
-      saveRDS(dat,"Data_autosave.rda")
+      if(input$Debug){
+        saveRDS(OM,"OM_autosave.rda")
+        saveRDS(dat,"Data_autosave.rda")
+      }
 
       updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(dat@Cat)))
       withProgress(message = "Building OM from Questionnaire inc. conditioning using S-SRA", value = 0, {
@@ -515,7 +539,6 @@ shinyServer(function(input, output, session) {
     DataInd(0)
 
     MPs<<-getMPs()
-    updateSelectInput(session=session,inputId="sel_MP",choices=MPs)
     selectedMP<<-MPs[2]
 
   })
@@ -557,10 +580,12 @@ shinyServer(function(input, output, session) {
         withProgress(message = "Rebuilding Analysis", value = 0, {
           MSEobj_reb<<-runMSE(OM_reb,MPs=MPs,silent=silent,control=list(progress=T),parallel=parallel)
         })
-        save(MSEobj_reb,file="MSEobj_reb")
 
-        save(MSEobj,file="MSEobj")
-        save(PanelState,file="PanelState")
+        if(input$Debug){
+          save(MSEobj_reb,file="MSEobj_reb")
+          save(MSEobj,file="MSEobj")
+          save(PanelState,file="PanelState")
+        }
 
         # ==== Types of reporting ==========================================================
 
@@ -600,7 +625,7 @@ shinyServer(function(input, output, session) {
       }
     }
 
-    tryCatch({
+   # tryCatch({
         withProgress(message = "Running Application", value = 0, {
           AppMPs<-c("FMSYref",input$sel_MP)
           MSEobj_app<<-runMSE(OM,MPs=AppMPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
@@ -617,20 +642,23 @@ shinyServer(function(input, output, session) {
         withProgress(message = "Rebuilding Analysis", value = 0, {
           MSEobj_reb_app<<-runMSE(OM_reb,MPs=AppMPs,silent=T,control=list(progress=T),parallel=parallel)
         })
-        save(MSEobj_reb_app,file="MSEobj_reb_app")
 
-        save(MSEobj_app,file="MSEobj_app")
+        if(input$Debug){
+          save(MSEobj_reb_app,file="MSEobj_reb_app")
+          save(MSEobj_app,file="MSEobj_app")
+        }
+
         App(1)
         redoApp(fease=T)
         updateTabsetPanel(session,"Res_Tab",selected="2")
-      },
-      error = function(e){
-        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-                   For example a short lived stock a low stock depletion with recently declining effort.
-                   Try revising operating model parameters.", type = "info")
-        return(0)
-      }
-    ) # try catch
+      #},
+      #error = function(e){
+      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+       #            For example a short lived stock a low stock depletion with recently declining effort.
+      #             Try revising operating model parameters.", type = "info")
+      #  return(0)
+      #}
+    #) # try catch
 
   }) # calculate MSE app
 
