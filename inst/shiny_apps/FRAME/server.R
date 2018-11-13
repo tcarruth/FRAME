@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"2.8"
+  FRAMEversion<<-"2.9"
   #options(browser = false)
 
   # MPs
@@ -481,18 +481,18 @@ shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$Load_anything,{
-   #tryCatch(
-    #  {
+   tryCatch(
+      {
         filey<-input$Load_anything
         updateTextInput(session,"Debug1",value=filey$datapath)
         source(file=filey$datapath)
         updateSelectInput(session=session,inputId="sel_MP",choices=getAllMPs()) # update MP selection in Application
 
-    #},
-    #  error = function(e){
-        #shinyalert("File read error", "Your source code did not load correctly. Try sourcing this file in an R session to debug errors", type = "error")
-    #  }
-    #)
+    },
+      error = function(e){
+        shinyalert("File read error", "Your source code did not load correctly. Try sourcing this file in an R session to debug errors", type = "error")
+      }
+    )
 
   })
 

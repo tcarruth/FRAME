@@ -27,7 +27,7 @@ getAllMPs<-function(){
   cond<-grepl("MLL",MPs)|grepl('ML',MPs)|grepl('FMSYref',MPs)
   MPs<-c('FMSYref',MPs[!cond])
   MPs<-MPs[!MPs%in%c("YPR","YPR_CC","YPR_ML","LBSPR")]
-  MPs<-c(MPs,"DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY")
+  MPs<-MPs[!MPs%in%c("DDSS_4010","DDSS_MSY","SPSS_4010","SPSS_MSY","SCA_MSY","SCA_4010")]
   MPs[order(MPs)]
 }
 

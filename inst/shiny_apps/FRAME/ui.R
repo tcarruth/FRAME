@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.8)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.9)",style="padding:19px;")
       ),
 
       column(2,offset=3,style="padding:14px;height:65px",
@@ -1355,26 +1355,26 @@ shinyUI(
       column(12,style="height:45px"),
 
       conditionalPanel(condition="input.Mode=='Advanced'",
-                       h4("ADVANCED"),
-                       hr()
+            h4("ADVANCED"),
+            hr(),
+
+
+            fluidRow(
+              column(1),
+              column(11,
+
+                     fluidRow(
+                       column(2,
+                            fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
+                       ),
+                       column(1),
+                       column(2,
+
+                              checkboxInput("Debug","Debug mode",value=FALSE)
+                       )
+                     )
+            ))
       ),
-
-      fluidRow(
-        column(1),
-        column(11,
-
-               fluidRow(
-                 column(2,
-                      fileInput("Load_anything","Load DLMtool and MSEtool source code for OMs, MPs and PMs")
-                 ),
-                 column(1),
-                 column(2,
-
-                        checkboxInput("Debug","Debug mode",value=FALSE)
-                 )
-               )
-      )),
-
       column(12,style="height:100px"),
       hr(),
 
