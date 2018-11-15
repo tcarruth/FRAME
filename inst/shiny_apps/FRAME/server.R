@@ -53,6 +53,7 @@ shinyServer(function(input, output, session) {
 
   # Miscellaneous
   source("./Misc.R",local=TRUE)
+  source("./Data_trim.R",local=TRUE)
   #source('./modSampCpars.R',local=TRUE)
   source("./Update_objects.R",local=TRUE) # functions that update stored objects, panelstate justification etc
   source('./Fease_Functions.R',local=TRUE )
@@ -264,11 +265,37 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_Data,{
 
     filey<-input$Load_Data
-
+    loaded<-T
     tryCatch(
       {
-        dat<<-XL2Data(filey$datapath)
-        updateTextAreaInput(session,"Data_Rep",value="Data successfully loaded")
+       dat<<-XL2Data(filey$datapath)
+      },
+      error = function(e){
+        shinyalert("Not a properly formatted DLMtool Data .csv file", "Trying to load as an object of class 'Data'", type = "error")
+        Data(0)
+        shinyjs::disable("OM_Cond")
+        updateCheckboxInput(session,"OM_cond",value=FALSE)
+        loaded=F
+      }
+    )
+
+    if(!loaded){
+    tryCatch(
+      {
+        dat<<-load(filey$datapath)
+      },
+      error = function(e){
+        shinyalert("Could not load object", "Failed to load this file as a formatted data object", type = "error")
+        Data(0)
+        shinyjs::disable("OM_Cond")
+        updateCheckboxInput(session,"OM_cond",value=FALSE)
+      }
+    )
+
+    if(class(dat)!="Data") stop()
+    }
+    #tryCatch(
+     # {
         Data(1)
         shinyjs::enable("OM_Cond")
         MadeOM(0)
@@ -284,14 +311,14 @@ shinyServer(function(input, output, session) {
         updateSelectInput(session,"Advice_MP2",choices=MPs,selected=MPs[2])
         updateSelectInput(session,"Advice_MP3",choices=MPs,selected=MPs[3])
         Calc_Advice(Advice_MPs=MPs[1:3])
-      },
-      error = function(e){
-        shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
-        Data(0)
-        shinyjs::disable("OM_Cond")
-        updateCheckboxInput(session,"OM_cond",value=FALSE)
-      }
-    )
+      #},
+      #error = function(e){
+       # shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
+      #  Data(0)
+       # shinyjs::disable("OM_Cond")
+      #  updateCheckboxInput(session,"OM_cond",value=FALSE)
+     # }
+    #)
 
   })
 
