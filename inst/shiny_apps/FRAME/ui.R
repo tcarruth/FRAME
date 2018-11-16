@@ -84,7 +84,7 @@ shinyUI(
              h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.9)",style="padding:19px;")
       ),
 
-      column(2,offset=3,style="padding:14px;height:65px",
+      column(3,offset=2,style="padding:14px;height:65px",
              fluidRow(
 
                column(7,tags$a(img(src = "DLMtool.png", height = 45, width = 145),href="https://www.datalimitedtoolkit.org",target='_blank')),

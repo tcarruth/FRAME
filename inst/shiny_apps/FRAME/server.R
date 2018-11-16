@@ -23,8 +23,6 @@ shinyServer(function(input, output, session) {
 
   # MPs
 
-
-
   # -------------------------------------------------------------
   # Explanatory figures
   source("./Fishery_figs.R",local=TRUE)
@@ -210,7 +208,7 @@ shinyServer(function(input, output, session) {
           # All panels except radio button on D4
           for(i in 1:length(PanelState)){
             for(j in 1:length(PanelState[[i]])) {
-              if(!(i==3&j==4)){ # not the radio button
+              if(!(i==3 & j==4)){ # not the radio button
                 state<-as.vector(unlist(PanelState[[i]][j]))
                 choices<-as.vector(unlist(get(MasterList[[i]][j])))
                 selected<-as.list(choices[state])
@@ -265,35 +263,42 @@ shinyServer(function(input, output, session) {
   observeEvent(input$Load_Data,{
 
     filey<-input$Load_Data
-    loaded<-T
-    tryCatch(
-      {
-       dat<<-XL2Data(filey$datapath)
-      },
-      error = function(e){
-        shinyalert("Not a properly formatted DLMtool Data .csv file", "Trying to load as an object of class 'Data'", type = "error")
-        Data(0)
-        shinyjs::disable("OM_Cond")
-        updateCheckboxInput(session,"OM_cond",value=FALSE)
-        loaded=F
-      }
-    )
 
-    if(!loaded){
-    tryCatch(
-      {
-        dat<<-load(filey$datapath)
-      },
-      error = function(e){
-        shinyalert("Could not load object", "Failed to load this file as a formatted data object", type = "error")
-        Data(0)
-        shinyjs::disable("OM_Cond")
-        updateCheckboxInput(session,"OM_cond",value=FALSE)
-      }
-    )
+    if(grepl(".csv",filey$datapath)){ # if it is a .csv file
 
-    if(class(dat)!="Data") stop()
+      tryCatch(
+        {
+         dat<<-XL2Data(filey$datapath)
+        },
+        error = function(e){
+          shinyalert("Not a properly formatted DLMtool Data .csv file", "Trying to load as an object of class 'Data'", type = "error")
+          Data(0)
+          shinyjs::disable("OM_Cond")
+          updateCheckboxInput(session,"OM_cond",value=FALSE)
+          loaded=F
+        }
+      )
+
+    }else{
+
+      tryCatch(
+        {
+          dat<<-load(filey$datapath)
+        },
+        error = function(e){
+          shinyalert("Could not load object", "Failed to load this file as a formatted data object", type = "error")
+          Data(0)
+          shinyjs::disable("OM_Cond")
+          updateCheckboxInput(session,"OM_cond",value=FALSE)
+        }
+      )
+
+      if(class(dat)!="Data"){
+        shinyalert("Data load error!", "Failed to load this file as either a formatted .csv datafile or a DLMtool object of class 'Data'", type = "error")
+        stop()
+      }
     }
+
     #tryCatch(
      # {
         Data(1)
