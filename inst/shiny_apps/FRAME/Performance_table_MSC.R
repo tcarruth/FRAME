@@ -1,57 +1,46 @@
 
-Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0,Ap=FALSE){
+Ptab_MSC<-function(MSEobj,burnin=5,rnd=0,Ap=FALSE){
 
   # PI 1.1.1
   nMPs<-MSEobj@nMPs
-  PI.111.a<-round(apply(MSEobj@B_BMSY[,,1:burnin,drop=FALSE]>0.5,2,mean)*100,rnd)
-  PI.111.b<-round(apply(MSEobj@B_BMSY[,,1:burnin,drop=FALSE]>1,2,mean)*100,rnd)
-
-  # PI 1.1.2
-  MGT2<-ceiling(MSEobj@OM$MGT*2)
-  MGT2[MGT2<5]<-5
-  MGT2[MGT2>20]<-20
-
-  Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
-  Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
-  PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
+  P_STL<-round(apply(MSEobj@B_BMSY[,,1:burnin,drop=FALSE]>0.5,2,mean)*100,rnd)
+  P_STT<-round(apply(MSEobj@B_BMSY[,,1:burnin,drop=FALSE]>1,2,mean)*100,rnd)
 
   # PI 1.2.1
-  PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50,drop=FALSE]>0.5,2,mean)*100,rnd)
-  PI.121.b<-round(apply(MSEobj@B_BMSY[,,11:50,drop=FALSE]>1,2,mean)*100,rnd)
+  P_LTL<-round(apply(MSEobj@B_BMSY[,,(burnin+1):50,drop=FALSE]>0.5,2,mean)*100,rnd)
+  P_LTT<-round(apply(MSEobj@B_BMSY[,,(burnin+1):50,drop=FALSE]>1,2,mean)*100,rnd)
 
-  # LTY
-  refY<-sum(MSEobj@C[,1,11:50])
-  LTY<-round(apply(MSEobj@C[,,11:50,drop=FALSE],2,sum)/refY*100,rnd)
   MP<-MSEobj@MPs
 
-  tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,LTY)
-  if(Ap)tab<-tab[2,]
-  if(!Ap)tab<-tab[order(tab$LTY,decreasing=T),]
-  tab
+  tab<-data.frame(MP,P_STL, P_STT, P_LTL, P_LTT)
+
+  #if(Ap) tab<-tab[2,]
+  #if(!Ap)tab<-
+  tab[order(tab$P_LTT,decreasing=TRUE),]
+
 
 }
 
-Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
+Thresh_tab_MSC<-function(thresh=c(70, 50, 80, 50)){
 
   Ptab2<-as.data.frame(matrix(thresh,nrow=1))
-  names(Ptab2)<-c("PI.111a","PI.111b","PI.112","PI.121a","PI.121b")
+  names(Ptab2)<-c("P_STL","P_STT","P_LTL","P_LTT")
 
   Ptab2 %>%
     mutate(
-      PI.111a =   cell_spec(PI.111a, "html", color = "black"),
-      PI.111b =   cell_spec(PI.111b, "html", color = "black"),
-      PI.112 = cell_spec(PI.112, "html", color = "black"),
-      PI.121a = cell_spec(PI.121a, "html", color = "black"),
-      PI.121b =  cell_spec(PI.121b, "html", color = "black")
+      P_STL = cell_spec(P_STL, "html", color = "black"),
+      P_STT = cell_spec(P_STT, "html", color = "black"),
+      P_LTL = cell_spec(P_LTL, "html", color = "black"),
+      P_LTT = cell_spec(P_LTT, "html", color = "black")
     )%>%
-    knitr::kable("html", escape = F,align = "c") %>%
+    knitr::kable("html", escape = F,align = "c",col.names=c("Limit","Target","Limit","Target"))%>%
     kable_styling("striped", full_width = F)%>%
-    column_spec(5, width = "3cm")  %>%
-    add_header_above(c("Thresholds" = 5))
+    add_header_above(c("Stock status" = 2, "Harvest Strategy"=2))%>%
+    add_header_above(c("Probability Thresholds" = 4))
 }
 
-#                                  11a 11b 12  21a 21a
-Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,fease=F){
+#
+Ptab_ord_MSC<-function(Ptab1,thresh=c(70, 50, 80, 50),burnin=10,ntop=NA,Eval=T,fease=F){
 
   # save(Ptab1,file="Ptab1")
 
@@ -121,9 +110,9 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
 
   Ptab2<-Ptab1 #[,1:ncol(Ptab1)]
   Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
-  names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
+  names(Ptab2)<-c("MP","Type","P_STL","P_STT","P_LTL","P_LTT")
 
-  PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
+  PIsmet<-Ptab2$P_STL >= thresh[1] & Ptab2$P_STT >= thresh[2] & Ptab2$P_LTL >= thresh[3] & Ptab2$P_LTT >= thresh[4]
   cols<<-rep('black',length(MPs))
   cols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
   cols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
@@ -139,7 +128,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   Ptab2<-cbind(Ptab2,feasible)
 
   # Rankings
-  rnkscore<-Ptab2$LTY
+  rnkscore<-Ptab2$P_LTT
   rnkscore[cols=="green"]=rnkscore[cols=="green"]+2000
   rnkscore[cols=="red"]=rnkscore[cols=="red"]+1000
   ord<-order(rnkscore,decreasing = T)
@@ -150,10 +139,11 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
 
 }
 
-Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
+Ptab_formatted_MSC<-function(Ptab2,thresh=c(70, 50, 80, 50),burnin=5,cols){
 
-  dynheader<-c(1,1,2,1,2,1,1)
-  names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", paste0("Biomass (yrs ",burnin,"-50)"), paste0("Yield (yrs ",burnin,"-50)"),"Reason")
+  #Ptab2<-as.data.frame(as.matrix(Ptab2))
+  dynheader<-c(1,1,2,2,1)
+  names(dynheader)<-c(" ", " ", paste0("Stock Status (yrs 1-",burnin,")"), paste0("Harvest Strategy (yrs ",burnin,"-50)"), "Reason not")
   MPurlconv<-function(x)MPurl(as.character(x))
   linky<-sapply(Ptab2$MP,MPurlconv)
   #linky<- paste0("<a href='",linko,"' target='_blank'>",linko,"</a>")
@@ -162,36 +152,24 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
     mutate(
       MP =  cell_spec(MP, "html", color = cols,link=linky),
       Type =  cell_spec(Type, "html"),
-      PI.111a = ifelse(PI.111a >= thresh[1],
-                       cell_spec(PI.111a, "html", color = "green"),
-                       cell_spec(PI.111a, "html", color = "red")),
-      PI.111b = ifelse(PI.111b >= thresh[2],
-                       cell_spec(PI.111b, "html", color = "green"),
-                       cell_spec(PI.111b, "html", color = "red")),
-      PI.112 = ifelse(PI.112 >= thresh[3],
-                      cell_spec(PI.112, "html", color = "green"),
-                      cell_spec(PI.112, "html", color = "red")),
-      PI.121a = ifelse(PI.121a >= thresh[4],
-                       cell_spec(PI.121a, "html", color = "green"),
-                       cell_spec(PI.121a, "html", color = "red")),
-      PI.121b = ifelse(PI.121b >= thresh[5],
-                       cell_spec(PI.121b, "html", color = "green"),
-                       cell_spec(PI.121b, "html", color = "red")),
-      LTY =  cell_spec(LTY, "html"),
+      P_STL = ifelse(P_STL >= thresh[1],
+                       cell_spec(P_STL, "html", color = "green"),
+                       cell_spec(P_STL, "html", color = "red")),
+      P_STT = ifelse(P_STT >= thresh[2],
+                       cell_spec(P_STT, "html", color = "green"),
+                       cell_spec(P_STT, "html", color = "red")),
+      P_LTL = ifelse(P_LTL >= thresh[3],
+                      cell_spec(P_LTL, "html", color = "green"),
+                      cell_spec(P_LTL, "html", color = "red")),
+      P_LTT = ifelse(P_LTT >= thresh[4],
+                       cell_spec(P_LTT, "html", color = "green"),
+                       cell_spec(P_LTT, "html", color = "red")),
       feasible =  cell_spec(feasible, "html")
-
     )%>%
-    knitr::kable("html", escape = FALSE,align = "c") %>%
+    knitr::kable("html", escape = FALSE,align = "c",col.names=c("MP","Type","Limit","Target","Limit","Target","feasible"))%>%
     kable_styling("striped", full_width = F)%>%
-    column_spec(5, width = "3cm") %>%
-    add_header_above(c(" ", " ","> 0.5 BMSY" = 1, "> BMSY" = 1,
-                       "> BMSY"=1,"> 0.5 BMSY"=1,"> BMSY"=1,"vs FMSYref"=1,"not"=1))%>%
-
-    add_header_above(dynheader)%>%
-
-    add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
-                       "Harvest Strategy"=2,
-                       "Long-Term Yield"=1," "=1))
-
+    add_header_above(dynheader)#%>%
+    #add_header_above(c(" ", " ","Stock Status" = 2, "Harvest Strategy" = 2,"Reason not"=1))
+    #column_spec(5, width = "3cm")
 
 }

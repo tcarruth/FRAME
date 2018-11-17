@@ -89,7 +89,6 @@ SRAsim<-function(OM,qmult=0.5,CAApatchy=0.4,Cpatchy=1,Ipatchy=0.4,MLpatchy=0.4,n
   plot(1:nyears,Ind,xlab="Year",ylim=c(0,max(Ind,na.rm=T)))
   plot(1:nyears,ML,xlab="Year")
 
-
   return(list(Chist=Chist,Recdevs=Recdevs,CAA=CAA,Ind=Ind,ML=ML,N=N,SSB=SSB,FM=FM,M=M,SSB0=SSB0,sel=sel))
 
 }
@@ -101,6 +100,7 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
                         ploty=T,nplot=6,SRAdir=NA,shiny=T){
 
   OM <- updateMSE(OM) # Check that all required slots in OM object contain values
+
   nyears<-length(Chist)
   if(class(Chist)=="matrix")nyears<-nrow(Chist)
   maxage<-OM@maxage
@@ -118,8 +118,17 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
   proyears<-OM@proyears
   nsim<-OM@nsim
 
-  Cobs<-runif(nsim,OM@Cobs[1],OM@Cobs[2]) # sample observation error
-  Iobs=runif(nsim,OM@Iobs[1],OM@Iobs[2])  # use the OM obs error for index
+  if(!is.na(dat@CV_Cat[1])){
+     Cobs=rep(dat@CV_Cat[1],nsim)  # use the OM obs error for index
+  }else{
+     Cobs<-runif(nsim,OM@Cobs[1],OM@Cobs[2]) # sample observation error
+  }
+
+  if(!is.na(dat@CV_Ind[1])){
+    Iobs=rep(dat@CV_Ind[1],nsim)  # use the OM obs error for index
+  }else{
+    Iobs<-runif(nsim,OM@Iobs[1],OM@Iobs[2]) # sample observation error
+  }
 
   if (OM@nyears != nyears) {
     message("OM@nyears being updated to length Chist: ", nyears)
@@ -135,14 +144,20 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     print(data.frame("Catches entered" = Chistold, "Catches interpolated"=Chist))
   }
 
-  if (dim(CAA)[1] != nyears) stop("Number of CAA rows (", dim(CAA)[1], ") does not equal nyears (", nyears, "). NAs are acceptable")
+  if(length(as.vector(CAA))==1){
+    CAAswitch=F # don't do CAA calcs
+    CAALH<-0 # likelihood contribution is nil
 
-  if (dim(CAA)[2] != OM@maxage) {
-    message("Number of CAA columns (", dim(CAA)[2], ") does not equal OM@maxage (",  OM@maxage, ")")
-    message("Assuming no CAA for ages greater than ", dim(CAA)[2], ' and filling with 0s')
-    addages <- OM@maxage-dim(CAA)[2]
-    CAA2 <- matrix(0, nrow=nrow(CAA), ncol=addages)
-    CAA <- cbind(CAA, CAA2)
+  }else{
+    if (dim(CAA)[1] != nyears) stop("Number of CAA rows (", dim(CAA)[1], ") does not equal nyears (", nyears, "). NAs are acceptable")
+
+    if (dim(CAA)[2] != OM@maxage) {
+      message("Number of CAA columns (", dim(CAA)[2], ") does not equal OM@maxage (",  OM@maxage, ")")
+      message("Assuming no CAA for ages greater than ", dim(CAA)[2], ' and filling with 0s')
+      addages <- OM@maxage-dim(CAA)[2]
+      CAA2 <- matrix(0, nrow=nrow(CAA), ncol=addages)
+      CAA <- cbind(CAA, CAA2)
+    }
   }
 
   if(length(as.vector(CAL))==1){
@@ -157,10 +172,12 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     if (dim(CAL)[2] != length(mulen)) {
       stop("The argument mulen (the mean length of each length bin) should be of the same length as the number of columns of the CAL data")
     }
-    CALyrs<-(1:nrow(CAL))[apply(CAL,1,function(x)sum(is.na(x)))<ncol(CAL)]
+    issomething<-function(x)(sum(is.na(x))<ncol(CAL))&(sum(x,na.rm=T)>0)
+    CALyrs<-(1:nrow(CAL))[apply(CAL,1,issomething)]
     CALswitch=T
   }
 
+  if(!CALswitch&!CAAswitch)stop('You need at least some catch at age data (slot CAA) or catch at length data (CAL) to use Stochastic SRA')
 
   nlen<-length(mulen)
 
@@ -202,7 +219,7 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     sums<-apply(iALK,1:2,sum)
     sind<-ind[,1:2]
     iALK<-iALK/sums[sind]
-  #contour(x=1:maxage,y=1:nlen,iALK[3,,],nlevels=10)
+    #contour(x=1:maxage,y=1:nlen,iALK[3,,],nlevels=10)
   }
   # Sample Fleet Parameters
   options(warn=-1)
@@ -358,7 +375,6 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
         }
       }
 
-
       MLpred[,y]<-apply(CAA_pred[,y,]*Len_age,1,sum)/apply(CAA_pred[,y,],1,sum)
 
       PredVW<-PredVN*Wt_age                   # Predicted vulnerable weight
@@ -392,17 +408,18 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     MLres[MLres<(1E-10)]<-(1E-10)
     MLres[MLres>1E10]<-1E10
 
-    CAA_pred[CAA_pred<1E-15]<-1E-15
+    if(CAAswitch)CAA_pred[CAA_pred<1E-15]<-1E-15
 
     if(CALswitch){
       CAL_pred<-CAL_pred/array(apply(CAL_pred,1:2,sum),dim(CAL_pred))
       CAL_pred[CAL_pred<1E-15]<-1E-15
     }
 
-
-    CAALH<-apply(log(CAA_pred)*
+    if(CAAswitch){
+      CAALH<-apply(log(CAA_pred)*
                    array(rep(CAA,each=nsim)/CAAadj,c(nsim,nyears,maxage)),
                  1,sum,na.rm=T)
+    }
 
     if(CALswitch){
       CALLH<-apply(log(CAL_pred[,CALyrs,])*
@@ -411,7 +428,6 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     }
 
     RDLH<-apply(matrix(dnorm(nupars[RDind],-(procsd^2)/2,procsd,log=T),nrow=nsim),1,sum)
-
     ILH<-apply(dnorm(log(Ires),-(Iobs^2)/2,Iobs,log=T),1,sum,na.rm=T)
     MLLH<-apply(dnorm(log(MLres),-(MLsd^2)/2,MLsd,log=T),1,sum,na.rm=T)
 
@@ -437,109 +453,6 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
     if(shiny)if(i %in% upprog)incProgress(1/20, detail = round(i*100/nits))
 
   } # End of MCMC
-
-  if(!is.na(SRAdir))jpeg(paste0(SRAdir,"/SRA_convergence.jpg"),width=7,height=9,units='in',res=400)
-  if(ploty){
-
-    col<-rep(c("blue","red","green","orange","grey","brown","pink","yellow","dark red","dark blue","dark green"),100)
-
-    par(mfcol=c(5,2),mai=c(0.7,0.6,0.05,0.1))
-    pind<-(1:(nits/thin))*thin
-    matplot(pind,t(parstr[1:nplot,pind]),type='l',ylab="log R0",xlab="Iteration")
-    abline(v=burnin,lty=2)
-    matplot(pind,t(parstr[nsim+(1:nplot),pind]),type='l',ylab="log infl (sel)",xlab="Iteration")
-    abline(v=burnin,lty=2)
-    matplot(pind,t(parstr[(nsim*2)+(1:nplot),pind]),type='l',ylab="log slp (sel)",xlab="Iteration")
-    abline(v=burnin,lty=2)
-    matplot(pind,t(parstr[(nsim*30)+(1:nplot),pind]),type='l',ylab="recdev1",xlab="Iteration")
-    abline(v=burnin,lty=2)
-    matplot(pind,t(parstr[(nsim*40)+(1:nplot),pind]),type='l',ylab="recdev2",xlab="Iteration")
-    abline(v=burnin,lty=2)
-
-    burn<-burnin:nits
-    plot(density(parstr[1:nsim,burn],adj=0.7),xlab="log(R0)",main="")
-    plot(density(parstr[nsim+(1:nsim),burn],adj=0.7),xlab="inflection selectivity",main="")
-    plot(density(parstr[(nsim*2)+(1:nsim),burn],adj=0.7),xlab="slope selectivity",main="")
-    plot(density(parstr[(nsim*30)+(1:nsim),burn],adj=0.7),xlab="recdev1",main="")
-    plot(density(parstr[(nsim*40)+(1:nsim),burn],adj=0.7),xlab="recdev2",main="")
-
-
-  }
-  if(!is.na(SRAdir))dev.off()
-
-  if(!is.na(SRAdir))jpeg(paste0(SRAdir,"/SRA predictions.jpg"),width=7,height=11,units='in',res=400)
-  if(ploty){
-
-    par(mfrow=c(6,2),mai=c(0.65,0.6,0.02,0.1))
-    qq<-apply(SSB,2,quantile,p=c(0.05,0.25,0.5,0.75,0.95))
-    ylim<-c(0,max(qq))
-
-    matplot(t(SSB[1:nplot,]),ylim=ylim,type="l",xlab="Year",ylab="SSB")
-    xs<-dim(SSB)[2]
-    plot(qq[3,],ylim=ylim,type='l',xlab="Year",ylab="SSB")
-    polygon(c(1:xs,xs:1),c(qq[1,],qq[5,xs:1]),border=NA,col='light grey')
-    polygon(c(1:xs,xs:1),c(qq[2,],qq[4,xs:1]),border=NA,col='dark grey')
-    lines(qq[3,],lwd=1,col="white")
-
-    D<-SSB/SSB0
-
-    qq<-apply(D,2,quantile,p=c(0.05,0.25,0.5,0.75,0.95))
-    ylim<-c(0,max(qq))
-
-    matplot(t(D[1:nplot,]),ylim=ylim,type="l",xlab="Year",ylab="Depletion")
-    plot(qq[3,],ylim=ylim,type='l',xlab="Year",ylab="Depletion")
-    polygon(c(1:xs,xs:1),c(qq[1,],qq[5,xs:1]),border=NA,col='light grey')
-    polygon(c(1:xs,xs:1),c(qq[2,],qq[4,xs:1]),border=NA,col='dark grey')
-    lines(qq[3,],lwd=1,col="white")
-
-    qq<-apply(PredF,2,quantile,p=c(0.05,0.25,0.5,0.75,0.95))
-    ylim<-c(0,max(qq))
-
-    matplot(t(PredF[1:nplot,]),ylim=ylim,type="l",xlab="Year",ylab="Fish. Mort.")
-    plot(qq[3,],ylim=ylim,type='l',xlab="Year",ylab="Fish. Mort.")
-    polygon(c(1:xs,xs:1),c(qq[1,],qq[5,xs:1]),border=NA,col='light grey')
-    polygon(c(1:xs,xs:1),c(qq[2,],qq[4,xs:1]),border=NA,col='dark grey')
-    lines(qq[3,],lwd=1,col="white")
-
-    nyears<-dim(CAA)[1]
-    nages<-dim(CAA)[2]
-
-    qq<-apply(sel,2,quantile,p=c(0.05,0.25,0.5,0.75,0.95))
-    ylim<-c(0,max(qq))
-    xs<-maxage
-    matplot(t(sel[1:nplot,]),ylim=ylim,type="l",xlab="Age",ylab="Selectivity")
-    plot(qq[3,],ylim=ylim,type='l',xlab="Age",ylab="Selectivity")
-    polygon(c(1:xs,xs:1),c(qq[1,],qq[5,xs:1]),border=NA,col='light grey')
-    polygon(c(1:xs,xs:1),c(qq[2,],qq[4,xs:1]),border=NA,col='dark grey')
-    lines(qq[3,],lwd=1,col="white")
-
-
-    RDx<-(-maxage+1):nyears
-
-    qq<-apply(RD,2,quantile,p=c(0.05,0.25,0.5,0.75,0.95))
-    ylim<-c(0,max(qq))
-    xs<-dim(RD)[2]
-    matplot(RDx,t(RD[1:nplot,]),ylim=ylim,type="l",xlab="Year",ylab="Rec. Dev.")
-    plot(RDx,qq[3,],ylim=ylim,type='l',xlab="Year",ylab="Rec. Dev.")
-    polygon(c(RDx,RDx[xs:1]),c(qq[1,],qq[5,xs:1]),border=NA,col='light grey')
-    polygon(c(RDx,RDx[xs:1]),c(qq[2,],qq[4,xs:1]),border=NA,col='dark grey')
-    lines(RDx,qq[3,],lwd=1,col="white")
-
-
-    plot(c(1,nyears),c(1,nages),col='white',xlab="Year",ylab="Age")
-    legend("top",legend="Observed composition data",bty='n')
-    points(rep(1:nyears,nages),rep(1:nages,each=nyears),cex=CAA^0.5/max(CAA^0.5,na.rm=T)*1.5,pch=19,col=makeTransparent("dark grey",60))
-
-    CAA_pred1<-CAA_pred
-    CAA_pred1[CAA_pred1<0.002]<-NA
-    plot(c(1,dim(CAA)[1]),c(1,dim(CAA)[2]),col='white',xlab="Year",ylab="Age")
-    legend("top",legend="Predicted composition data (1 sim)",bty='n')
-    points(rep(1:nyears,nages),rep(1:nages,each=nyears),cex=CAA_pred1[1,,]^0.5/max(CAA_pred1[1,,]^0.5,na.rm=T)*1.5,pch=19,col=makeTransparent("dark grey",60))
-
-
-  }
-  if(!is.na(SRAdir))dev.off()
-
 
   dep<-SSB[,nyears]/SSB0
   procsd<-apply(RD,1,sd,na.rm=T)
@@ -570,7 +483,6 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
   Perr[,1:(nyears+maxage-1)]<-log(RD[,2:(maxage+nyears)])
   Perr[,(nyears+maxage):(nyears+maxage+proyears-1)]<-matrix(rnorm(nsim*(proyears),rep(procmu,proyears),rep(procsd,proyears)),nrow=nsim)
 
-
   for (y in (maxage+nyears):(nyears + proyears+maxage-1)) Perr[, y] <- AC * Perr[, y - 1] +   Perr[, y] * (1 - AC * AC)^0.5
   Perr<-exp(Perr)
 
@@ -586,12 +498,13 @@ StochasticSRA_MSC<-function(OM,CAA,Chist,Ind=NA,ML=NA,CAL=NA,mulen=NA,wts=c(1,1,
                  V=array(sel,c(nsim,maxage,nyears)),Perr=Perr,R0=R0,
                  Iobs=apply(Ires,1,sd,na.rm=T),
                  SSB=SSB,SSB0=SSB0,RD=RD) # not valid for runMSE code but required
-
-  OM
+  #params<-
+  list(OM=OM,SRAinfo=list(nits=nits,nsim=nsim,thin=thin,nyears=nyears,maxage=maxage,nages=maxage,parstr=parstr,burnin=burnin,SSB=SSB,
+                PredF=PredF,RD=RD,CAA=CAA,CAL=CAL,CAA_pred=CAA_pred,CAL_pred=CAL_pred,Ind=Ind,mulen=mulen,
+                CAAswitch=CAAswitch,CALswitch=CALswitch,sel=sel,SSB0=SSB0))
+  #save(params,file="C:/temp/params")
 
 }
-
-
 
 
 

@@ -740,7 +740,10 @@ shinyUI(
                 column(4,
                 numericInput("nsim", label = "No. simulations", value=24,min=8,max=1000),
 
-                conditionalPanel(condition="output.Data==1", checkboxInput("OM_cond",label="Condition OM via S-SRA",value=FALSE)),
+                conditionalPanel(condition="output.Data==1",
+                                 selectInput("Cond_ops", label = "Conditioning Method", choices=c("None"),selected="None")
+
+                                 ),
 
                 actionButton("Build_OM_2",h5("BUILD OPERATING MODEL",style="color:red"))
 
@@ -1060,21 +1063,32 @@ shinyUI(
               column(2,
                 conditionalPanel(width=4,condition="(output.App==1|output.Calc==1)&(input.Res_Tab==1|input.Res_Tab==2)",
 
+                  column(12,HTML("<br>")),
+                  column(12,conditionalPanel(condition="output.Tweak==1",actionButton("Redo",h5(" REFRESH RESULTS ",style="color:red"))),style="height:45px"),
+                  column(12,HTML("<br>","<br>")),
                   numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
                   numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
                   #checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
-
+                  selectInput("Perf_type", label = "Performance metrics", choices=c("MSC","MSC defunct"),selected="MSC"),
                   column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
-                  actionButton("Redo",h5(" REFRESH RESULTS ",style="color:red")),
-                  HTML("<br>","<br>"),
-                  h5("Performance Thresholds",style="font-weight:bold"),
+                  column(12,HTML("<br>","<br>")),
+                  h5("Probability Thresholds",style="font-weight:bold"),
                   hr(),
-                  sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
-                  sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
-                  sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
-                  sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
-                  sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
-                  actionButton("Default_thres","Reset to default thresholds")
+                  conditionalPanel(condition="input.Perf_type=='MSC defunct'",
+                    sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
+                    sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
+                    sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
+                    sliderInput("P121a","P.1.2.1a",min=0,max=100,value=80,step=5),
+                    sliderInput("P121b","P.1.2.1b",min=0,max=100,value=50,step=5),
+                    actionButton("Default_thres","Reset to default thresholds")
+                  ),
+                  conditionalPanel(condition="input.Perf_type=='MSC'",
+                   sliderInput("P_STL","Stock Status - Limit",min=0,max=100,value=70,step=5),
+                   sliderInput("P_STT","Stock Status - Target",min=0,max=100,value=50,step=5),
+                   sliderInput("P_LTL","Harvest Strategy - Limit",min=0,max=100,value=80,step=5),
+                   sliderInput("P_LTT","Harvest Strategy - Target",min=0,max=100,value=50,step=5),
+                   actionButton("Default_thres_MSC","Reset to default thresholds")
+                  )
 
                 ), # end of app or eval control panel
 

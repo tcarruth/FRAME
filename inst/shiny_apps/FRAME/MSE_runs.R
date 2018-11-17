@@ -7,22 +7,44 @@ redoEval<-function(fease=F){
     incrate<-1/5
     incProgress(incrate)
     burnin<<-input$burnin
-    Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-    incProgress(incrate)
-    thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-    temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
-    incProgress(incrate)
-    Ptab2<<-temp[[1]]
-    MPcols<<-temp[[2]]
-    MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
-    MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
-    #save(MSEobj_top,file="MSEobj_top")
-    #save(MSEobj_reb_top,file="MSEobj_reb_top")
-    nMPs<-length(MSEobj_top@MPs)
-    updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
-    output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
-    incProgress(incrate)
-    output$threshtable<-function()Thresh_tab(thresh)
+
+    if(input$Perf_type=="MSC defunct"){
+      Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+      incProgress(incrate)
+      thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+      incProgress(incrate)
+      Ptab2<<-temp[[1]]
+      MPcols<<-temp[[2]]
+      MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+      MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+      #save(MSEobj_top,file="MSEobj_top")
+      #save(MSEobj_reb_top,file="MSEobj_reb_top")
+      nMPs<-length(MSEobj_top@MPs)
+      #updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
+      output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
+      incProgress(incrate)
+      output$threshtable<-function()Thresh_tab(thresh)
+    }else if(input$Perf_type=="MSC"){
+      Ptab1<<-Ptab_MSC(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+      incProgress(incrate)
+      thresh<<-c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT)
+      temp<-Ptab_ord_MSC(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+      incProgress(incrate)
+      Ptab2<<-temp[[1]]
+      MPcols<<-temp[[2]]
+      MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+      MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+      #save(MSEobj_top,file="MSEobj_top")
+      #save(MSEobj_reb_top,file="MSEobj_reb_top")
+      nMPs<-length(MSEobj_top@MPs)
+      #updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
+      output$Ptable <- function()Ptab_formatted_MSC(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
+      incProgress(incrate)
+      output$threshtable<-function()Thresh_tab_MSC(thresh)
+
+    }
+
     output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
     output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
     output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
@@ -47,7 +69,7 @@ redoApp<-function(fease=F){
 
 
     burnin<<-input$burnin
-    Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0,App=T)
+    Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0,Ap=T)
     thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
     temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,fease=fease,thresh=thresh)
     incProgress(incrate)

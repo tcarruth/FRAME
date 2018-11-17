@@ -24,3 +24,19 @@ Data_trim<-function(Data){
   DataT
 
 }
+
+CALsimp<-function(Data,nbins=10,simno=1){
+
+  oldbins<-Data@CAL_bins
+  nold<-length(oldbins)
+  ind<-rep((1:nold),each=floor(nold/nbins))[1:nold]
+  maxbin<-max(ind)
+  newCAL_bins<-c(Data@CAL_bins[match(1:maxbin,ind)],Data@CAL_bins[nold])
+  ny<-dim(Data@CAL)[2]
+  newCAL<-array(0,c(1,ny,maxbin))
+  for(b in 1:(nold-1)) newCAL[1,,ind[b]]<-newCAL[1,,ind[b]]+Data@CAL[simno,,b]
+
+  Data@CAL_bins<-newCAL_bins
+  Data@CAL<-newCAL
+  Data
+}

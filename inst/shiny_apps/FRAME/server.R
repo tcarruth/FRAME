@@ -10,7 +10,7 @@ library(httpuv)
 library(shinyalert)
 library(DT)
 
-options(shiny.maxRequestSize=100*1024^2)
+options(shiny.maxRequestSize=1000*1024^2)
 
 source("./global.R")
 
@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"2.9"
+  FRAMEversion<<-"2.10"
   #options(browser = false)
 
   # MPs
@@ -33,6 +33,7 @@ shinyServer(function(input, output, session) {
   source("./Analysis_results.R",local=TRUE)
   source("./AI_results.R",local=TRUE)
   source("./Performance_table.R",local=TRUE)
+  source("./Performance_table_MSC.R",local=TRUE)
   source("./Trade_off_plots.R",local=TRUE)
   source("./VOI.R",local=TRUE)
   source("./MSC_source.R",local=TRUE)
@@ -81,6 +82,7 @@ shinyServer(function(input, output, session) {
   DataInd<-reactiveVal(0) # Indicator data loaded
   Ind<-reactiveVal(0)  # Have run Indicator (single MP)
   AdCalc<-reactiveVal(0) # Has advice been calculated
+  Tweak<-reactiveVal(0)  # Have things affecting performance metrics been tweaked?
 
   output$Fpanel <- reactive({ Fpanel()})
   output$Mpanel <- reactive({ Mpanel()})
@@ -98,7 +100,7 @@ shinyServer(function(input, output, session) {
   output$Ind      <- reactive({ Ind()})
 
   output$AdCalc   <- reactive({ AdCalc()})
-
+  output$Tweak    <- reactive({Tweak()})
 
   outputOptions(output,"Fpanel",suspendWhenHidden=FALSE)
   outputOptions(output,"Mpanel",suspendWhenHidden=FALSE)
@@ -117,7 +119,7 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"Ind",suspendWhenHidden=FALSE)
 
   outputOptions(output,"AdCalc",suspendWhenHidden=FALSE)
-
+  outputOptions(output,"Tweak",suspendWhenHidden=FALSE)
 
   output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
@@ -273,8 +275,6 @@ shinyServer(function(input, output, session) {
         error = function(e){
           shinyalert("Not a properly formatted DLMtool Data .csv file", "Trying to load as an object of class 'Data'", type = "error")
           Data(0)
-          shinyjs::disable("OM_Cond")
-          updateCheckboxInput(session,"OM_cond",value=FALSE)
           loaded=F
         }
       )
@@ -288,8 +288,6 @@ shinyServer(function(input, output, session) {
         error = function(e){
           shinyalert("Could not load object", "Failed to load this file as a formatted data object", type = "error")
           Data(0)
-          shinyjs::disable("OM_Cond")
-          updateCheckboxInput(session,"OM_cond",value=FALSE)
         }
       )
 
@@ -301,8 +299,19 @@ shinyServer(function(input, output, session) {
 
     #tryCatch(
      # {
+        noCAA<-is.na(sum(dat@CAA))|sum(dat@CAA)==0
+        noCAL<-is.na(sum(dat@CAL))|sum(dat@CAL)==0
+        incompC<-sum(is.na(dat@Cat))>0
+        noML<-sum(!is.na(dat@ML))==0
+        noInd<-sum(!is.na(dat@Ind))==0
+        noML5<-sum(is.na(dat@ML[1,length(dat@ML[1,])-(0:4)]))==5
+
+        Cond_op<-"None"
+        if(!noML5) Cond_op<-c(Cond_op,"FRAME SRA ML (DLMtool)")
+        if(!((noCAA & noCAL)|incompC))  Cond_op<-c(Cond_op,"Stochastic SRA (Walters et al. 2006)")
+        updateSelectInput(session,"Cond_ops",choices=Cond_op,selected="None")
+
         Data(1)
-        shinyjs::enable("OM_Cond")
         MadeOM(0)
         Calc(0)
         App(0)
@@ -534,7 +543,15 @@ shinyServer(function(input, output, session) {
 
     nsim<<-input$nsim
 
-    if(input$OM_cond & Data()==1){ # Build from SRA
+    if(input$Cond_ops == "FRAME SRA ML (DLMtool)"){
+      withProgress(message = "Building OM from Questionnaire & SRA ML", value = 0, {
+
+        ML<-mean(dat@ML[1,length(dat@ML[1,])-(0:4)],na.rm=T)/dat@vbLinf*mean(OM@Linf)
+        OM<-ML2D(OM,ML=ML,ploty=F,nsim=OM@nsim,Dlim=c(0.05,0.7))
+
+      })
+
+    }else if(input$Cond_ops == "Stochastic SRA (Walters et al. 2006)"){ # Build from SRA
 
       OM<<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
 
@@ -544,8 +561,10 @@ shinyServer(function(input, output, session) {
       }
 
       updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(dat@Cat)))
-      withProgress(message = "Building OM from Questionnaire inc. conditioning using S-SRA", value = 0, {
-        OM<<-SSRA_wrap(OM,dat)
+      withProgress(message = "Building OM from Questionnaire & S-SRA", value = 0, {
+        SRAout<<-SSRA_wrap(OM,dat)
+        OM<<-SRAout$OM
+        SRAinfo<<-SRAout$SRAinfo
       })
       #GoBackwards_SRA(OM)
       #UpdateQuest()
@@ -598,9 +617,11 @@ shinyServer(function(input, output, session) {
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
     #tryCatch({
-      withProgress(message = "Running Evaluation", value = 0, {
-        silent=T
-        MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
+        withProgress(message = "Running Evaluation", value = 0, {
+          silent=T
+          MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
+        })
+
         MGT2<-ceiling(MSEobj@OM$MGT*2)
         MGT2[MGT2<5]<-5
         MGT2[MGT2>20]<-20
@@ -623,18 +644,19 @@ shinyServer(function(input, output, session) {
 
         redoEval(fease=T)
         Calc(1)
+        Tweak(0)
         updateTabsetPanel(session,"Res_Tab",selected="1")
-      }) # with progress
+
 
       #},
       #error = function(e){
-      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+       # shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
       #             For example a short lived stock a low stock depletion with recently declining effort.
       #             Try revising operating model parameters.", type = "info")
-      #  return(0)
+       # return(0)
       #}
 
-   # )
+    #)
 
   }) # press calculate
 
@@ -657,7 +679,7 @@ shinyServer(function(input, output, session) {
       }
     }
 
-   # tryCatch({
+    tryCatch({
         withProgress(message = "Running Application", value = 0, {
           AppMPs<-c("FMSYref",input$sel_MP)
           MSEobj_app<<-runMSE(OM,MPs=AppMPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
@@ -681,16 +703,17 @@ shinyServer(function(input, output, session) {
         }
 
         App(1)
+        Tweak(0)
         redoApp(fease=T)
         updateTabsetPanel(session,"Res_Tab",selected="2")
-      #},
-      #error = function(e){
-      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-       #            For example a short lived stock a low stock depletion with recently declining effort.
-      #             Try revising operating model parameters.", type = "info")
-      #  return(0)
-      #}
-    #) # try catch
+      },
+      error = function(e){
+        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                   For example a short lived stock a low stock depletion with recently declining effort.
+                   Try revising operating model parameters.", type = "info")
+        return(0)
+      }
+    ) # try catch
 
   }) # calculate MSE app
 
@@ -711,6 +734,14 @@ shinyServer(function(input, output, session) {
 
   })
 
+  observeEvent(input$Default_thres_MSC,{
+    updateSliderInput(session,"P_STL",value=70)
+    updateSliderInput(session,"P_STT",value=50)
+    updateSliderInput(session,"P_LTL",value=80)
+    updateSliderInput(session,"P_LTT",value=50)
+
+  })
+
   CheckJust<-function(){
 
     isjust<-function(x)sum(x=="No justification was provided")
@@ -718,17 +749,35 @@ shinyServer(function(input, output, session) {
 
   }
 
+  # Show REFRESH RESULTS if ...
+
+  observeEvent(input$burnin,{ Tweak(1) })
+  observeEvent(input$ntop,{ Tweak(1) })
+  observeEvent(input$Perf_type,{ Tweak(1) })
+  observeEvent(input$Fease,{ Tweak(1) })
+  observeEvent(input$P111a, { Tweak(1)  })
+  observeEvent(input$P111b,{ Tweak(1) })
+  observeEvent(input$P112,{ Tweak(1) })
+  observeEvent(input$P121a,{ Tweak(1) })
+  observeEvent(input$P121b,{ Tweak(1) })
+  observeEvent(input$P_STL,{ Tweak(1) })
+  observeEvent(input$P_STT,{ Tweak(1) })
+  observeEvent(input$P_LTL,{ Tweak(1) })
+  observeEvent(input$P_LTT,{ Tweak(1) })
+  observeEvent(input$Default_thres,{ Tweak(1) })
+  observeEvent(input$Default_thres_MSC,{ Tweak(1) })
+  observeEvent(input$M1,{ Tweak(1) })
+  observeEvent(input$D1,{ Tweak(1) })
 
   # Update tables if ...
 
   observeEvent(input$Redo,{
     if(input$Res_Tab==1)  redoEval(fease=T)
     if(input$Res_Tab==2)  redoApp(fease=T)
+    Tweak(0)
   })
 
-  observeEvent(input$Remake_App,{
-    redoApp(fease=T)
-  })
+
 
   # Update panelstate if ...
   observeEvent(input$D1,{
@@ -878,6 +927,7 @@ shinyServer(function(input, output, session) {
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
                      OM=OM,
+                     SRAinfo=SRAinfo,
                      ntop=input$ntop,
                      inputnames=inputnames,
                      SessionID=SessionID,
