@@ -1,4 +1,25 @@
 
+
+PI_cont<-function(incrate){
+  Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+  incProgress(incrate)
+  thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+  temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+  incProgress(incrate)
+  Ptab2<<-temp[[1]]
+  MPcols<<-temp[[2]]
+  MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+  MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+  #save(MSEobj_top,file="MSEobj_top")
+  #save(MSEobj_reb_top,file="MSEobj_reb_top")
+  nMPs<<-length(MSEobj_top@MPs)
+  #updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
+  output$Ptable <- function()Ptab_formatted(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
+  #incProgress(incrate)
+  output$threshtable<-function()Thresh_tab(thresh)
+
+}
+
 Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0,Ap=FALSE){
 
   # PI 1.1.1
@@ -20,13 +41,13 @@ Ptab<-function(MSEobj,MSEobj_reb,burnin=5,rnd=0,Ap=FALSE){
   PI.121.b<-round(apply(MSEobj@B_BMSY[,,11:50,drop=FALSE]>1,2,mean)*100,rnd)
 
   # LTY
-  refY<-sum(MSEobj@C[,1,11:50])
-  LTY<-round(apply(MSEobj@C[,,11:50,drop=FALSE],2,sum)/refY*100,rnd)
+  #refY<-sum(MSEobj@C[,1,11:50])
+  LTY<-apply(MSEobj@C[,,11:50,drop=FALSE],2,sum)
+  LTY<-round(LTY/max(LTY,na.rm=T)*100,rnd)
   MP<-MSEobj@MPs
 
   tab<-data.frame(MP,PI.111.a, PI.111.b, PI.112, PI.121.a, PI.121.b,LTY)
-  if(Ap)tab<-tab[2,]
-  if(!Ap)tab<-tab[order(tab$LTY,decreasing=T),]
+  tab<-tab[order(tab$LTY,decreasing=T),]
   tab
 
 }
@@ -54,7 +75,6 @@ Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
 Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,fease=F){
 
   # save(Ptab1,file="Ptab1")
-
   MPs<-as.character(Ptab1$MP)
   #MPs<-avail('MP')
   if(is.na(ntop))ntop<-nrow(Ptab1)
@@ -76,22 +96,21 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   Datslot<-c("Cat","Cat","Ind",  "Ind","Ind","CAL","CAA","vbK","Abun")
   yrrange<-c(ndaty, 5,    ndaty,  5,    ndaty,        2,                2, NA, NA)
 
-
-    for(i in 1:length(Datslot)){
-      if(cond[i]){ # if user has specified that data are available
-        if(!is.na(yrrange[i])){ # it not a vector of values
-          ndim<-length(dim(slot(tempdat0,Datslot[i])))
-          if(ndim==2){ # is a matrix
-            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
-          }else{ # is a 3D array
-            slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
-          }
-        }else{
-          slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
+  for(i in 1:length(Datslot)){
+    if(cond[i]){ # if user has specified that data are available
+      if(!is.na(yrrange[i])){ # it not a vector of values
+        ndim<-length(dim(slot(tempdat0,Datslot[i])))
+        if(ndim==2){ # is a matrix
+          slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1]
+        }else{ # is a 3D array
+          slot(tempdat,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]<-slot(tempdat0,Datslot[i])[,ndaty-(yrrange[i]:1)+1,]
         }
+      }else{
+        slot(tempdat,Datslot[i])<-slot(tempdat0,Datslot[i])
       }
     }
-    if(!cond[3])tempdat@Dep<-rep(NA,2)
+  }
+  if(!cond[3])tempdat@Dep<-rep(NA,2)
 
     DFeasible<-Fease(tempdat)
 
@@ -153,7 +172,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
 Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
 
   dynheader<-c(1,1,2,1,2,1,1)
-  names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", paste0("Biomass (yrs ",burnin,"-50)"), paste0("Yield (yrs ",burnin,"-50)"),"Reason")
+  names(dynheader)<-c(" ", " ", paste0("Biomass (yrs 1-",burnin,")"), "Biomass (2 MGT)", paste0("Biomass (yrs ",burnin,"-50)"), paste0("Yield (yrs ",burnin+1,"-50)"),"Reason")
   MPurlconv<-function(x)MPurl(as.character(x))
   linky<-sapply(Ptab2$MP,MPurlconv)
   #linky<- paste0("<a href='",linko,"' target='_blank'>",linko,"</a>")
@@ -191,7 +210,7 @@ Ptab_formatted<-function(Ptab2,thresh=c(70, 50, 70, 80, 50),burnin=5,cols){
 
     add_header_above(c(" ", " ", "Stock Status" = 2, "Rebuilding" = 1,
                        "Harvest Strategy"=2,
-                       "Long-Term Yield"=1," "=1))
+                       "Relative Yield"=1," "=1))
 
 
 }

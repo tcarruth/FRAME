@@ -67,20 +67,40 @@ In this preliminary analysis, seven data types are monitored in the posterior pr
 
 <br>
 
-```{r CC,echo=F,warning=F,error=F,message=F,fig.width=11, fig.height=11}
- incrate<-1/3
- incProgress(incrate)
-PPD<-params$MSEobj@Misc[[params$mm]]
+```{r CC,echo=F,warning=F,error=F,message=F,fig.width=9, fig.height=9}
+ 
+  dat<-params$dat
+  dat_ind<-params$dat_ind
+  MSEobj_app<-params$MSEobj_app
+  
+  styr=max(dat@Year)+1
+  PPD<-MSEobj_app@Misc[[1]]
 
-tsd= c("Cat","Cat","Cat","Ind","Ind","ML", "ML")
-stat=c("slp","AAV","mu","slp","mu", "slp","mu")
-res<-6
+  # Standardization
+  PPD@Cat<-PPD@Cat/PPD@Cat[,styr]
+  PPD@Ind<-PPD@Ind/PPD@Ind[,styr]
+  PPD@ML<-PPD@ML/PPD@ML[,styr]
 
-indPPD<-getinds(PPD,styr=27,res=res,tsd=tsd,stat=stat)
-indData<-matrix(indPPD[,1,1],ncol=1)
+  tsd= c("Cat","Cat","Cat","Ind","Ind","ML")
+  stat=c("slp","AAV","mu","slp","mu", "slp")
+  res<-max(dat_ind@Year-max(dat@Year))
+  datayears<-dim(dat_ind@Cat)[2]
 
-CC(indPPD,indData,pp=1,res=res)
-incProgress(incrate)
+  indPPD<-getinds(PPD,styr=styr,res=res,tsd=tsd,stat=stat)
+
+  # Standardization
+  dat_ind@Cat<-dat_ind@Cat/dat_ind@Cat[,styr]
+  dat_ind@Ind<-dat_ind@Ind/dat_ind@Ind[,styr]
+  dat_ind@ML<-dat_ind@ML/dat_ind@ML[,styr]
+
+  indData<-getinds(dat_ind,styr=styr,res=res,tsd=tsd,stat=stat)
+
+  incrate<-1/3
+  incProgress(incrate)
+   
+
+  CC(indPPD,indData,pp=1,res=res)
+  incProgress(incrate)
 ```
 
 <br>

@@ -1,5 +1,5 @@
 P1_LTY_plot<<-function(MSEobj,burnin,MPcols){
-  
+
   Eyr<-10
   rnd<-0
   MPcols[MPcols=='green']<-'darkgreen'
@@ -15,13 +15,13 @@ P1_LTY_plot<<-function(MSEobj,burnin,MPcols){
   mtext("Long term yield",2,line=2.5,cex=1.2)
   abline(v=c(0,100),col="#99999950")
   abline(h=c(0,100),col="#99999950")
-  
+
   text(PI.111.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-  
+
 }
 
 P2_LTY_plot<<-function(MSEobj,MPcols){
-  
+
   rnd<-0
   MPcols[MPcols=='green']<-'darkgreen'
   PI.121.a<-round(apply(MSEobj@B_BMSY[,,11:50]>0.5,2,mean)*100,rnd)
@@ -35,23 +35,23 @@ P2_LTY_plot<<-function(MSEobj,MPcols){
   mtext("Long term yield",2,line=2.5,cex=1.2)
   abline(v=c(0,100),col="#99999950")
   abline(h=c(0,100),col="#99999950")
-  
+
   text(PI.121.a,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-  
+
 }
 
 P3_LTY_plot<<-function(MSEobj,MSEobj_reb,MPcols){
-  
+
   rnd<-4
   MPcols[MPcols=='green']<-'darkgreen'
   MGT2<-ceiling(MSEobj@OM$MGT*2)
   MGT2[MGT2<5]<-5
   MGT2[MGT2>20]<-20
-  
+
   Bind<-cbind(as.matrix(expand.grid(1:MSEobj@nsim,1:MSEobj@nMPs)),rep(MGT2,MSEobj@nMPs))
   Bmat<-array(MSEobj_reb@B_BMSY[Bind],c(MSEobj_reb@nsim,MSEobj_reb@nMPs))
   PI.112<-round(apply(Bmat>1,2,mean)*100,rnd)
-  
+
   refY<-sum(MSEobj@C[,1,11:50])
   LTY<-round(apply(MSEobj@C[,,11:50],2,sum)/refY*100,rnd)
   MP<-MSEobj@MPs
@@ -59,10 +59,10 @@ P3_LTY_plot<<-function(MSEobj,MSEobj_reb,MPcols){
   ylim<-c(0,max(LTY))
   plot(c(-10,110),ylim,col='white',xlab="",ylab="")
   mtext("Prob. Rebuilding to BMSY over 2MGT (PI.1.1.2)",1,line=2.5,cex=1.2)
-  mtext("Long term yield",2,line=2.5,cex=1.2)
+  mtext("Relative yield",2,line=2.5,cex=1.2)
   abline(v=c(0,100),col="#99999950")
   abline(h=c(0,100),col="#99999950")
-  
+
   text(PI.112,LTY,MSEobj@MPs,col=MPcols,cex=1.2)
-  
+
 }

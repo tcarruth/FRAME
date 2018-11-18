@@ -34,6 +34,7 @@ shinyServer(function(input, output, session) {
   source("./AI_results.R",local=TRUE)
   source("./Performance_table.R",local=TRUE)
   source("./Performance_table_MSC.R",local=TRUE)
+  source("./Performance_table_TO.R",local=TRUE)
   source("./Trade_off_plots.R",local=TRUE)
   source("./VOI.R",local=TRUE)
   source("./MSC_source.R",local=TRUE)
@@ -61,7 +62,6 @@ shinyServer(function(input, output, session) {
   source('./Backwards.R',local=TRUE ) # Stochastic SRA until progress bar update comes to DLMtool
   #assignInNamespace("SampleCpars",SampleCpars_mod, ns="DLMtool")
   #assignInNamespace("incProgress",shiny::incProgress, ns="DLMtool")
-
 
   source('./Custom_MPs.R',local=TRUE)
 
@@ -131,7 +131,40 @@ shinyServer(function(input, output, session) {
   output$SessionID<-renderText(SessionID)
 
   CurrentYr<-as.integer(substr(as.character(Sys.time()),1,4))
-  Just<-list(c("No introduction / general comments were provided",rep("No justification was provided",13)),rep("No justification was provided",3),rep("No justification was provided",4))
+  Just<-list(
+    c(
+"1. Describe the history and current status of the fishery, including fleets, sectors, vessel types and practices/gear by vessel type, landing ports, economics/markets, whether targeted/bycatch, other stocks caught in the fishery.
+
+2. Describe the stock’s ecosystem functions, dependencies, and habitat types.
+
+3. Provide all relevant reference materials, such as assessments, research, and other analysis.
+
+      ",
+      rep("No justification was provided",13)),
+
+     c(
+"1. Describe what, if any, current management measures are used to constrain catch/effort.
+
+2. Describe historical management measures, if any.
+
+3. Describe main strengths and weaknesses of current monitoring and enforcement capacity.
+
+4. Describe and reference any legal/policy requirements for management, monitoring and enforcement.
+
+       ",
+       rep("No justification was provided",2)),
+
+    c(
+"1. Provide the time series (specify years, if possible) that exist for catch, effort, and CPUE/abundance indices.
+
+2. Describe how these data collected (e.g., log books, dealer reporting, observers).
+
+3. Describe what types of sampling programs and methodologies exist for data collection, including the time-series of available sampling data and quality.
+
+4. Describe all sources of uncertainty in the status, biology, life history and data sources of the fishery.	Include links to documentation, reports.
+
+      "
+      , rep("No justification was provided",2)))
 
 
   # Default simulation ttributes --------------------------------------------------------------------------------
@@ -270,7 +303,8 @@ shinyServer(function(input, output, session) {
 
       tryCatch(
         {
-         dat<<-XL2Data(filey$datapath)
+         dat<<-new('Data',filey$datapath)
+
         },
         error = function(e){
           shinyalert("Not a properly formatted DLMtool Data .csv file", "Trying to load as an object of class 'Data'", type = "error")
@@ -297,8 +331,21 @@ shinyServer(function(input, output, session) {
       }
     }
 
-    #tryCatch(
-     # {
+    dat_test<-Data_trimer(dat)
+
+    if(class(dat_test)!='Data'){
+      DataInd(0)
+
+    }else{
+      dat_ind<<-dat
+      dat<<-dat_test
+
+
+      DataInd(1)
+    }
+
+    tryCatch(
+      {
         noCAA<-is.na(sum(dat@CAA))|sum(dat@CAA)==0
         noCAL<-is.na(sum(dat@CAL))|sum(dat@CAL)==0
         incompC<-sum(is.na(dat@Cat))>0
@@ -310,29 +357,27 @@ shinyServer(function(input, output, session) {
         if(!noML5) Cond_op<-c(Cond_op,"FRAME SRA ML (DLMtool)")
         if(!((noCAA & noCAL)|incompC))  Cond_op<-c(Cond_op,"Stochastic SRA (Walters et al. 2006)")
         updateSelectInput(session,"Cond_ops",choices=Cond_op,selected="None")
-
         Data(1)
         MadeOM(0)
         Calc(0)
         App(0)
         Ind(0)
-        DataInd(0)
         AdCalc(0)
         MPs<-getMPs(All=TRUE)
         MPs<-MPs[!grepl("FMSYref",MPs)] # remove reference FMSY MPs
-        if(length(MPs)<3)MPs<-c("matlenlim","DCAC","curE") # just an error catch in case, for some reason getMPs returns less than three MPs
+        if(length(MPs)<3)MPs<-c("curC","curC75","MCD") # just an error catch in case, for some reason getMPs returns less than three MPs
         updateSelectInput(session,"Advice_MP1",choices=MPs,selected=MPs[1])
         updateSelectInput(session,"Advice_MP2",choices=MPs,selected=MPs[2])
         updateSelectInput(session,"Advice_MP3",choices=MPs,selected=MPs[3])
+
         Calc_Advice(Advice_MPs=MPs[1:3])
-      #},
-      #error = function(e){
-       # shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
-      #  Data(0)
-       # shinyjs::disable("OM_Cond")
-      #  updateCheckboxInput(session,"OM_cond",value=FALSE)
-     # }
-    #)
+
+      },
+      error = function(e){
+        shinyalert("Advice calculation error", "Check data formatting", type = "error")
+        AdCalc(0)
+      }
+    )
 
   })
 
@@ -416,7 +461,6 @@ shinyServer(function(input, output, session) {
       App(0)
       MadeOM(0)
       CondOM(0)
-      DataInd(0)
       Ind(0)
       Quest(0)
       redoEval(fease=T)
@@ -463,7 +507,6 @@ shinyServer(function(input, output, session) {
       Calc(0)
       MadeOM(0)
       CondOM(0)
-      DataInd(0)
       Quest(0)
       Ind(0)
       redoApp(fease=T)
@@ -476,24 +519,6 @@ shinyServer(function(input, output, session) {
 
   # Indicator Data load
 
-  observeEvent(input$Load_Data_Ind,{
-
-    filey<-input$Load_Data_Ind
-
-    tryCatch(
-      {
-        dat_ind<<-XL2Data(filey$datapath)#readRDS(file=filey$datapath)
-
-        DataInd(1)
-      },
-      error = function(e){
-        shinyalert("File read error", "Make sure this file is a .csv file of the standard DLMtool 'Data' format", type = "error")
-        DataInd(0)
-
-      }
-    )
-
-  })
 
   observeEvent(input$getMPhelp,{
 
@@ -587,7 +612,6 @@ shinyServer(function(input, output, session) {
     Calc(0)
     App(0)
     Ind(0)
-    DataInd(0)
 
     MPs<<-getMPs()
     selectedMP<<-MPs[2]
@@ -679,10 +703,11 @@ shinyServer(function(input, output, session) {
       }
     }
 
-    tryCatch({
+    #tryCatch({
         withProgress(message = "Running Application", value = 0, {
-          AppMPs<-c("FMSYref",input$sel_MP)
+          AppMPs<-input$sel_MP
           MSEobj_app<<-runMSE(OM,MPs=AppMPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
+
         })
 
         MGT2<-ceiling(MSEobj_app@OM$MGT*2)
@@ -706,14 +731,14 @@ shinyServer(function(input, output, session) {
         Tweak(0)
         redoApp(fease=T)
         updateTabsetPanel(session,"Res_Tab",selected="2")
-      },
-      error = function(e){
-        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-                   For example a short lived stock a low stock depletion with recently declining effort.
-                   Try revising operating model parameters.", type = "info")
-        return(0)
-      }
-    ) # try catch
+      #},
+      #error = function(e){
+      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+      #             For example a short lived stock a low stock depletion with recently declining effort.
+      #             Try revising operating model parameters.", type = "info")
+       # return(0)
+      #}
+    #) # try catch
 
   }) # calculate MSE app
 
@@ -996,8 +1021,9 @@ shinyServer(function(input, output, session) {
 
       library(rmarkdown)
       thresh<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+
       Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
-      thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+      #thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
       temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
       Ptab2<<-temp[[1]]
       MPcols<<-temp[[2]]
@@ -1025,6 +1051,83 @@ shinyServer(function(input, output, session) {
 
       out<-render("EvalRep.Rmd", params = params)
       file.rename(out, file)
+      })
+    }
+
+  )
+
+  output$Build_Eval_MSC <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = function(){paste0(namconv(input$Name),"_Eval.html")}, #"report.html",
+
+    content = function(file) {
+      withProgress(message = "Building evaluation report", value = 0, {
+        src <- normalizePath('EvalRep_MSC.Rmd')
+        Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+        MSClog<-list(PanelState, Just, Des)
+
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'EvalRep_MSC.Rmd', overwrite = TRUE)
+
+        library(rmarkdown)
+        thresh<-c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT)
+
+        Ptab1<<-Ptab_MSC(MSEobj,burnin=burnin,rnd=0)
+        #thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+        temp<-Ptab_ord_MSC(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+        Ptab2<<-temp[[1]]
+        MPcols<<-temp[[2]]
+
+        MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+        MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+        #save(MSEobj_top,file="MSEobj_top")
+        #save(MSEobj_reb_top,file="MSEobj_reb_top")
+        nMPs<<-length(MSEobj_top@MPs)
+        GreenMPs<<-Ptab2$MP[MPcols=="green"]
+        #updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
+
+        Ptab3<<-Ptab_TO(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
+        #incProgress(incrate)
+        Ptab4<<-Ptab_ord_TO(Ptab3,burnin=burnin)
+        #incProgress(incrate)
+        if(length(GreenMPs)>0){
+          MSEobj_top_TO<<-Sub(MSEobj,MPs=GreenMPs) # for trade-off plots
+          MSEobj_reb_top_TO<<-Sub(MSEobj_reb,MPs=GreenMPs) # for trade-off plots
+          Ptab4<<-Ptab4[Ptab4$MP%in%GreenMPs,]
+        }else{
+          Ptab4<-data.frame(MP="-",Type="-",P_RB="-",LTY="-")
+        }
+        nMPs_TO<<-nrow(Ptab4)
+
+        params <- list(test = input$Name,
+                       set_title=paste0("Evaluation Report for ",input$Name),
+                       set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",FRAMEversion,")"),
+
+                       PanelState=MSClog[[1]],
+                       Just=MSClog[[2]],
+                       Des=MSClog[[3]],
+                       OM=OM,
+                       MSEobj=MSEobj,
+                       MSEobj_reb=MSEobj_reb,
+                       MSEobj_top=MSEobj_top,
+                       MSEobj_reb_top=MSEobj_reb_top,
+                       MSEobj_top_TO=MSEobj_top_TO,
+                       MSEobj_reb_top_TO=MSEobj_reb_top_TO,
+                       nMPs_TO=nMPs_TO,
+                       Ptab2=Ptab2,
+                       Ptab4=Ptab4,
+                       MPcols=MPcols,
+                       nMPs=nMPs,
+                       ntop=input$ntop,
+                       burnin=burnin,
+                       thresh=thresh,
+                       SessionID=SessionID,
+                       copyright="copyright (c) NRDC 2018"
+        )
+
+        out<-render("EvalRep_MSC.Rmd", params = params)
+        file.rename(out, file)
       })
     }
 
@@ -1082,6 +1185,58 @@ shinyServer(function(input, output, session) {
 
   )
 
+  # Application MSE report
+  output$Build_App_MSC <- downloadHandler(
+    # For PDF output, change this to "report.pdf"
+    filename = function(){paste0(namconv(input$Name),"_App.html")}, #"report.html",
+
+    content = function(file) {
+      withProgress(message = "Building application report", value = 0, {
+
+        src <- normalizePath('AppRep_MSC.Rmd')
+        #doprogress("Building evaluation report",1)
+        Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
+        MSClog<-list(PanelState, Just, Des)
+
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'AppRep_MSC.Rmd', overwrite = TRUE)
+
+        burnin<<-input$burnin
+        Ptab1_app<<-Ptab_MSC(MSEobj_app,burnin=burnin,rnd=0)
+        thresh=c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT)
+        temp<-Ptab_ord_MSC(Ptab1_app,burnin=burnin,1, Eval=F,fease=fease,thresh=thresh)
+        Ptab2_app<<-temp[[1]]
+        MPcols_app<<-temp[[2]]
+
+
+        library(rmarkdown)
+        params <- list(test = input$Name,
+                       set_title=paste0("Application Report for ",input$Name),
+                       set_type=paste0("Application of an MP"," (FRAME version ",FRAMEversion,")"),
+
+                       PanelState=MSClog[[1]],
+                       Just=MSClog[[2]],
+                       Des=MSClog[[3]],
+                       OM=OM,
+                       MSEobj_app=MSEobj_app,
+                       MSEobj_reb_app=MSEobj_reb_app,
+                       MPcols="black",
+                       Ptab2_app=Ptab2_app,
+                       thresh=c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT),
+                       ntop=input$ntop,
+                       burnin=burnin,
+                       SessionID=SessionID,
+                       copyright="copyright (c) NRDC 2018"
+        )
+
+        out<-render("AppRep_MSC.Rmd", params = params)
+        file.rename(out, file)
+      })
+    }
+
+  )
+
   # Anciliary indicators report
   output$Build_AI <- downloadHandler(
     # For PDF output, change this to "report.pdf"
@@ -1111,7 +1266,9 @@ shinyServer(function(input, output, session) {
                      Des=MSClog[[3]],
                      OM=OM,
                      inputnames=inputnames,
-                     MSEobj=MSEobj,
+                     MSEobj_app=MSEobj_app,
+                     dat=dat,
+                     dat_ind=dat_ind,
                      mm=mm,
                      ntop=input$ntop,
                      burnin=burnin,

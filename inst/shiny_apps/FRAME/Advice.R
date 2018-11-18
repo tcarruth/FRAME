@@ -4,43 +4,49 @@ Calc_Advice<-function(Advice_MPs=NA,updateres=FALSE){
 
   if(is.na(Advice_MPs[1])){ # if not user specified
 
-    if(Calc()==1&App()==1){  # if evaluation and applications are available
-      if(input$Advice_allMPs=="Custom MPs"){
-        Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
-      }else if(input$Advice_allMPs=="Application MP"){
-        Advice_MPs<-as.character(Ptab2_app$MP[1])
-      }else if(input$Advice_allMPs=="Evaluation MPs"){
-        Advice_MPs<-as.character(Ptab2$MP)
-      }else{
-        Advice_MPs<-getMPs(All=TRUE)
-      }
-    }else if(Calc()==1){
-      if(input$Advice_nA=="Custom MPs"){
-        Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
-      }else if(input$Advice_nA=="Evaluation MPs"){
-        Advice_MPs<-as.character(Ptab2$MP)
-      }else{
-        Advice_MPs<-getMPs(All=TRUE)
-      }
-    }else if(App()==1){
-      if(input$Advice_nE=="Custom MPs"){
-        Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
-      }else if(input$Advice_nE=="Application MP"){
-        Advice_MPs<-as.character(Ptab2_app$MP[1])
-      }else{
-        Advice_MPs<-getMPs(All=TRUE)
-      }
-    }else{
-      if(input$Advice_nEA=="Custom MPs"){
-        Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
-      }else{
-        Advice_MPs<-getMPs(All=TRUE)
-      }
-    }
+    #if(Calc()==1&App()==1){  # if evaluation and applications are available
+      #if(input$Advice_allMPs=="Custom MPs"){
+       # Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
+      #}else if(input$Advice_allMPs=="Application MP"){
+       # Advice_MPs<-as.character(Ptab2_app$MP[1])
+      #}else if(input$Advice_allMPs=="Evaluation MPs"){
+      #  Advice_MPs<-as.character(Ptab2$MP)
+      #}else{
+      #  Advice_MPs<-getMPs(All=TRUE)
+     # }
+    #}else if(Calc()==1){
+      #if(input$Advice_nA=="Custom MPs"){
+       # Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
+      #}else if(input$Advice_nA=="Evaluation MPs"){
+       # Advice_MPs<-as.character(Ptab2$MP)
+      #}else{
+      #  Advice_MPs<-getMPs(All=TRUE)
+     # }
+    #}else if(App()==1){
+      #if(input$Advice_nE=="Custom MPs"){
+       # Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
+      #}else if(input$Advice_nE=="Application MP"){
+       # Advice_MPs<-as.character(Ptab2_app$MP[1])
+      #}else{
+      #  Advice_MPs<-getMPs(All=TRUE)
+     # }
+    #}else{
+      #if(input$Advice_nEA=="Custom MPs"){
+       # Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
+      #}else{
 
+     # }
+    #}
+    if(input$Advice_nE=="Custom MPs"){
+      Advice_MPs<-c(input$Advice_MP1,input$Advice_MP2,input$Advice_MP3)
+    }else{
+      Advice_MPs<-getMPs(All=TRUE)
+    }
+    Advice_MPs
   }
+
   withProgress(message = "Calculating management advice",value=0, {
-    out<-runMP_MSC(dat,MPs=Advice_MPs)
+    out<-runMP_MSC(Data=dat,MPs=Advice_MPs)
     output$Advice <- DT::renderDataTable(out[[1]],options = list(lengthMenu = c(10, 25, 50), pageLength = 10))
     output$Advice_TAC<-renderPlot(plotTAC(out[[2]]),height =900 ,width=900)
   })

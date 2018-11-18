@@ -81,14 +81,14 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v2.9)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v3.0)",style="padding:19px;")
       ),
 
       column(3,offset=2,style="padding:14px;height:65px",
              fluidRow(
 
                column(7,tags$a(img(src = "DLMtool.png", height = 45, width = 145),href="https://www.datalimitedtoolkit.org",target='_blank')),
-               column(5,tags$a(img(src = "MSC2.png", height = 46, width = 68),href="https://www.msc.org/",target='_blank'))
+               column(5,tags$a(img(src = "MSC4.png", height = 52, width = 136),href="https://www.msc.org/",target='_blank'))
 
             )
       )
@@ -881,7 +881,8 @@ shinyUI(
 
                         conditionalPanel(condition="output.Calc==1",
                               h5("Evaluation Report",style="font-weight:bold"),
-                              downloadButton("Build_Eval","")
+                              conditionalPanel(condition="input.Perf_type=='MSC continuity'",downloadButton("Build_Eval","")),
+                              conditionalPanel(condition="input.Perf_type=='MSC'",downloadButton("Build_Eval_MSC",""))
                         )
 
                  )
@@ -943,7 +944,9 @@ shinyUI(
                           conditionalPanel(condition="output.App==1",
                                  column(12,style="height:50px",
                                         h5("Application Report",style="font-weight:bold"),
-                                        downloadButton("Build_App","")
+                                        conditionalPanel(condition="input.Perf_type=='MSC continuity'",downloadButton("Build_App","")),
+                                        conditionalPanel(condition="input.Perf_type=='MSC'",downloadButton("Build_App_MSC",""))
+
                                  )
                           )
 
@@ -968,16 +971,16 @@ shinyUI(
 
                      column(3,style="padding:7px;padding-left:14px",
 
-                            conditionalPanel(condition="output.App==1",
+                            conditionalPanel(condition="output.DataInd==0",
 
-                              fileInput("Load_Data_Ind","Load indicator data")
+                              h5("Compatible data file not loaded (at least three more years of data than LHYear)", style = "color:grey")
 
                             ),
                             conditionalPanel(condition="output.App==0",
                               h5("Application not run yet (Step C2)", style = "color:grey")
                             ),
-                            conditionalPanel(condition="output.DataInd==1",
-                                                 actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
+                            conditionalPanel(condition="output.DataInd==1&output.App==1",
+                                actionButton("Calculate_Ind",h5(" DETECT EXCEPTIONAL CIRCUMSTANCES  ",style="color:red"))
                             )
 
                      ),
@@ -1069,12 +1072,12 @@ shinyUI(
                   numericInput("burnin", label = "Burn-in years", value=10,min=5,max=20),
                   numericInput("ntop", label = "Number of top MPs to display", value=10,min=1,max=80),
                   #checkboxInput("LTL", label = "Low Trophic Level PIs", value = FALSE),
-                  selectInput("Perf_type", label = "Performance metrics", choices=c("MSC","MSC defunct"),selected="MSC"),
+                  selectInput("Perf_type", label = "Performance metrics", choices=c("MSC","MSC continuity"),selected="MSC"),
                   column(12,conditionalPanel(condition="output.Data==1",checkboxInput("Fease", label = "Advanced data feasibility", value = FALSE))),
                   column(12,HTML("<br>","<br>")),
                   h5("Probability Thresholds",style="font-weight:bold"),
                   hr(),
-                  conditionalPanel(condition="input.Perf_type=='MSC defunct'",
+                  conditionalPanel(condition="input.Perf_type=='MSC continuity'",
                     sliderInput("P111a","P.1.1.1a",min=0,max=100,value=70,step=5),
                     sliderInput("P111b","P.1.1.1b",min=0,max=100,value=50,step=5),
                     sliderInput("P112","P.1.1.2",min=0,max=100,value=70,step=5),
@@ -1093,7 +1096,7 @@ shinyUI(
                 ), # end of app or eval control panel
 
                 conditionalPanel(width=4,condition="output.Ind==1&input.Res_Tab==3",
-                  sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=6,step=1),
+                  #sliderInput("Ind_Res","Resolution (yrs)",min=3,max=15,value=3,step=1),
                   sliderInput("Ind_Alpha","Type I error (Prob false positive rejection, alpha)",min=0.01,max=0.25,value=0.05,step=0.01)
                 ),# end of indicator control panel
 
@@ -1127,9 +1130,9 @@ shinyUI(
 
                   ),
 
-                  selectInput("Advice_MP1", label = "Custom MP 1", choices=c("AvC","curE"),selected=character(0)),
-                  selectInput("Advice_MP2", label = "Custom MP 2", choices=c("AvC","curE"),selected=character(0)),
-                  selectInput("Advice_MP3", label = "Custom MP 3", choices=c("AvC","curE"),selected=character(0))
+                  selectInput("Advice_MP1", label = "Custom MP 1", choices=c("curE","curC","curC75"),selected="curE"),
+                  selectInput("Advice_MP2", label = "Custom MP 2", choices=c("curE","curC","curC75"),selected="curC"),
+                  selectInput("Advice_MP3", label = "Custom MP 3", choices=c("curE","curC","curC75"),selected="curC75")
 
                 )
 
@@ -1151,24 +1154,37 @@ shinyUI(
                                   column(width = 12,
 
                                          column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                                         column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                         conditionalPanel(condition="input.Perf_type=='MSC continuity'",
+                                                            column(width=12,h5("< These performance metrics have been kept for App debugging reasons > The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
                                                             thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                                            order of projected long-term yield relative to fishing at the FMSY
-                                                            reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                            order of projected long-term yield (relative to the MP of highest yield).
+                                                            MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
                                                             not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                                            right.")),
+                                                            right."))),
+                                         conditionalPanel(condition="input.Perf_type=='MSC'",
+                                                          column(width=12,h5(" The Performance Indicator Table includes the 'Stock Status' metrics - the probabilities of each MP exceeding the limit (0.5 BMSY) and
+                                                            the target (BMSY) biomass levels over the short term (burnin years). Also tabulated are the 'Harvest Strategy' metrics. These are similar but are evaluated over the long term (burnin-50 years).
+                                                            MPs that pass all probability thresholds are in green and those that do not are presented in red.  MPs that are  not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                            right."))),
                                          column(width=12,h5("MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but
                                                             do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'
                                                             explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or
-                                                            management restrictions (M) controled by management question 1")),
+                                                            management restrictions (M) controled by management question 1.")),
                                          tableOutput('Ptable'),
                                          tableOutput('threshtable')
 
                                          ),
                                   column(width = 12,
 
-                                         column(width = 12,h5("Performance Trade-offs",style="font-weight:bold"))
-                                  )       ,
+                                         column(width = 12,h5("Performance Trade-offs",style="font-weight:bold")),
+
+                                         conditionalPanel(condition="input.Perf_type=='MSC'",
+                                                          column(width=12,h5("The trade-off performance indicator Table includes all those MPs that satsified performance thresholds above.
+                                                                             Rebuilding is the probability that the stock rebuilds to BMSY levels after two mean generation times. Relative yield is the yield relative to the highest yield MP")),
+                                                          tableOutput('Ptable2'))
+
+                                  ),
+
                                   column(width = 4,
 
                                          column(width = 12,h5("Short-term stock status vs long term yield performance trade-off",style="color::grey")),
@@ -1188,7 +1204,8 @@ shinyUI(
                                          plotOutput("P3_LTY",height="auto")
 
                                   )
-                                         ), # end of fluid row
+                                ), # end of fluid row
+
                                 fluidRow(
                                   column(width = 12,h5("B/BMSY and Yield (relative to today) projection plots",style="font-weight:bold")),
                                   column(width=12,h5("Projections of biomass and yield relative to MSY levels. The blue regions represent the 90% and 50% probability intervals, the white solid line is the median and the dark blue lines are two example simulations")),
@@ -1205,7 +1222,10 @@ shinyUI(
                                   plotOutput("PI111_uncertain",height="auto"),
 
                                   column(width = 12,h5("Cost of Current Uncertainties Analysis",style = "font-weight:bold")),
-                                  column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield. The ranges in the answers of each question are divided into 8 separate 'bins'. The variance in long term yield among these bins is represented in the bars below")),
+                                  column(width=12,h5("This is a post-hoc analysis to determine which question led to the largest uncertainty in long term yield.
+                                                     The ranges in the answers of each question are divided into 8 separate 'bins'.
+                                                     The variance in long term yield among these bins is represented in the bars below.
+                                                     Note: this is not informative of MP performance, but should be used after an MP is selected to evaluate the cost or relevance of each question")),
                                   plotOutput("CCU",height="auto"),
 
                                   column(width = 12,h5("MSE convergence diagnostics",style = "font-weight:bold")),
@@ -1213,7 +1233,6 @@ shinyUI(
                                   plotOutput("Eval_Converge",height="auto")
 
                                 ) # end of fluid row
-
 
                     ), value=1),
 
@@ -1230,12 +1249,18 @@ shinyUI(
 
                                                      fluidRow(
                                                        column(width = 12,h5("Performance Indicator Table",style="font-weight:bold")),
-                                                       column(width=12,h5("The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
-                                                                          thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
-                                                                          order of projected long-term yield relative to fishing at the FMSY
-                                                                          reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
-                                                                          not available for use with current data are listed in black and the lacking data are listed in the last column to the
-                                                                          right.")),
+                                                       conditionalPanel(condition="input.Perf_type=='MSC continuity'",
+                                                                        column(width=12,h5("< These performance metrics have been kept for App debugging reasons > The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI
+                                                                                           thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  The MPs are presented in
+                                                                                           order of projected long-term yield (relative to the highest yield MP).
+                                                                                           MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are
+                                                                                           not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                                                           right."))),
+                                                       conditionalPanel(condition="input.Perf_type=='MSC'",
+                                                                        column(width=12,h5("The Performance Indicator Table includes the 'Stock Status' metrics - the probabilities of each MP exceeding the limit (0.5 BMSY) and
+                                                                                           the target (BMSY) biomass levels over the short term (burnin years). Also tabulated are the 'Harvest Strategy' metrics. These are similar but are evaluated over the long term (burnin-50 years).
+                                                                                           MPs that pass all probability thresholds are in green and those that do not are presented in red.  MPs that are  not available for use with current data are listed in black and the lacking data are listed in the last column to the
+                                                                                           right."))),
                              tableOutput('App_Ptable'),
                              tableOutput('App_threshtable'),
 

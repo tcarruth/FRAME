@@ -1,5 +1,27 @@
+PI_MSC<-function(incrate){
+  Ptab1<<-Ptab_MSC(MSEobj,burnin=burnin,rnd=0)
+  incProgress(incrate)
+  thresh<<-c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT)
+  temp<-Ptab_ord_MSC(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+  incProgress(incrate)
+  Ptab2<<-temp[[1]]
+  MPcols<<-temp[[2]]
+  MSEobj_top<<-Sub(MSEobj,MPs=Ptab2$MP)
+  MSEobj_reb_top<<-Sub(MSEobj_reb,MPs=Ptab2$MP)
+  #save(MSEobj_top,file="MSEobj_top")
+  #save(MSEobj_reb_top,file="MSEobj_reb_top")
+  nMPs<<-length(MSEobj_top@MPs)
+  GreenMPs<<-Ptab2$MP[MPcols=="green"]
+  #updateTextAreaInput(session,"Debug1",value=Ptab2$MP)
 
-Ptab_MSC<-function(MSEobj,burnin=5,rnd=0,Ap=FALSE){
+  output$Ptable <- function()Ptab_formatted_MSC(Ptab2,burnin=burnin,cols=MPcols,thresh=thresh)
+  incProgress(incrate)
+  output$threshtable<-function()Thresh_tab_MSC(thresh)
+
+}
+
+
+Ptab_MSC<-function(MSEobj,burnin=5,rnd=0){
 
   # PI 1.1.1
   nMPs<-MSEobj@nMPs
@@ -11,13 +33,8 @@ Ptab_MSC<-function(MSEobj,burnin=5,rnd=0,Ap=FALSE){
   P_LTT<-round(apply(MSEobj@B_BMSY[,,(burnin+1):50,drop=FALSE]>1,2,mean)*100,rnd)
 
   MP<-MSEobj@MPs
-
   tab<-data.frame(MP,P_STL, P_STT, P_LTL, P_LTT)
-
-  #if(Ap) tab<-tab[2,]
-  #if(!Ap)tab<-
   tab[order(tab$P_LTT,decreasing=TRUE),]
-
 
 }
 
@@ -139,16 +156,16 @@ Ptab_ord_MSC<-function(Ptab1,thresh=c(70, 50, 80, 50),burnin=10,ntop=NA,Eval=T,f
 
 }
 
-Ptab_formatted_MSC<-function(Ptab2,thresh=c(70, 50, 80, 50),burnin=5,cols){
+Ptab_formatted_MSC<-function(Ptab2X,thresh=c(70, 50, 80, 50),burnin=5,cols){
 
   #Ptab2<-as.data.frame(as.matrix(Ptab2))
   dynheader<-c(1,1,2,2,1)
-  names(dynheader)<-c(" ", " ", paste0("Stock Status (yrs 1-",burnin,")"), paste0("Harvest Strategy (yrs ",burnin,"-50)"), "Reason not")
+  names(dynheader)<-c(" ", " ", paste0("Stock Status (yrs 1-",burnin,")"), paste0("Harvest Strategy (yrs ",burnin+1,"-50)"), "Reason not")
   MPurlconv<-function(x)MPurl(as.character(x))
-  linky<-sapply(Ptab2$MP,MPurlconv)
+  linky<-sapply(Ptab2X$MP,MPurlconv)
   #linky<- paste0("<a href='",linko,"' target='_blank'>",linko,"</a>")
 
-  Ptab2 %>%
+  Ptab2X %>%
     mutate(
       MP =  cell_spec(MP, "html", color = cols,link=linky),
       Type =  cell_spec(Type, "html"),

@@ -22,7 +22,7 @@ AAV<-function(x,mat,ind){
 }
 
 mu<-function(x,mat,ind){
-  log(mean(mat[x,ind]))
+  log(mean(mat[x,ind],na.rm=T))
 }
 
 getinds<-function(PPD,styr,res, tsd= c("Cat","Cat","Cat","Ind","ML"),stat=c("slp","AAV","mu","slp", "slp")){
@@ -30,14 +30,14 @@ getinds<-function(PPD,styr,res, tsd= c("Cat","Cat","Cat","Ind","ML"),stat=c("slp
   proyears<-dim(PPD@Cat)[2]-styr+1
 
   if(res>proyears)message(paste0("The temporal resolution for posterior predictive data calculation (",res,") is higher than the number of projected years (",proyears,"). Only one time step of indicators are calculated for ",proyears, " projected years."))
-  np<-floor(proyears/res)
+  np<-1#floor(proyears/res)
 
   ntsd<-length(tsd)
-  inds<-array(NA,c(ntsd,np,nsim))
+  inds<-array(NA,c(ntsd,1,nsim))
 
   for(i in 1:ntsd){
     for(pp in 1:np){
-      ind<-styr+((pp-1)*res)+1:res
+      ind<-(styr+((pp-1)*res)+1:res)-1
       inds[i,pp,]<-sapply(1:nsim,get(stat[i]),mat=slot(PPD,tsd[i]),ind=ind)
     }
   }
@@ -69,7 +69,11 @@ CC<-function(indPPD,indData,pp=1,dnam=c("CS","CV","CM","IS","IM","MLS","MLM"),re
         #coly=cols[ceiling(posmean(cor(mcmc@rawdat[1:maxn,keep1[i]],mcmc@rawdat[1:maxn,keep2[j]]))*ncols)]
         xlim<-range(quantile(ind2PPD[j,],c(0.02,0.98),na.rm=T),ind2Data[j,])
         ylim<-range(quantile(ind2PPD[i,],c(0.02,0.98),na.rm=T),ind2Data[i,])
-        plot(ind2PPD[j,],ind2PPD[i,],pch=19,xlim=xlim,ylim=ylim,cex=0.8,col=cols[1],axes=F)
+        plot(ind2PPD[j,],ind2PPD[i,],pch=19,xlim=xlim,ylim=ylim,cex=0.9,col=cols[1],axes=F)
+        axis(1,c(-100,100))
+        axis(2,c(-100,100))
+        axis(3,c(-100,100))
+        axis(4,c(-100,100))
         points(ind2Data[j,],ind2Data[i,],pch=4,cex=1.6,col=cols[2],lwd=2)
 
       }

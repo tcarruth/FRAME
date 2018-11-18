@@ -1,27 +1,35 @@
 
 
-Data_trim<-function(Data){
+Data_trimer<-function(Data){
 
-  DataT<-Data
-  orglength<-length(Data@Year)
-  ind<-(1:length(Data@Year))[Data@Year<(Data1@LHYear+1)]
-  newlength<-length(ind)
-  slots<-slotNames(Data)
+  if(is.na(Data@LHYear)|is.null(Data@LHYear)|Data@LHYear==Data@Year[length(Data@Year)]){
+    message("Data could not be trimmed, make sure LHYear is less than max(Year)")
+    return(NA)
+  }else if(Data@LHYear>(Data@Year[length(Data@Year)]-3)){
+    return(NA)
+  }else{
+    DataT<-Data
+    orglength<-length(Data@Year)
+    ind<-(1:length(Data@Year))[Data@Year<(Data@LHYear+1)]
+    newlength<-length(ind)
+    slots<-slotNames(Data)
 
-  for(i in 1:length(slots)){
-    temp<-slot(Data,slots[i])
-    if(orglength%in%dim(temp)){
-      dims<-dim(temp)
-      ndim<-length(dims)
-      if(ndim==2){
-        slot(DataT,slots[i])<-array(slot(Data,slots[i])[,ind],c(dim(temp)[1],newlength))
-      }else if(ndim==3){
-        slot(DataT,slots[i])<-array(slot(Data,slots[i])[,ind,],c(dim(temp)[1],newlength,dim(temp)[3]))
+    for(i in 1:length(slots)){
+      temp<-slot(Data,slots[i])
+      if(orglength%in%dim(temp)|length(temp)==orglength){
+        dims<-dim(temp)
+        ndim<-length(dims)
+        if(ndim==2){
+          slot(DataT,slots[i])<-array(slot(Data,slots[i])[,ind],c(dim(temp)[1],newlength))
+        }else if(ndim==3){
+          slot(DataT,slots[i])<-array(slot(Data,slots[i])[,ind,],c(dim(temp)[1],newlength,dim(temp)[3]))
+        }else{
+          slot(DataT,slots[i])<-slot(Data,slots[i])[ind]
+        }
       }
     }
+    return(DataT)
   }
-
-  DataT
 
 }
 

@@ -63,18 +63,15 @@ This is a prototype of an automatic report that describes the results of a demon
 
 # Performance Indicator Table
 
-The Performance Indicator Table includes the probabilities of each MP achieving the relevant MSC PI thresholds for stock status (PI 1.1.1), rebuilding (PI 1.1.2) and harvest strategy (PI 1.2.1).  
-
-The MPs are presented in order of projected long-term yield relative to fishing at the FMSY reference rate.  MPs that pass all PI thresholds are in green and those that do not are presented in red.  MPs that are not available for use with current data are listed in black and the lacking data are listed in the last column to the right.
-
-MPs colored green are feasible and pass all of the performance indicator thresholds. MPs colored red are feasible but do not pass performance indicator thresholds. MPs colored black are not feasible. The column 'Reason not feasible'  explains the reason for this and can be due to data restrictions (D) controlled by data question 1, and/or management restrictions (M) controled by management question 1" 
+You have selected a single MP to conduct an MSE analysis of performance. The Performance Indicator Table includes the 'Stock Status' metrics - the probabilities of each MP exceeding the limit (0.5 BMSY) and the target (BMSY) biomass levels over the short term (burnin years). Also tabulated are the 'Harvest Strategy' metrics. These are similar but are evaluated over the long term (burnin-50 years).
+ 
 
 ```{r Ptab,echo=F,warning=F,error=F,message=F}
 
  incrate<-1/9
  incProgress(incrate)
- Ptab_formatted(params$Ptab2_app,burnin=params$burnin,cols=params$MPcols,thresh=params$thresh)
- Thresh_tab(params$thresh)
+ Ptab_formatted_MSC(params$Ptab2_app,burnin=params$burnin,cols="black",thresh=params$thresh)
+ Thresh_tab_MSC(params$thresh)
  MSEobj_app<-params$MSEobj_app
  MSEobj_reb_app<-params$MSEobj_reb_app
 
@@ -173,7 +170,7 @@ When answering questions in the Fishery, Management and Data panels above, you m
 ```{r CCU1,echo=F,warning=F,error=F,message=F,include=F}
 
 
-VOIout[[1]]<-getVOI(MSEobj_app)#,ncomp=17,nbins=6)[[1]]
+#VOIout[[1]]<-getVOI(MSEobj_app)#,ncomp=17,nbins=6)[[1]]
 
 
 incProgress(incrate)
@@ -186,7 +183,7 @@ incProgress(incrate)
 
 
 
-CCU_plot(VOIout[[1]],MSEobj_app,MPcols=params$MPcols[2],maxrow=1,maxcol=1)
+#CCU_plot(VOIout[[1]],MSEobj_app,MPcols=params$MPcols[1],maxrow=1,maxcol=1)
 
 
 incProgress(incrate)
