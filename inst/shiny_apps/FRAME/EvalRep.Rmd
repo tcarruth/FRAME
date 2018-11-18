@@ -184,11 +184,11 @@ nMPs<-length(MSEobj_top@MPs)
 panelsperplot<-6
 nplots<-ceiling(nMPs/panelsperplot)
 plots<-split(1:nMPs, ceiling(seq_along(1:nMPs)/panelsperplot))
-VOIout<-new('list')
-for(i in 1:length(plots)){
-  MSEobj2<-Sub(params$MSEobj_top,MPs=params$MSEobj_top@MPs[unlist(plots[i])])
-  VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
-}
+#VOIout<-new('list')
+#for(i in 1:length(plots)){
+#  MSEobj2<-Sub(params$MSEobj_top,MPs=params$MSEobj_top@MPs[unlist(plots[i])])
+#  VOIout[[i]]<-getVOI(MSEobj2)#,ncomp=17,nbins=6)[[1]]
+#}
 incProgress(incrate)
 ```
 
@@ -198,8 +198,8 @@ incProgress(incrate)
 
 
 for(i in 1:length(plots)){
-  MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
-  CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
+  #MSEobj2<-Sub(MSEobj_top,MPs=MSEobj_top@MPs[unlist(plots[i])])
+  #CCU_plot(VOIout[[i]],MSEobj2,MPcols=params$MPcols,maxrow=2)
 }
 incProgress(incrate)
 

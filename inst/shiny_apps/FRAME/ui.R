@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v3.0)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v3.1.1a)",style="padding:19px;")
       ),
 
       column(3,offset=2,style="padding:14px;height:65px",

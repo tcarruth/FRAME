@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"2.10"
+  FRAMEversion<<-"3.1.1"
   #options(browser = false)
 
   # MPs
@@ -401,7 +401,7 @@ shinyServer(function(input, output, session) {
       filey<-input$Load_OM
 
       tryCatch({
-        OM<-readRDS(file=filey$datapath)
+        OM<<-readRDS(file=filey$datapath)
       },
       error = function(e){
         shinyalert("File read error", "This does not appear to be a DLMtool OM object, saved by saveRDS()", type = "error")
@@ -640,7 +640,7 @@ shinyServer(function(input, output, session) {
 
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
-    #tryCatch({
+    tryCatch({
         withProgress(message = "Running Evaluation", value = 0, {
           silent=T
           MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
@@ -672,15 +672,15 @@ shinyServer(function(input, output, session) {
         updateTabsetPanel(session,"Res_Tab",selected="1")
 
 
-      #},
-      #error = function(e){
-       # shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-      #             For example a short lived stock a low stock depletion with recently declining effort.
-      #             Try revising operating model parameters.", type = "info")
-       # return(0)
-      #}
+      },
+      error = function(e){
+        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                   For example a short lived stock a low stock depletion with recently declining effort.
+                   Try revising operating model parameters.", type = "info")
+        return(0)
+      }
 
-    #)
+    )
 
   }) # press calculate
 
@@ -703,7 +703,7 @@ shinyServer(function(input, output, session) {
       }
     }
 
-    #tryCatch({
+    tryCatch({
         withProgress(message = "Running Application", value = 0, {
           AppMPs<-input$sel_MP
           MSEobj_app<<-runMSE(OM,MPs=AppMPs,silent=T,control=list(progress=T),PPD=T,parallel=parallel)
@@ -731,22 +731,29 @@ shinyServer(function(input, output, session) {
         Tweak(0)
         redoApp(fease=T)
         updateTabsetPanel(session,"Res_Tab",selected="2")
-      #},
-      #error = function(e){
-      #  shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
-      #             For example a short lived stock a low stock depletion with recently declining effort.
-      #             Try revising operating model parameters.", type = "info")
-       # return(0)
-      #}
-    #) # try catch
+      },
+      error = function(e){
+        shinyalert("Computational error", "This probably occurred because your simulated conditions are not possible.
+                   For example a short lived stock a low stock depletion with recently declining effort.
+                   Try revising operating model parameters.", type = "info")
+        return(0)
+      }
+    ) # try catch
 
   }) # calculate MSE app
 
   observeEvent(input$Calculate_Ind,{
+    tryCatch({
 
-    redoInd()
-    updateTabsetPanel(session,"Res_Tab",selected="3")
-    Ind(1)
+      redoInd()
+      updateTabsetPanel(session,"Res_Tab",selected="3")
+      Ind(1)
+    },
+    error = function(e){
+      shinyalert("Computational error", "Could not calculate Ancillary indicators, check file format.", type = "info")
+      return(0)
+    }
+    ) # try catch
 
   })
 

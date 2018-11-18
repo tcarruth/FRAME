@@ -30,8 +30,9 @@ redoEval<-function(fease=F){
     output$PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_top,MPcols=MPcols,maxMPs=MSEobj_top@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =ceiling(nMPs/6)*400 , width = 1100)
 
     incProgress(incrate)
-    VOIout<<-getVOI(MSEobj_top)
-    output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
+
+    #VOIout<<-getVOI(MSEobj_top)
+    #output$CCU<-renderPlot(CCU_plot(VOIout,MSEobj_top,MPcols=MPcols),height=ceiling(nMPs/3)*290,width=1300)
     output$Eval_Converge<-renderPlot(Converge(MSEobj_top,PMs = list(Yield, P10),ncol=2,nrow=1),height =400 , width = 1300)
 
   })
@@ -79,11 +80,11 @@ redoApp<-function(fease=F){
     output$App_wormplot3<-renderPlot(Rplot(MSEobj_reb_app,MPcols=MPcols_app,maxcol=1,maxrow=2), height =450 , width =550)
     output$App_PI111_uncertain<-renderPlot(MSC_uncertain(MSEobj_app,MPcols=MPcols_app,maxMPs=MSEobj_app@nMPs, LTL=F,inc_thresh = F,burnin=burnin),height =450 , width =550)
 
-    VOIout_app<<-getVOI(MSEobj_app)
+    #VOIout_app<<-getVOI(MSEobj_app)
     incProgress(incrate)
 
-    output$App_CCU<-renderPlot(CCU_plot(VOIout_app,MSEobj_app,MPcols=MPcols_app,maxrow=1,maxcol=1),height =550 , width =550)
-    output$App_VOI<-renderPlot(VOI_MSC(MSEobj_app,MPcols=MPcols_app),height =550 , width =550)
+    #output$App_CCU<-renderPlot(CCU_plot(VOIout_app,MSEobj_app,MPcols=MPcols_app,maxrow=1,maxcol=1),height =550 , width =550)
+    #output$App_VOI<-renderPlot(VOI_MSC(MSEobj_app,MPcols=MPcols_app),height =550 , width =550)
 
     incProgress(incrate)
 
@@ -92,7 +93,7 @@ redoApp<-function(fease=F){
 
 redoInd<-function(){
 
-  styr=max(dat@Year)+1
+  styr=max(dat@Year)-min(dat@Year)+1
   PPD<-MSEobj_app@Misc[[1]]
 
   # Standardization
