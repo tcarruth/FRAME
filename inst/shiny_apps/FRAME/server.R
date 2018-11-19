@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"3.1.1"
+  FRAMEversion<<-"3.1.2"
   #options(browser = false)
 
   # MPs
@@ -41,6 +41,7 @@ shinyServer(function(input, output, session) {
 
   # OM construction / translation
   source("./makeOM.R",local=TRUE)
+  source("./ML2D.R",local=TRUE)
 
   # Reporting
   source("./OM_report.R",local=TRUE)
@@ -50,6 +51,8 @@ shinyServer(function(input, output, session) {
 
   # Advice
   source("./Advice.R",local=TRUE)
+
+
 
   # Miscellaneous
   source("./Misc.R",local=TRUE)
@@ -568,44 +571,54 @@ shinyServer(function(input, output, session) {
 
     nsim<<-input$nsim
 
-    if(input$Cond_ops == "FRAME SRA ML (DLMtool)"){
-      withProgress(message = "Building OM from Questionnaire & SRA ML", value = 0, {
+    tryCatch({
 
-        ML<-mean(dat@ML[1,length(dat@ML[1,])-(0:4)],na.rm=T)/dat@vbLinf*mean(OM@Linf)
-        OM<-ML2D(OM,ML=ML,ploty=F,nsim=OM@nsim,Dlim=c(0.05,0.7))
+      if(input$Cond_ops == "FRAME SRA ML (DLMtool)"){
+        withProgress(message = "Building OM from Questionnaire & SRA ML", value = 0, {
 
-      })
+          OM<-makeOM(PanelState,nsim=nsim)
+          ML<-mean(dat@ML[1,length(dat@ML[1,])-(0:4)],na.rm=T)/dat@vbLinf*mean(OM@Linf)
+          OM<<-ML2D_frame(OM,ML=ML,ploty=F,nsim=OM@nsim,Dlim=c(0.05,0.7))
 
-    }else if(input$Cond_ops == "Stochastic SRA (Walters et al. 2006)"){ # Build from SRA
+        })
 
-      OM<<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
+      }else if(input$Cond_ops == "Stochastic SRA (Walters et al. 2006)"){ # Build from SRA
 
-      if(input$Debug){
-        saveRDS(OM,"OM_autosave.rda")
-        saveRDS(dat,"Data_autosave.rda")
+        OM<-makeOM(PanelState,nsim=nsim,nyears=ncol(dat@Cat),maxage=dat@MaxAge)
+
+        if(input$Debug){
+          saveRDS(OM,"OM_autosave.rda")
+          saveRDS(dat,"Data_autosave.rda")
+        }
+
+        updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(dat@Cat)))
+        withProgress(message = "Building OM from Questionnaire & S-SRA", value = 0, {
+          SRAout<<-SSRA_wrap(OM,dat)
+          OM<<-SRAout$OM
+          SRAinfo<<-SRAout$SRAinfo
+        })
+        #GoBackwards_SRA(OM)
+        #UpdateQuest()
+        Just[[1]][1+c(2,4,5,6,7,10)]<<-"Estimated by Stochastic SRA"
+        CondOM(1)
+        Fpanel(1)
+        Mpanel(1)
+        Dpanel(1)
+        Data(1)
+
+      }else if(input$Cond_ops=="None"){ # Build OM from questionnaire only
+
+        doprogress("Building OM from Questionnaire",1)
+        OM<<-makeOM(PanelState,nsim=nsim)
+
       }
+     },
+     error = function(e){
+      shinyalert("Could not build operating model", "Try again with another OM conditioning method or examine data object", type = "info")
+      return(0)
+     }
 
-      updateTextAreaInput(session,"Debug1",value=paste(OM@nyears,ncol(dat@Cat)))
-      withProgress(message = "Building OM from Questionnaire & S-SRA", value = 0, {
-        SRAout<<-SSRA_wrap(OM,dat)
-        OM<<-SRAout$OM
-        SRAinfo<<-SRAout$SRAinfo
-      })
-      #GoBackwards_SRA(OM)
-      #UpdateQuest()
-      Just[[1]][1+c(2,4,5,6,7,10)]<<-"Estimated by Stochastic SRA"
-      CondOM(1)
-      Fpanel(1)
-      Mpanel(1)
-      Dpanel(1)
-      Data(1)
-
-    }else{ # Build OM from questionnaire only
-
-      doprogress("Building OM from Questionnaire",1)
-      OM<<-makeOM(PanelState,nsim=nsim)
-
-    }
+    )
 
     Quest(1)
     MadeOM(1)
@@ -980,7 +993,7 @@ shinyServer(function(input, output, session) {
 
     content = function(file) {
       withProgress(message = "Building conditioning report", value = 0, {
-      OM<<-makeOM(PanelState,nsim=nsim)
+      #OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OM_full_Rep.Rmd')
       incProgress(0.1)
       Des<-list(Name=input$Name, Species=input$Species, Region=input$Region, Agency=input$Agency, nyears=input$nyears, Author=input$Author)
