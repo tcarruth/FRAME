@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"3.1.2"
+  FRAMEversion<<-"3.1.3"
   #options(browser = false)
 
   # MPs
@@ -373,7 +373,7 @@ shinyServer(function(input, output, session) {
         updateSelectInput(session,"Advice_MP2",choices=MPs,selected=MPs[2])
         updateSelectInput(session,"Advice_MP3",choices=MPs,selected=MPs[3])
 
-        Calc_Advice(Advice_MPs=MPs[1:3])
+        #Calc_Advice(Advice_MPs=MPs[1:3])
 
       },
       error = function(e){
@@ -466,7 +466,7 @@ shinyServer(function(input, output, session) {
       CondOM(0)
       Ind(0)
       Quest(0)
-      redoEval(fease=T)
+      redoEval()
       updateTabsetPanel(session,"Res_Tab",selected="1")
     }else{
       shinyalert("File read error", "This does not appear to be a FRAME evaluation object", type = "error")
@@ -512,7 +512,7 @@ shinyServer(function(input, output, session) {
       CondOM(0)
       Quest(0)
       Ind(0)
-      redoApp(fease=T)
+      redoApp()
       updateTabsetPanel(session,"Res_Tab",selected="2")
     }else{
       shinyalert("File read error", "This does not appear to be a FRAME Application object", type = "error")
@@ -654,6 +654,7 @@ shinyServer(function(input, output, session) {
     #tags$audio(src = "RunMSE.mp3", type = "audio/mp3", autoplay = NA, controls = NA)
 
     tryCatch({
+
         withProgress(message = "Running Evaluation", value = 0, {
           silent=T
           MSEobj<<-runMSE(OM,MPs=MPs,silent=silent,control=list(progress=T),PPD=T,parallel=parallel)
@@ -679,7 +680,7 @@ shinyServer(function(input, output, session) {
 
         # ==== Types of reporting ==========================================================
 
-        redoEval(fease=T)
+        redoEval()
         Calc(1)
         Tweak(0)
         updateTabsetPanel(session,"Res_Tab",selected="1")
@@ -742,7 +743,7 @@ shinyServer(function(input, output, session) {
 
         App(1)
         Tweak(0)
-        redoApp(fease=T)
+        redoApp()
         updateTabsetPanel(session,"Res_Tab",selected="2")
       },
       error = function(e){
@@ -817,8 +818,8 @@ shinyServer(function(input, output, session) {
   # Update tables if ...
 
   observeEvent(input$Redo,{
-    if(input$Res_Tab==1)  redoEval(fease=T)
-    if(input$Res_Tab==2)  redoApp(fease=T)
+    if(input$Res_Tab==1)  redoEval()
+    if(input$Res_Tab==2)  redoApp()
     Tweak(0)
   })
 
@@ -834,34 +835,7 @@ shinyServer(function(input, output, session) {
   })
 
 
-  # Recalculate advice if ...
-  observeEvent(input$Advice_MP1,{
-    if(Data()==1)Calc_Advice()
-  })
 
-  observeEvent(input$Advice_MP2,{
-    if(Data()==1)Calc_Advice()
-  })
-
-  observeEvent(input$Advice_MP3,{
-    if(Data()==1)Calc_Advice()
-  })
-
-  observeEvent(input$Advice_allMPs,{
-    if(Data()==1)Calc_Advice()
-  })
-
-  observeEvent(input$Advice_nE,{
-    if(Data()==1)Calc_Advice()
-  })
-
-  observeEvent(input$Advice_nA,{
-    if(Data()==1)Calc_Advice()
-  })
-
-  observeEvent(input$Advice_nEA,{
-    if(Data()==1)Calc_Advice()
-  })
 
 
   # ===== Reports ==================================================================================================
@@ -1044,7 +1018,7 @@ shinyServer(function(input, output, session) {
 
       Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
       #thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,thresh=thresh)
       Ptab2<<-temp[[1]]
       MPcols<<-temp[[2]]
 
@@ -1095,7 +1069,7 @@ shinyServer(function(input, output, session) {
 
         Ptab1<<-Ptab_MSC(MSEobj,burnin=burnin,rnd=0)
         #thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-        temp<-Ptab_ord_MSC(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
+        temp<-Ptab_ord_MSC(Ptab1,burnin=burnin,ntop=input$ntop,thresh=thresh)
         Ptab2<<-temp[[1]]
         MPcols<<-temp[[2]]
 
@@ -1173,7 +1147,7 @@ shinyServer(function(input, output, session) {
       burnin<<-input$burnin
       Ptab1_app<<-Ptab(MSEobj_app,MSEobj_reb_app,burnin=burnin,rnd=0)
       thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-      temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,fease=fease,thresh=thresh)
+      temp<-Ptab_ord(Ptab1_app,burnin=burnin,ntop=input$ntop, Eval=F,thresh=thresh)
       Ptab2_app<<-temp[[1]]
       MPcols_app<<-temp[[2]]
 
@@ -1225,7 +1199,7 @@ shinyServer(function(input, output, session) {
         burnin<<-input$burnin
         Ptab1_app<<-Ptab_MSC(MSEobj_app,burnin=burnin,rnd=0)
         thresh=c(input$P_STL,input$P_STT,input$P_LTL,input$P_LTT)
-        temp<-Ptab_ord_MSC(Ptab1_app,burnin=burnin,1, Eval=F,fease=fease,thresh=thresh)
+        temp<-Ptab_ord_MSC(Ptab1_app,burnin=burnin,1, Eval=F,thresh=thresh)
         Ptab2_app<<-temp[[1]]
         MPcols_app<<-temp[[2]]
 

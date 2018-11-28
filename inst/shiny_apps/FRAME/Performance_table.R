@@ -4,6 +4,8 @@ PI_cont<-function(incrate){
   Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
   incProgress(incrate)
   thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
+  fease<-input$Fease
+  print(fease)
   temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,fease=fease,thresh=thresh)
   incProgress(incrate)
   Ptab2<<-temp[[1]]
@@ -71,8 +73,8 @@ Thresh_tab<-function(thresh=c(70, 50, 70, 80, 50)){
     add_header_above(c("Thresholds" = 5))
 }
 
-#                                  11a 11b 12  21a 21a
-Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,fease=F){
+#                                 11a 11b 12  21a 21a
+Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,fease=FALSE){
 
   # save(Ptab1,file="Ptab1")
   MPs<-as.character(Ptab1$MP)
@@ -112,25 +114,29 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   }
   if(!cond[3])tempdat@Dep<-rep(NA,2)
 
+  if(fease){
+    DFeasible<-Fease(dat)
+  }else{
     DFeasible<-Fease(tempdat)
+  }
+  # TAC TAE Feasibility
+  cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
+  runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
+  recs <- runMPs[[1]]
+  type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
 
-    # TAC TAE Feasibility
-    cond<-unlist(PanelState[[2]][1]) # cond=rep(T,4)
-    runMPs <- applyMP(tempdat0, MPs, reps = 2, nsims=1, silent=TRUE)
-    recs <- runMPs[[1]]
-    type <- matrix(0, nrow=length(MPs),ncol=4) # TAC TAE SL MPA
-    for (mm in seq_along(recs)) {
-      type[mm,1] <- as.integer(length(recs[[mm]]$TAC) > 0)
-      type[mm,2] <- as.integer(length(recs[[mm]]$Effort)>0)
-      type[mm,3] <- as.integer(length(recs[[mm]]$LR5)>0)
-      type[mm,4] <- as.integer(!is.na(recs[[mm]]$Spatial[1,1]))
-    }
+  for (mm in seq_along(recs)) {
+    type[mm,1] <- as.integer(length(recs[[mm]]$TAC) > 0)
+    type[mm,2] <- as.integer(length(recs[[mm]]$Effort)>0)
+    type[mm,3] <- as.integer(length(recs[[mm]]$LR5)>0)
+    type[mm,4] <- as.integer(!is.na(recs[[mm]]$Spatial[1,1]))
+  }
 
-    DFeasible<-unique(c(DFeasible,MPs[(type[,4]==1|type[,3]==1) & apply(type,1,sum)==1])) # Size limits and area closures might not need data
+  DFeasible<-unique(c(DFeasible,MPs[(type[,4]==1|type[,3]==1) & apply(type,1,sum)==1])) # Size limits and area closures might not need data
 
-    totneeded<-apply(type,1,sum)
-    speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
-    MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
+  totneeded<-apply(type,1,sum)
+  speced<-matrix(rep(as.integer(cond),each=length(MPs)),nrow=length(MPs))
+  MFeasible<-MPs[apply(speced*type,1,sum)==totneeded]
 
   MP_Type<-rep("TAC",length(MPs))
   MP_Type[type[,2]==1]<-"TAE"

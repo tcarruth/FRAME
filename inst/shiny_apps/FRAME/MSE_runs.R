@@ -16,14 +16,21 @@ redoEval<-function(fease=F){
       PI_TO(incrate)
 
     }
-    if(nMPs_TO>0){
-      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top_TO,burnin,MPcols=MPcols),height=400,width=400)
-      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top_TO,MPcols=MPcols),height=400,width=400)
-      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top_TO,MSEobj_reb_top_TO,MPcols=MPcols),height=400,width=400)
-    }else{ # Temporary hack
-      output$P1_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
-      output$P2_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
-      output$P3_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
+
+    if(input$Perf_type=="MSC continuity"){
+      output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top,burnin,MPcols=MPcols),height=400,width=400)
+      output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top,MPcols=MPcols),height=400,width=400)
+      output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top,MSEobj_reb_top,MPcols=MPcols),height=400,width=400)
+    }else{
+      if(nMPs_TO>0){
+        output$P1_LTY<-renderPlot(P1_LTY_plot(MSEobj_top_TO,burnin,MPcols=MPcols),height=400,width=400)
+        output$P2_LTY<-renderPlot(P2_LTY_plot(MSEobj_top_TO,MPcols=MPcols),height=400,width=400)
+        output$P3_LTY<-renderPlot(P3_LTY_plot(MSEobj_top_TO,MSEobj_reb_top_TO,MPcols=MPcols),height=400,width=400)
+      }else{ # Temporary hack
+        output$P1_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
+        output$P2_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
+        output$P3_LTY<-renderPlot(plot(1,col='white',axes=F,xlab="",ylab="",main=""),height=40,width=40)
+      }
     }
     output$wormplot<-renderPlot(Pplot3(MSEobj_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
     output$wormplot2<-renderPlot(Rplot(MSEobj_reb_top,MPcols=MPcols), height =ceiling(nMPs/6)*320 , width = 1300)
