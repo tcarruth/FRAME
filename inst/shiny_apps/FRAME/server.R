@@ -38,6 +38,7 @@ shinyServer(function(input, output, session) {
   source("./Trade_off_plots.R",local=TRUE)
   source("./VOI.R",local=TRUE)
   source("./MSC_source.R",local=TRUE)
+  source("./Fease.R",local=TRUE)
 
   # OM construction / translation
   source("./makeOM.R",local=TRUE)
@@ -966,7 +967,7 @@ shinyServer(function(input, output, session) {
     filename = function(){paste0(namconv(input$Name),"_full_OM.html")}, #"report.html",
 
     content = function(file) {
-      withProgress(message = "Building conditioning report", value = 0, {
+      withProgress(message = "Building operating model report", value = 0, {
       #OM<<-makeOM(PanelState,nsim=nsim)
       src <- normalizePath('OM_full_Rep.Rmd')
       incProgress(0.1)
@@ -1018,7 +1019,8 @@ shinyServer(function(input, output, session) {
 
       Ptab1<<-Ptab(MSEobj,MSEobj_reb,burnin=burnin,rnd=0)
       #thresh<<-c(input$P111a,input$P111b,input$P112,input$P121a,input$P121b)
-      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,thresh=thresh)
+      fease<-input$Fease
+      temp<-Ptab_ord(Ptab1,burnin=burnin,ntop=input$ntop,thresh=thresh,fease=fease)
       Ptab2<<-temp[[1]]
       MPcols<<-temp[[2]]
 

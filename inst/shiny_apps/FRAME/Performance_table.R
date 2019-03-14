@@ -115,7 +115,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   if(!cond[3])tempdat@Dep<-rep(NA,2)
 
   if(fease){
-    DFeasible<-Fease(dat)
+    DFeasible<-RealFease(dat)
   }else{
     DFeasible<-Fease(tempdat)
   }
@@ -148,7 +148,7 @@ Ptab_ord<-function(Ptab1,thresh=c(70, 50, 70, 80, 50),burnin=10,ntop=NA,Eval=T,f
   Ptab2<-cbind(Ptab2[,1],MP_Type,Ptab2[,2:ncol(Ptab2)])
   names(Ptab2)<-c("MP","Type","PI.111a","PI.111b","PI.112","PI.121a","PI.121b","LTY")
 
-  PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
+  PIsmet<-Ptab2$PI.111a >= thresh[1] & Ptab2$PI.111b >= thresh[2] # & Ptab2$PI.112 >= thresh[3] & Ptab2$PI.121a >= thresh[4] & Ptab2$PI.121b >= thresh[5]
   cols<<-rep('black',length(MPs))
   cols[MPs%in%MFeasible & MPs%in%DFeasible & PIsmet]<<-'green'
   cols[MPs%in%MFeasible & MPs%in%DFeasible & !PIsmet]<<-'red'
