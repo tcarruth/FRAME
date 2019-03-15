@@ -1,6 +1,6 @@
 plotM <- function(dummy=1){
 
-  par( mar=c(3,3,0.05,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par( mar=c(3.5,3,0.05,0.01), cex.main = 1.5, cex.lab=1.35 )
   M_nams<-unlist(M_list)#c("M_60", "M_40_60","M_20_40","M_10_20","M_05_10","M_05")
 
   cond<-M_nams%in%input$M
@@ -23,8 +23,8 @@ plotM <- function(dummy=1){
     abline(v=c(mina,maxa),lty=2,col=icol)
 
     text(mina+(maxa-mina)/2,0.95," Range max age ",col=icol)
-    text(mina+(maxa-mina)/2,0.88,paste(round(mina,1), "-",round(maxa,1),"years"),col=icol)
-    text(mina+(maxa-mina)/2,0.81,paste(M_max, "> M >",M_min),col=icol)
+    text(mina+(maxa-mina)/2,0.88,paste(round(mina,0), "-",round(maxa,0),"years"),col=icol)
+    text(mina+(maxa-mina)/2,0.81,paste(round(M_max,2), "> M >",round(M_min,2)),col=icol)
 
 
   }else{
@@ -56,9 +56,14 @@ plotD <- function(dummy=1){
 
     ts1<-(2+(cos((1:ny)/(ny/16)))/2)*exp(rnorm(ny,0,0.2))
     ts1<-ts1/mean(ts1[1:5])
+    ts1<-ts1*seq(1/ts1[1],1/ts1[ny],length.out=ny)
+
 
     ts2<-(2+(cos(((ny)+(1:ny))/(ny/16))/3))*exp(rnorm(ny,0,0.1))
     ts2<-ts2/mean(ts2[1:5])
+    ts2<-ts2*seq(1/ts2[1],1/ts2[ny],length.out=ny)
+
+
 
     # plot TS1
     yrs<-Current_Year-(ny:1)
@@ -75,7 +80,7 @@ plotD <- function(dummy=1){
     UB<-Dmaxs1*ts1
     LB<-Dmins1*ts1
 
-    plot(yrs[c(1,ny)],c(0,1.2),col="white",xlab="",ylab="")
+    plot(yrs[c(1,ny)],c(0,1.3),col="white",xlab="",ylab="")
     abline(h=c(D_max,D_min),lty=2,col=icol)
     abline(h=1)
     polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=fcol,col=fcol)
@@ -92,7 +97,7 @@ plotD <- function(dummy=1){
     UB<-Dmaxs2*ts2
     LB<-Dmins2*ts2
 
-    plot(yrs[c(1,ny)],c(0,1.2),col="white",xlab="",ylab="")
+    plot(yrs[c(1,ny)],c(0,1.3),col="white",xlab="",ylab="")
     abline(h=c(D_max,D_min),lty=2,col=icol)
     abline(h=1)
     polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=fcol,col=fcol)
@@ -105,7 +110,7 @@ plotD <- function(dummy=1){
     mtext("Spawn. bio. relative to unfished (D)",2,line=0,outer=T)
 
   }else{
-    par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
     plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
     text(10,0.5,"< unspecified >", col="grey")
 
@@ -117,7 +122,7 @@ plotD <- function(dummy=1){
 
 ploth <- function(dummy=1){
 
-  par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par(mfrow=c(1,1), mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   h_nams<-unlist(h_list)#c("h_30", "h_30_50","h_50_70","h_70_90","h_90")
 
   cond<-h_nams%in%input$h
@@ -168,24 +173,36 @@ warp<-function(n,y,plot=F){ # linear warping function
 
 }
 
-Ftrendfunc<-function(M1=0.2,M2=1.2,sd1=0.1,sd2=0.3,h2=2,ny=68,loc=1,start_mag=1,plot=F){
-  # M1=0.4; M2=1.2; sd1=0.1; sd2=0.3; h2=1; ny=68; loc=1; start_mag=0.2; plot=T
-  # M1=0.2; M2=0.7; sd1=0.1; sd2=0.18; h2=0; ny=68; loc=1; start_mag=0.2; plot=T
+Ftrendfunc<-function(M1=0.2,M2=1.2,sd1=0.1,sd2=0.3,h2=2,ny=68,loc=1,start_mag=1,bm=F,plot=F){
+  # M1=0.4; M2=1.2; sd1=0.1; sd2=0.3; h2=1; ny=68; loc=1; start_mag=0.2; bm=F;  plot=T
+  # M1=0.2; M2=0.7; sd1=0.1; sd2=0.18; h2=0; ny=68; loc=1; start_mag=0.2; bm=F; plot=T
+  # M1=0.32; M2=0.75; sd1=0.14; sd2=0.15; h2=0; ny=68; loc=1; start_mag=1; bm=T; plot=T
 
-  E<-rep(NA,ny)
-  ind1<-1:floor(M1*ny)
-  d1<-dnorm(ind1,M1*ny,sd1*ny)
-  E[ind1]<-d1/max(d1)
-  ind12<-(floor(M1*ny)+1):ceiling(M2*ny)
-  ind12<-ind12[ind12<=ny]
-  E[ind12]<-1
-  d2<-dnorm(ind12,M2*ny,sd2*ny)
-  E[ind12]<-E[ind12]+(d2/max(d2))*h2
+  E<-E1<-E2<-rep(NA,ny)
+  ind<-1:ny
 
-  ind2<-(ceiling(M2*ny)+1):ny
-  if(ind2[1]<ind2[2]){
-    E[ind2]<-dnorm(ind2,M2*ny,sd2*ny)
-    E[ind2]<-E[ind2]/max(E[ind2])*max(E[ind12])
+  E1<-dnorm(ind,M1*ny,sd1*ny)
+  E1<-E1/max(E1)
+
+  E2<-dnorm(ind,M2*ny,sd2*ny)
+  E2<-E2/max(E2)
+
+  if(bm){
+    E<-E1+E2
+  }else{
+    ind1<-1:floor(M1*ny)
+    E[ind1]<-E1[ind1]
+    ind12<-(floor(M1*ny)+1):ceiling(M2*ny)
+    ind12<-ind12[ind12<=ny]
+    E[ind12]<-1
+    d2<-dnorm(ind12,M2*ny,sd2*ny)
+    E[ind12]<-E[ind12]+(d2/max(d2))*h2
+
+    ind2<-(ceiling(M2*ny)+1):ny
+    if(ind2[1]<ind2[2]){
+      E[ind2]<-E2[ind2]
+      E[ind2]<-E[ind2]/max(E[ind2])*max(E[ind12])
+    }
   }
 
   E<-E/mean(E)
@@ -194,6 +211,8 @@ Ftrendfunc<-function(M1=0.2,M2=1.2,sd1=0.1,sd2=0.3,h2=2,ny=68,loc=1,start_mag=1,
 
   dEdy<-(E[2:ny]/E[1:(ny-1)]-1)^2
   mp<-match(min(dEdy),dEdy)
+  if(bm)mp<-floor(0.5*ny)
+
   find<-(mp+1):ny
   if(start_mag>1){
     ET[find]<-(E[find]-E[mp])*(2-start_mag)+E[mp]
@@ -243,7 +262,7 @@ Ftrendfunc<-function(M1=0.2,M2=1.2,sd1=0.1,sd2=0.3,h2=2,ny=68,loc=1,start_mag=1,
 
 plotFP <-function(dummy=1){
 
-  par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par(mfrow=c(1,1), mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   FP_nams<-unlist(FP_list)#c("FP_s", "FP_gr","FP_bb","FP_gi","FP_ri","FP_rd")
 
   suppressWarnings({ny<-as.numeric(input$nyears)})
@@ -252,7 +271,7 @@ plotFP <-function(dummy=1){
 
   trends<-array(NA,c(6,ny))
   # par(mfrow=c(3,2),mar=rep(0.1,4))
-  for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],loc=input$loc,start_mag=2-input$stmag,ny=ny)
+  for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],bm=bms[i],loc=input$loc,start_mag=2-input$stmag,ny=ny)
   cols<-rep(c(fcol,'black','dark grey'),2)
   ltys<-rep(c(1,2),each=3)
 
@@ -284,11 +303,13 @@ plotF <- function(dummy=1){
 
   FP_nams<-unlist(FP_list)#c("FP_s", "FP_gr","FP_bb","FP_gi","FP_ri","FP_rd")
 
-  ny=60
+  suppressWarnings({ny<-as.numeric(input$nyears)})
+  if(is.na(ny))ny<-68
+  yrs<-Current_Year-(ny:1)
 
   trends<-array(NA,c(6,ny))
   # par(mfrow=c(3,2),mar=rep(0.1,4))
-  for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],loc=input$loc,start_mag=2-input$stmag,ny=ny)
+  for(i in 1:6)trends[i,]<-Ftrendfunc(M1=M1s[i],M2=M2s[i],sd1=sd1s[i],sd2=sd2s[i],h2=h2s[i],bm=bms[i],loc=input$loc,start_mag=2-input$stmag,ny=ny)
   cond<-FP_nams%in%input$FP
 
   F_nams<-unlist(F_list) #c("F_10", "F_10_25","F_25_50")
@@ -313,19 +334,19 @@ plotF <- function(dummy=1){
     stochtrends[Eind]<-Esdarray[Eind]*trends[Tind]
     stochtrends<-stochtrends/apply(stochtrends,1,mean)
 
-    plot(c(1,ny),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
+    plot(range(yrs),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
     B90s<-apply(stochtrends[rep(cond,each=simbyt),],2,quantile,p=c(0.05,0.95))
     B50s<-apply(stochtrends[rep(cond,each=simbyt),],2,quantile,p=c(0.25,0.75))
 
     #med<-apply(stochtrends,2,quantile,p=0.5)
     #matplot(t(stochtrends),col="#99999920",type="l")
-    polygon(c(1:ny,ny:1),c(B90s[1,],B90s[2,ny:1]),border=NA,col=fcol)
-    polygon(c(1:ny,ny:1),c(B50s[1,],B50s[2,ny:1]),border=NA,col=icol)
+    polygon(c(yrs,yrs[ny:1]),c(B90s[1,],B90s[2,ny:1]),border=NA,col=fcol)
+    polygon(c(yrs,yrs[ny:1]),c(B50s[1,],B50s[2,ny:1]),border=NA,col=icol)
     #lines(1:ny,med,col='white',lwd=2)
     legend('topleft',legend=c('90% PI',"50% PI"),fill=c(fcol,icol),bty='n',border='white')
     mtext("Historical year",1,line=0.45,outer=T)
     mtext("Relative fishing effort",2,line=2)
-    mtext("Simulated range",3,line=0.8)
+    mtext("Range of simulations",3,line=0.8)
 
     # Example plots
     maxind<-(((0:5)*100)+aggregate(Esdrand,by=list(rep(1:6,each=simbyt)),which.max)$x)[cond]
@@ -334,20 +355,20 @@ plotF <- function(dummy=1){
     cols<-rep(c(fcol,'black','dark grey'),2)
     ltys<-rep(c(1,2),each=3)
 
-    plot(c(1,ny),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
+    plot(range(yrs),c(0,quantile(stochtrends,0.98)),col="white",xlab="",ylab="")
     if(sum(cond)==1){
-      lines(1:ny,stochtrends[maxind,],col=cols[cond],lty=ltys[cond])
-      lines(1:ny,stochtrends[minind,],col=cols[cond],lty=ltys[cond])
+      lines(yrs,stochtrends[maxind,],col=cols[cond],lty=ltys[cond])
+      lines(yrs,stochtrends[minind,],col=cols[cond],lty=ltys[cond])
     }else{
-      matplot(1:ny,t(stochtrends[maxind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
-      matplot(1:ny,t(stochtrends[minind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
+      matplot(yrs,t(stochtrends[maxind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
+      matplot(yrs,t(stochtrends[minind,]),add=T,col=cols[cond],lty=ltys[cond],type='l')
     }
 
     mtext("",1,line=2)
     mtext("",2,line=2)
 
     #legend('topleft',legend=names(FP_list)[cond],text.col=cols[cond],lty=ltys[cond],col=cols[cond],bty='n',cex=0.8)
-    mtext("Examples",3,line=0.8)
+    mtext("Individual simulations",3,line=0.8)
 
   }else{
     plot(c(1,ny),c(0,2),col="white",axes=FALSE,xlab="",ylab="")
@@ -380,7 +401,7 @@ plotqh <- function(dummy=1){
     qy_max<-(1+q_max/100)^(1:ny)
     qy_min<-(1+q_min/100)^(1:ny)
 
-    par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
 
     plot(range(yrs),c(0,2.5),col="white",xlab="",ylab="")
     polygon(yrs[c(1:ny,ny:1)],c(qy_max,qy_min[ny:1]),border=NA,col=fcol)
@@ -427,7 +448,7 @@ plotq <- function(dummy=1){
     qy_max<-(1+q_max/100)^(1:ny)
     qy_min<-(1+q_min/100)^(1:ny)
 
-    par(mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
 
     plot(c(0.5,ny)+2018,c(0,2.5),col="white",xlab="",ylab="")
     polygon(2018+c(1:ny,ny:1),c(qy_max,qy_min[ny:1]),border=NA,col=fcol)
@@ -457,42 +478,84 @@ plotq <- function(dummy=1){
 
 }
 
+plotmat <- function(dummy=1){
 
+  par( mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  LM_nams<-unlist(LM_list)#c("sel_50", "sel_50_75","sel_75_125","sel_125_150","sel_150_200")
+  cond<-LM_nams%in%input$LM
+
+  if(sum(cond)>0){
+
+    LM_min<-min(LM_mins[cond])
+    LM_max<-max(LM_maxes[cond])
+
+    lengths<-seq(0.01,1,length.out=100)
+
+    mat1<-1/(1+exp(-((lengths-LM_min)/0.03)))
+    mat2<-1/(1+exp(-((lengths-LM_max)/0.03)))
+
+    par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+
+    plot(c(0,1),c(0,1),col="white",xlab="",ylab="")
+    abline(h=seq(0,1,by=0.1),col='grey')
+    abline(h=0.5,col=icol)
+    abline(v=c(LM_min,LM_max),col=icol,lty=2)
+    polygon(c(lengths,lengths[100:1]),c(mat1,mat2[100:1]),border=fcol,col=fcol)
+    #lines(lengths,mat1,col=icol)
+    #lines(lengths,mat2,col=icol)
+
+    mtext("Length at 50% maturity relative to asymptotic length (LM)",1,line=2)
+    mtext("Frac. max spawning potential per weight",2,line=2)
+    #legend('bottomright',legend=c("Selectivity","Maturity"),fill=c(fcol,icol),bty='n',cex=0.8,border='white')
+
+    #abline(v=c(0,1),col='black',lty=1)
+
+  }else{
+    plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
+    text(1.75,0.5,"< Unspecified >",col="grey")
+  }
+
+}
 
 
 plotsel <- function(dummy=1){
 
-  par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par( mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   sel_nams<-unlist(sel_list)#c("sel_50", "sel_50_75","sel_75_125","sel_125_150","sel_150_200")
   cond<-sel_nams%in%input$sel
 
   if(sum(cond)>0){
 
-    sel_max<-max(sel_maxes[cond])
     sel_min<-min(sel_mins[cond])
-    lengths<-seq(0.05,3.5,length.out=100)
+    sel_max<-max(sel_maxes[cond])
 
-    mat<-1/(1+exp(-((lengths-1)/0.1)))
+    lengths<-seq(0.01,1,length.out=100)
 
-    sel1<-1/(1+exp(-((lengths-sel_min)/(sel_min*0.1))))
-    sel2<-1/(1+exp(-((lengths-sel_max)/(sel_max*0.1))))
+    sel1<-1/(1+exp(-((lengths-sel_min)/0.03)))
+    sel2<-1/(1+exp(-((lengths-sel_max)/0.03)))
 
     par( mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
 
-    plot(c(0,3.5),c(0,1),col="white",xlab="",ylab="")
-    polygon(c(lengths,lengths[100:1]),c(sel1,sel2[100:1]),border=NA,col=fcol)
-    abline(h=0.5)
+    plot(c(0,1),c(0,1),col="white",xlab="",ylab="")
+    abline(h=seq(0,1,by=0.1),col='grey')
+    abline(h=0.5,col=icol)
+    abline(v=c(sel_min,sel_max),col=icol,lty=2)
+    polygon(c(lengths,lengths[100:1]),c(sel1,sel2[100:1]),border=fcol,col=fcol)
+    #lines(lengths,sel1,col=icol)
+    #lines(lengths,sel2,col=icol)
 
-    lines(lengths,mat,col=icol)
-    mtext("Length relative to length at 50% maturity (S)",1,line=2)
+
+    mtext("Length at 50% selectivity relative to asymptotic length (S)",1,line=2)
     mtext("Selectivity",2,line=2)
-    legend('bottomright',legend=c("Selectivity","Maturity"),fill=c(fcol,icol),bty='n',cex=0.8,border='white')
-    abline(v=c(sel_min,sel_max),col=fcol,lty=2)
-    abline(v=1,col=icol,lty=2)
+    #legend('bottomright',legend=c("Selectivity","Maturity"),fill=c(fcol,icol),bty='n',cex=0.8,border='white')
+
+    #abline(v=c(0,1),col='black',lty=1)
 
   }else{
+
     plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
     text(1.75,0.5,"< Unspecified >",col="grey")
+
   }
 
 }
@@ -515,7 +578,7 @@ getsel<-function(lens,lenmax,sl,Vmaxlen){
 
 plotdome <- function(dummy=1){
 
-  par(mfrow=c(1,1), mar=c(3,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par(mfrow=c(1,1), mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   dome_nams<-unlist(dome_list)#c("dome_100", "dome_75_100","dome_25_75","dome_25")
   cond<-dome_nams%in%input$dome
 
@@ -657,7 +720,7 @@ PRMplot<-function(PRM){
   arrows(x0=0.1,x1=0.2,y0=0.12,y1=-0.03,col=fcol,lwd=2,length=0.1)
   text(0.31,0.08,"DR",font=2,col=fcol)
 
-  arrows(x0=0.13,x1=0.01,y0=-0.28,y1=-0.25,col='black',lwd=2,length=0.1)
+  arrows(x0=0.13,x1=0.01,y0=-0.28,y1=-0.25,col=icol,lwd=2,length=0.1)
   text(0.0,-0.4,"PRM",font=2,col=icol)
 
 }
@@ -757,6 +820,8 @@ plotsigR <- function(dummy=1){
     axis(2)
     mtext("SSB relative to unfished",1,line=2.5)
     mtext("Recruitment relative to unfished",2,line=2.5)
+
+
     points(D,recs_max,col=maxcol,pch=pch)
     points(D,recs_min,col=mincol,pch=pch)
     legend('topleft',legend=c("Highest","Lowest","Mean"),text.col=c(fcol,icol,"black"),text.font=2,bty="n")
@@ -770,6 +835,7 @@ plotsigR <- function(dummy=1){
     axis(1,c(-100,100),c(-100,100))
     mtext("Year",1,line=2.1)
     mtext("Recruitment deviation",2,line=2)
+    mtext("Example stock-recruitment curve",3,line=0.8,at=0.2)
 
     d_max<-density(rnorm(10000,muR_max,sigR_max))
     d_min<-density(rnorm(10000,muR_min,sigR_min))
@@ -780,7 +846,8 @@ plotsigR <- function(dummy=1){
 
     polygon(x=d_max$y/scale,y=d_max$x-muR_max,col=maxcol,border=maxcol)
     polygon(x=d_min$y/scale,y=d_min$x-muR_min,col=mincol,border=mincol)
-    legend('topright',legend=c(sigR_max,sigR_min),text.font=2,text.col=c(fcol,icol),bty='n')
+    legend('topright',legend=paste0(c(sigR_max,sigR_min)*200,"%"),text.font=2,text.col=c(fcol,icol),bty='n')
+
 
   }else{
     plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
@@ -808,6 +875,70 @@ fishgrid2<-function(nfish,fcol="red",mpacol="green"){
   for(i in 1:20)fishy(xl[ind[i,1]],yl[ind[i,2]],scale=0.09,col=cols[i],border=cols[i])
 
 }
+
+plotAh <- function(dummy=1){
+
+  A_nams<-unlist(A_list)#c("A_1", "A_1_5", "A_5_10", "A_10_20", "A_20_30", "A_30_40", "A_40_50")
+  cond<-A_nams%in%input$Ah
+
+  if(sum(cond)>0){
+
+    Amax<-max(A_maxes[cond])*100
+    Amin<-min(A_mins[cond])*100
+
+    par(mfrow=c(1,2),mai=c(0.01,0.2,0.01,0.01), omi=c(0.4,0.01,0.55,0.01), cex.main = 1.5, cex.lab=1.35 )
+    plot(c(0,1),c(0,1),col="white",axes=F)
+    fishgrid2(Amin,fcol=icol,mpacol=fcol)
+    mtext("Smallest",3,line=0.4)
+    plot(c(0,1),c(0,1),col="white",axes=F)
+    fishgrid2(Amax,fcol=icol,mpacol=fcol)
+    mtext("Largest",3,line=0.4)
+
+
+  }else{
+
+    plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
+    text(1.75,0.5,"< Unspecified >",col="grey")
+
+  }
+
+}
+
+
+
+plotVh <- function(dummy=1){
+
+  V_nams<-unlist(V_list)#c("P_1", "P_1_5", "P_5_10", "P_10_20", "P_20")
+  cond<-V_nams%in%input$Vh
+
+  if(sum(cond)>0){
+
+    Vmax<-max(V_maxes[cond])
+    Vmin<-min(V_mins[cond])
+
+    par(mfrow=c(1,2),mai=c(0.01,0.01,0.01,0.01), omi=c(0.01,0.01,0.5,0.01), cex.main = 1.5, cex.lab=1.35 )
+    plot(c(0,1),c(0,1),axes=F,col="white")
+    text(0.25,0.25,"MPA",cex=2.7,font=2,col="grey78")
+    fishgrid3(Vmin,fcol=icol,mpacol=fcol)
+    polygon(c(0.02,0.5,0.5,0.02),c(0.02,0.02,0.5,0.5),col=NA,border='black')
+    mtext("Lowest mixing",3,line=0.4)
+    plot(c(0,1),c(0,1),axes=F,col="white")
+    text(0.25,0.25,"MPA",cex=2.7,font=2,col="grey78")
+    fishgrid3(Vmax,fcol=icol,mpacol=fcol)
+    mtext("Highest mixing",3,line=0.4)
+    polygon(c(0.02,0.5,0.5,0.02),c(0.02,0.02,0.5,0.5),col=NA, border='black')
+
+
+
+  }else{
+
+    plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
+    text(1.75,0.5,"< Unspecified >",col="grey")
+
+  }
+
+}
+
 
 plotA <- function(dummy=1){
 
@@ -894,6 +1025,92 @@ plotV <- function(dummy=1){
 
     plot(c(0,3.5),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
     text(1.75,0.5,"< Unspecified >",col="grey")
+
+  }
+
+}
+
+
+plotDh <- function(dummy=1){
+
+  D_nams<-unlist(D_list)#c("D_10", "D_10_20","D_20_30","D_30_60","D_60_80","D_80")
+  cond<-D_nams%in%input$D
+
+  Dh_nams<-unlist(Dh_list)#c("D_10", "D_10_20","D_20_30","D_30_60","D_60_80","D_80")
+  condh<-Dh_nams%in%input$Dh
+
+  suppressWarnings({ny<-as.numeric(input$nyears)})
+  if(is.na(ny))ny<-68
+
+  if(sum(cond)>0){
+    par(mfrow=c(1,2),mai=c(0.3,0.5,0.01,0.01), omi=c(0.4,0.18,0.55,0.1),cex.main = 1.5, cex.lab=1.35 )
+    D_max<-max(D_maxes[cond])
+    D_min<-min(D_mins[cond])
+
+    Dh_max<-max(Dh_maxes[condh])
+    Dh_min<-min(Dh_mins[condh])
+
+    set.seed(1)
+
+    ts1<-(2+(cos((1:ny)/(ny/16)))/2)*exp(rnorm(ny,0,0.2))
+    ts1<-ts1/mean(ts1[1:5])
+    ts1<-ts1*seq(1/ts1[1],1/ts1[ny],length.out=ny)
+
+
+    ts2<-(2+(cos(((ny)+(1:ny))/(ny/16))/3))*exp(rnorm(ny,0,0.1))
+    ts2<-ts2/mean(ts2[1:5])
+    ts2<-ts2*seq(1/ts2[1],1/ts2[ny],length.out=ny)
+
+
+
+    # plot TS1
+    yrs<-Current_Year-(ny:1)
+    ny<-length(yrs)
+
+    startys<-floor(ny/2)
+
+    Dmaxs1<-c(seq(Dh_max,1-(1-D_max)/1.5,length.out=ny-startys),seq(1-(1-D_max)/1.5,D_max,length.out=startys))
+    Dmins1<-c(seq(Dh_min,1-(1-D_min)/1.5,length.out=ny-startys),seq(1-(1-D_min)/1.5,D_min,length.out=startys))
+
+    Dmaxs2<-c(seq(Dh_max,1-(1-D_max)/4,length.out=startys),seq(1-(1-D_max)/4,D_max,length.out=ny-startys))
+    Dmins2<-c(seq(Dh_min,1-(1-D_min)/4,length.out=startys),seq(1-(1-D_min)/4,D_min,length.out=ny-startys))
+
+    UB<-Dmaxs1*ts1
+    LB<-Dmins1*ts1
+
+    plot(yrs[c(1,ny)],c(0,1.3),col="white",xlab="",ylab="")
+    abline(h=c(D_max,D_min),lty=2,col=icol)
+    abline(h=1)
+    polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=fcol,col=fcol)
+
+    mtext("Example 1",3,line=0.8)
+
+    # plot TS2
+    yrs<-Current_Year-(ny:1)
+    ny<-length(yrs)
+
+    Dmaxs<-seq(1,D_max,length.out=ny)
+    Dmins<-seq(1,D_min,length.out=ny)
+
+    UB<-Dmaxs2*ts2
+    LB<-Dmins2*ts2
+
+    plot(yrs[c(1,ny)],c(0,1.3),col="white",xlab="",ylab="")
+    abline(h=c(Dh_max,Dh_min),lty=2,col=icol)
+    abline(h=1)
+    polygon(c(yrs,yrs[ny:1]),c(LB,UB[ny:1]),border=fcol,col=fcol)
+
+    mtext("Example 2",3,line=0.8)
+    #text(mina+(maxa-mina)/2,0.95," Range max age ",col='orange')
+    #text(mina+(maxa-mina)/2,0.88,paste(round(mina,1), "-",round(maxa,1)),col='orange')
+    #text(mina+(maxa-mina)/2,0.81,paste(M_max, "> M >",M_min),col='orange')
+    mtext("Historical Year",1,line=1,outer=T)
+    mtext("Spawn. bio. relative to unfished",2,line=0,outer=T)
+
+  }else{
+    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    plot(c(1,20),c(0,1),col="white",axes=FALSE,xlab="",ylab="")
+    text(10,0.5,"< unspecified >", col="grey")
 
   }
 

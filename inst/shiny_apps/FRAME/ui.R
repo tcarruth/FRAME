@@ -131,8 +131,8 @@ shinyUI(
 
       column(12,style="height:60px",
 
-            conditionalPanel(condition="output.Quest==0&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
-            conditionalPanel(condition="output.Quest==1&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
+            conditionalPanel(condition="output.Quest==0&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY SYSTEM")),
+            conditionalPanel(condition="output.Quest==1&input.Mode=='Advanced'",h4("STEP A1: CHARACTERIZE FISHERY SYSTEM",style="color:green")),
             conditionalPanel(condition="output.Quest==0&input.Mode=='Streamlined'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE")),
             conditionalPanel(condition="output.Quest==1&input.Mode=='Streamlined'",h4("STEP A: CHARACTERIZE FISHERY IN QUESTIONNAIRE",style="color:green")),
 
@@ -206,13 +206,15 @@ shinyUI(
 
                             conditionalPanel(width=4,condition="output.Fpanel==5",
                               column(6,
-                                             checkboxGroupInput("FP", label = h5("5. Pattern of historical fishing effort",style="color:black"),
-                                            choices = FP_list, selected = FP_list),
-                                             actionLink("All_FP","UNKNOWN")),
+                                checkboxGroupInput("FP", label = h5("5. Historical effort pattern",style="color:black"),
+                                        choices = FP_list, selected = FP_list),
+                                actionLink("All_FP","UNKNOWN")),
+
                               column(6,
                                 HTML("<br>"),
                                 sliderInput("loc",label=h5("Skew"),min=0.2,max=1.8,value=1,step=0.1),
-                                sliderInput("stmag",label=h5("Magnitude of recent change"),min=0.2,max=1.8,value=1,step=0.1))),
+                                sliderInput("stmag",label=h5("Magnitude of recent change"),min=0.2,max=1.8,value=1,step=0.1))
+                              ),
 
                             conditionalPanel(width=4,condition="output.Fpanel==6",
                                  checkboxGroupInput("F", label = h5("6. Inter-annual variability in historical effort",style="color:black"),
@@ -260,19 +262,29 @@ shinyUI(
                                  actionLink("All_sigR","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==15",
-                                  checkboxGroupInput("A", label = h5("15. Size existing marine reserve",style="color:black"),
-                                         choices = A_list, selected = A_list),
-                                  actionLink("All_AE","UNKNOWN")),
+                                  checkboxGroupInput("Ah", label = h5("15. Size of existing MPA",style="color:black"),
+                                         choices = Ah_list, selected = Ah_list),
+                                  actionLink("All_Ah","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==16",
-                                  checkboxGroupInput("A", label = h5("16. Size of future potential marine reserves",style="color:black"),
+                                  checkboxGroupInput("Vh", label = h5("16. Spatial mixing (movement) in/out of existing MPA",style="color:black"),
+                                                    choices = Vh_list, selected = Vh_list),
+                                  actionLink("All_Vh","UNKNOWN")),
+
+                            conditionalPanel(width=4,condition="output.Fpanel==17",
+                                  checkboxGroupInput("A", label = h5("17. Size of future potential MPA",style="color:black"),
                                          choices = A_list, selected = A_list),
                                   actionLink("All_A","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==17",
-                                  checkboxGroupInput("V", label = h5("17. Spatial mixing (movement)",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==18",
+                                  checkboxGroupInput("V", label = h5("18. Spatial mixing (movement) in/out of future potential MPA",style="color:black"),
                                          choices = V_list, selected = V_list),
                                   actionLink("All_V","UNKNOWN")),
+
+                            conditionalPanel(width=4,condition="output.Fpanel==19",
+                                  checkboxGroupInput("Dh", label = h5("19. Initial stock depletion",style="color:black"),
+                                                    choices = Dh_list, selected = Dh_list[[5]]),
+                                  actionLink("All_Dh","DEFAULT")),
 
                             value=1),
 
@@ -297,14 +309,35 @@ shinyUI(
                                                   actionLink("All_M1","UNKNOWN")),
 
                                  conditionalPanel(width=4,condition="output.Mpanel==2",
-                                                  checkboxGroupInput("IB", label = h5("2. Implementation uncertainty: consistent overages/underages",style="color:black"),
+                                                  checkboxGroupInput("IB", label = h5("2. TAC offset: consistent overages/underages",style="color:black"),
                                                                      choices = IB_list, selected = IB_list),
                                                   actionLink("All_IB","UNKNOWN")),
 
                                  conditionalPanel(width=4,condition="output.Mpanel==3",
-                                                  checkboxGroupInput("IV", label = h5("3. Implementation uncertainty: variability",style="color:black"),
+                                                  checkboxGroupInput("IV", label = h5("3. TAC Implementation uncertainty: variability",style="color:black"),
                                                                      choices = IV_list, selected = IV_list),
                                                   actionLink("All_IV","UNKNOWN")),
+
+                                 conditionalPanel(width=4,condition="output.Mpanel==4",
+                                                  checkboxGroupInput("IBE", label = h5("4. TAE offset: consistent overages/underages",style="color:black"),
+                                                                     choices = IBE_list, selected = IBE_list),
+                                                  actionLink("All_IBE","MATCH TAC IMPLEMENTATION")),
+
+                                 conditionalPanel(width=4,condition="output.Mpanel==5",
+                                                  checkboxGroupInput("IVE", label = h5("5. TAE implementation uncertainty: variability",style="color:black"),
+                                                                     choices = IVE_list, selected = IVE_list),
+                                                  actionLink("All_IVE","MATCH TAC IMPLEMENTATION")),
+
+                                 conditionalPanel(width=4,condition="output.Mpanel==6",
+                                                  checkboxGroupInput("IBSL", label = h5("6. Size limit offset: consistent overages/underages",style="color:black"),
+                                                                     choices = IBSL_list, selected = IBSL_list),
+                                                  actionLink("All_IBSL","MATCH TAC IMPLEMENTATION")),
+
+                                 conditionalPanel(width=4,condition="output.Mpanel==7",
+                                                  checkboxGroupInput("IVSL", label = h5("7. Size limit implementation uncertainty: variability",style="color:black"),
+                                                                     choices = IVSL_list, selected = IVSL_list),
+                                                  actionLink("All_IVSL","MATCH TAC IMPLEMENTATION")),
+
 
                                  value=2),
 
@@ -370,7 +403,7 @@ shinyUI(
                           column(6,plotOutput("plotM",height=240)),
 
                           column(6,
-                            h5("How long lived is the fish species? This is a critical input determining stock productivity.",style = "color:grey"),
+                            h5("How long-lived is the fish species? This is a critical input determining stock productivity.",style = "color:grey"),
                             h5("The parameter M is the instantaneous natural mortality rate. For a review of data-limited methods of estimating M see",style = "color:grey"),
                             h5(a("Kenchington (2014).", href="http://onlinelibrary.wiley.com/doi/10.1111/faf.12027/abstract", target="_blank"),style = "color:grey"),
 
@@ -391,17 +424,20 @@ shinyUI(
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==4",
                           column(6,plotOutput("ploth",height=240)),
                           column(6,
-                            h5("How resilient to exploitation is the stock? This question controls recruitment compensation - the extent to which recruitment is reduced from unfished levels (R0) as the spawning stock becomes increasingly depleted below unfished levels (SSB0).
-                             Resilence is expressed in terms of steepness (h), which is the fraction of unfished recruitment at 1/5 of unfished spawning biomass.",style = "color:grey"),
+                            h5("How resilient to exploitation is the stock?",style = "color:grey"),
+                            h5("This question controls recruitment compensation - the extent to which recruitment is reduced from unfished levels (R0) as the spawning stock becomes increasingly depleted below unfished levels (SSB0).",style = "color:grey"),
+                            h5("Resilence is expressed in terms of steepness (h), which is the fraction of unfished recruitment at 1/5 of unfished spawning biomass.",style = "color:grey"),
                             h5("For a useful review of compensatory density dependence in fish populations see ", a("Rose et al. (2001).", href="http://hqczhzkgch48vzcc4czubj6v.wpengine.netdna-cdn.com/files/2012/07/Rose_etal_FishFisheries.pdf", target="_blank"),style = "color:grey")
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==5",
                           column(6,plotOutput("plotFP",height=240)),
                           column(6,
-                            h5("What temporal pattern best describes the trend in historical exploitation rates (aka fishing mortality rates or F)? If more than one answer is given, historical fishing will be simulated subject to all trends in equal frequency. If it can be assumed that fishing effort is proportional to exploitation rate this can be summarized as historical patterns in fishing effort (e.g. boat-days per year, number of trips per year).
-                             This set of answers specifies the possible range of mean trends, you will have an opportunity to adjust the extent of interannual variability in the following question.",style = "color:grey"),
-                            h5("Here is a basic introduction to fishing effort and the assumption of proportionality courtesy of the ", a("UN FAO.", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"),style = "color:grey")
+                            h5("What temporal pattern best describes the trend in historical annual fishing effort (e.g. boat-days per year, number of trips per year)?",style = "color:grey"),
+                            h5("If more than one answer is given, historical fishing will be simulated subject to all trends in equal frequency.",style = "color:grey"),
+                            h5("If a very specific pattern of effort is required, you can use the sliders to warp the effort patterns.",style = "color:grey"),
+                            h5("This question specifies the possible range of mean trends, you will have an opportunity to adjust the extent of inter-annual variability and changes in fishing efficiency (catchability) in the following questions.",style = "color:grey"),
+                            h5("Here is an introduction to fishing effort courtesy of the ", a("UN FAO.", href="http://www.fao.org/docrep/x5685e/x5685e04.htm", target="_blank"),style = "color:grey")
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==6",
@@ -428,14 +464,23 @@ shinyUI(
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==9",
+                          column(6,plotOutput("plotmat",height=240)),
+                          column(6,
+                            h5("Size a maturity relative to asymptotic length (LM).",style = "color:grey"),
+                            h5("Note 1: 'maturity' as used by this model (and most fish population dynamics models) is not really whether a fish has fully developed gonads, but rather the fraction of maximum spawning potential per weight. For example, some fishes mature early, but at small sizes they spawn infrequently and their recruits have poor survival (low spawning fraction).",style = "color:grey"),
+                            h5("Note 2: asymptotic length is not the maximum length observed but rather the mean expected size of fish at their maximum age under unfished conditions",style = "color:grey"),
+                            h5("An ICES workshop report provides ", a("an overview of maturity estimation.", href="http://www.ices.dk/sites/pub/Publication%20Reports/Expert%20Group%20Report/acom/2008/WKMOG/WKMOG08.pdf", target="_blank"),style = "color:grey")
+                      )),
+
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==10",
                           column(6,plotOutput("plotsel",height=240)),
                           column(6,
-                            h5("Fishing gear selectivity relative to size at maturity (S). For example, if 50% of 40cm fish are caught by the gear and length at 50% maturity is 50cm, then S = 4/5.",style = "color:grey"),
+                            h5("Fishing gear selectivity relative to asymptotic length (S) (ascending limb selectivity). For example, if 50% of 40cm fish are caught and maximum length is 100cm, S = 0.4.",style = "color:grey"),
                             h5("The UN FAO provides an ", a("introduction to gear selectivity and how it may be quantified.", href="http://www.fao.org/docrep/w5449e/w5449e08.htm", target="_blank"),style = "color:grey"),
                             h5("For a more involved discussion on selectivity see the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==10",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==11",
                          column(6,plotOutput("plotdome",height=240)),
                          column(6,
                            h5("Fishing gear selectivity of the largest individuals (SL). For example, if only 20% of the longest fish are caught by the gear, SL = 0.2.",style = "color:grey"),
@@ -443,7 +488,7 @@ shinyUI(
                            h5("and here is the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==11",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==12",
                           column(6,plotOutput("plotDR",height=240)),
                           column(6,
                             h5("Discard rate (DR) is the fraction of fish that discarded both dead and alive",style = "color:grey"),
@@ -451,7 +496,7 @@ shinyUI(
                             h5("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://drive.google.com/open?id=1ZtqB_MHapyagplv_enJ0o-_t4UKF5chh", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==12",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==13",
                           column(6,plotOutput("plotPRM",height=240)),
                           column(6,
                             h5("The post-release mortality rate (PRM) is the fraction of discarded fish that die after release",style = "color:grey"),
@@ -459,29 +504,51 @@ shinyUI(
                             h5("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://drive.google.com/open?id=1ZtqB_MHapyagplv_enJ0o-_t4UKF5chh", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==13",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==14",
                            column(6,plotOutput("plotsigR",height=240)),
                            column(6,
-                             h5("The interannual variability in recruitment is expressed here as the coefficient of variation in log-normal recruitment deviations (sigma R). Recruitment is expected to change among years in response to changing spawning biomass levels. Additional variability may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation.  Sigma R controls the extent of this additional variability in annual recruitments. For example, a sigma R of 10% means that 95% of recruitments will fall in approximately 80-120% of the mean recruitment predicted from spawning biomass.",style = "color:grey"),
+                             h5("The interannual variability in recruitment is expressed here as the maximum inter-annual change. Recruitment is expected to change among years in response to spawning biomass levels. Additional variability may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation.",style = "color:grey"),
+                             h5("Recruitment variation is commonly described by the coefficient of variation in log-normal recruitment deviations (sigma R). An approximate rule of thumb is that 95% of recruitments fall in a range that is twice the sigma R. So given a sigma R of 10%, 95% of recruitments will fall within an interannual change of 20% of the mean recruitment predicted from spawning biomass.",style = "color:grey"),
                              h5("Edward Houde has authored a ", a("Comprehensive Review of Recruitment and Sources of Variability.", href="https://drive.google.com/open?id=19q_ct4Xd954H2jjotX3YKy0BJ-v53bt2", target="_blank"),style = "color:grey"),
                              h5("See also ", a("Chambers and Trippel (1997).", href="https://drive.google.com/open?id=1KhwP5URGPzW6ViJPiwprfY2tE2uucpDR", target="_blank"),style = "color:grey")
                       )),
 
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==15",
+                           column(6,plotOutput("plotAh",height=240)),
+                           column(6,
+                                  h5("The size of a existing spatial closure (Marine Protected Area, MPA). The size A, is the % of habitat that is protected.",style = "color:grey"),
+                                  h5("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"),style = "color:grey")
+                           )),
 
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==16",
+                           column(6,plotOutput("plotVh",height=240)),
+                           column(6,
+                                  h5("Stock mixing in/out of existing spatial closure. The degree of the spatial mixing of the fish stock is represented as the probability (P) of a fish leaving area 1 (i.e. the marine protected area, MPA) between years",style = "color:grey"),
+                                  h5("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"),style = "color:grey")
+                           )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==14",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==17",
                            column(6,plotOutput("plotA",height=240)),
                            column(6,
-                             h5("The size of a potential or existing spatial closure (Marine Reserve). The size A, is the % of habitat that is protected.",style = "color:grey"),
+                             h5("The size of a potential future spatial closure (Marine Protected Area, MPA). The size A, is the % of habitat that is protected.",style = "color:grey"),
                              h5("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==15",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==18",
                            column(6,plotOutput("plotV",height=240)),
                            column(6,
-                            h5("The degree of the spatial of the fish stock is represented as the probability (P) of a fish leaving area 1 (i.e. the marine protected area, MPA) between years",style = "color:grey"),
+                            h5("Stock mixing in/out of a future spatial closure. The degree of the spatial mixing of the fish stock is represented as the probability (P) of a fish leaving area 1 (i.e. the marine protected area, MPA) between years",style = "color:grey"),
                             h5("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"),style = "color:grey")
                       )),
+
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==19",
+                           column(6,plotOutput("plotDh",height=240)),
+                           column(6,
+                                  h5("Initial depletion of the stock relative to asymptotic unfished levels (D1: spawning stock biomass in year 1 relative to equilibrium unfished conditions).",style = "color:grey"),
+                                  h5("Many fisheries undertake large fluctuations in productivity. In some of these cases, a fishery may have began at a time when the stock was naturally low. This question provides an opportunity to specify this initial depletion. The default however is that the stock was at asymptotic unfished levels in the first year of the fishery.",style = "color:grey"),
+                                  h5("For further information see ", a("Carruthers et al. (2014)", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"),style = "color:grey"),
+                                  h5("and ", a("Punt et al (2011)", href="https://academic.oup.com/icesjms/article/68/5/972/653125/Among-stock-comparisons-for-improving-stock", target="_blank"),style = "color:grey")
+                           )),
 
 
                       # -------- Management panel guides --------------------------------------------------------------------------------------------------------------
@@ -509,7 +576,7 @@ shinyUI(
                           column(7,plotOutput("plotIB",height=280)),
                           column(5,
                                  h5("What is the possible extent to which fishing operations may exceed (overages) or fall short (underages)
-                                     of the specified Total Allowable Catch (TAC) or Total Allowable Effort (TAE)? For example, given a TAC of 1000 tonnes and a TAE of 2000 boat-days of fishing a 10% overage would on average lead to 1100 tonnes of fish taken and 2200 boat days of effort.",style = "color:grey"),
+                                     of the specified Total Allowable Catch (TAC). For example, given a TAC of 1000 tonnes a 10% offset (overage) would on average lead to 1100 tonnes of fish taken.",style = "color:grey"),
                                  h5(""),
                                  h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey"),
                                  h5(""),
@@ -519,14 +586,63 @@ shinyUI(
                       conditionalPanel(condition="input.tabs1==2&output.Mpanel==3",
                           column(7,plotOutput("plotIV",height=280)),
                           column(5,
-                                h5("In the previous question you specified the range of possible overages/underages with respect to management recommendations.
-                                   In this question you add the variability (V) in the implementation (TACs and TAEs) among years. For example if on average there
-                                   are no overages or underages, a V of 10% leads to overages/underages within 20% of the recommendation (the black line in the figure opposite)
+                                h5("In the previous question you specified the range of the possible TAC offset (mean overage or underage).
+                                   In this question you add the variability (V) in the implementation of TACs among years. For example, if on average there
+                                   is no TAC offset, a V of 10% leads to annual overages/underages within 20% of the annual TAC recommendation (the black line in the figure opposite)
                                    for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest
                                    (solid line) levels of overages/underages specified in the previous question.",style = "color:grey"),
                                 h5(""),
                                 h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey")
                       )),
+
+                      conditionalPanel(condition="input.tabs1==2&output.Mpanel==4",
+                         column(7,plotOutput("plotIB_E",height=280)),
+                         column(5,
+                                h5("What is the possible extent to which fishing operations may exceed (overages) or fall short (underages)
+                                of the specified Total Allowable Effort (TAE)? For example, given a TAE of 2000 boat-days of fishing a 10% overage would on average lead to 2200 boat days of effort.",style = "color:grey"),
+                                h5(""),
+                                h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey"),
+                                h5(""),
+                                h5("Fulton et al. also provide a discussion of implementation error in their ",a("2011 paper.", href="https://drive.google.com/open?id=1gzTMnk3Cg3PzgxDdKAyV52T9IIptUK7h", target="_blank"),style = "color:grey")
+                         )),
+
+                      conditionalPanel(condition="input.tabs1==2&output.Mpanel==5",
+                         column(7,plotOutput("plotIV_E",height=280)),
+                         column(5,
+                                h5("In the previous question you specified the range of possible TAE offset (mean overages/underages).
+                                   In this question you add the variability (V) in the implementation of TAEs among years. For example, if on average there
+                                   is no TAE offset, a V of 20% leads to annual TAE overages/underages within 40% of the annual TAE recommendation (the black line in the figure opposite)
+                                   for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest
+                                   (solid line) levels of overages/underages specified in the previous question.",style = "color:grey"),
+                                              h5(""),
+                                h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey")
+                         )),
+
+                      conditionalPanel(condition="input.tabs1==2&output.Mpanel==6",
+                         column(7,plotOutput("plotIB_SL",height=280)),
+                         column(5,
+                                h5("What is the possible extent to which fishing operations may exceed (catch larger) or fall short (catch smaller)
+                                fish than the specified minimum size limit? For example, given a size limit of 20cm (e.g. escape hole size of a trap), a value of 20% would lead to a mean minimum size in the catch of 24cm.",style = "color:grey"),
+                                h5(""),
+                                h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey"),
+                                h5(""),
+                                h5("Fulton et al. also provide a discussion of implementation error in their ",a("2011 paper.", href="https://drive.google.com/open?id=1gzTMnk3Cg3PzgxDdKAyV52T9IIptUK7h", target="_blank"),style = "color:grey")
+                         )),
+
+                      conditionalPanel(condition="input.tabs1==2&output.Mpanel==7",
+                         column(7,plotOutput("plotIV_SL",height=280)),
+                         column(5,
+                                h5("In the previous question you specified the range of possible mean violations of a minimum size limit.
+                                   In this question you add variability (V) in size limit implementation among years. For example a size limit of 90cm is exceeded by an average of 10cm, a value of 5% leads to minimum catch sizes of between 90cm and 110cm (the black line in the figure opposite)
+                                   for 95% of cases. The colored lines show the minimum and maximum variability superimposed on the lowest (dashed line) and highest
+                                   (solid line) offset in size limit specified in the previous question.",style = "color:grey"),
+                                              h5(""),
+                                h5("The FAO provides a cursory introduction to uncertainties in fisheries management including implementation error ",a("here.", href="http://www.fao.org/docrep/003/v8400e/V8400E03.htm", target="_blank"),style = "color:grey")
+                         )),
+
+
+
+
 
 
                       # -------- Data panel guides --------------------------------------------------------------------------------------------------------------------
@@ -661,10 +777,10 @@ shinyUI(
                  ),
 
                  column(width = 2,
-                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<17)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4)",
+                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<19)|(input.tabs1==2 & output.Mpanel<7)|(input.tabs1==3 & output.Dpanel<4)",
                       actionButton("Fcont","Next >")
                    ),
-                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<17)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
+                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<19)|(input.tabs1==2 & output.Mpanel<7)|(input.tabs1==3 & output.Dpanel<4))",
                       actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
                    )
 

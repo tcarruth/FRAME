@@ -122,8 +122,8 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"AdCalc",suspendWhenHidden=FALSE)
   outputOptions(output,"Tweak",suspendWhenHidden=FALSE)
 
-  output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 17")})
-  output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
+  output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 19")})
+  output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 7")})
   output$Dpanelout <- renderText({ paste("Data",Dpanel(),"/ 4")})
 
   # Some useful things
@@ -141,7 +141,7 @@ shinyServer(function(input, output, session) {
 3. Provide all relevant reference materials, such as assessments, research, and other analysis.
 
       ",
-      rep("No justification was provided",16)),
+      rep("No justification was provided",17)),
 
      c(
 "1. Describe what, if any, current management measures are used to constrain catch/effort.
@@ -153,7 +153,7 @@ shinyServer(function(input, output, session) {
 4. Describe and reference any legal/policy requirements for management, monitoring and enforcement.
 
        ",
-       rep("No justification was provided",2)),
+       rep("No justification was provided",6)),
 
     c(
 "1. Provide the time series (specify years, if possible) that exist for catch, effort, and CPUE/abundance indices.
@@ -174,8 +174,8 @@ shinyServer(function(input, output, session) {
 
   makeState<-function(x)rep(T,length(get(x)))
 
-  Fpanel_names<-c("M_list","D_list","h_list","FP_list","F_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","q_list","A_list","V_list")
-  Mpanel_names<-c("M1_list","IB_list","IV_list")
+  Fpanel_names<-c("M_list","D_list","h_list","FP_list","F_list","qh_list","q_list","LM_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","Ah_list","Vh_list","A_list","V_list","Dh_list")
+  Mpanel_names<-c("M1_list","IB_list","IV_list","IBE_list","IVE_list","IBSL_list","IVSL_list")
   Dpanel_names<-c("D1_list","CB_list","Beta_list","Err_list")
   Slider_names<-c("loc","stmag")
 
@@ -186,6 +186,7 @@ shinyServer(function(input, output, session) {
                    Dpanel=lapply(Dpanel_names, makeState),
                    Slider=lapply(Slider_names, makeState))
 
+  PanelState[[1]][[18]]<-c(F,F,F,F,T) # Exception is the final fishery initial depletion
   PanelState[[3]][[4]]<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
 
   getinputnames<-function(x)strsplit(x,"_")[[1]][1]
@@ -1314,9 +1315,9 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Fcont,{
 
-    if(input$tabs1==1 && Fpanel() < 17){
+    if(input$tabs1==1 && Fpanel() < 19){
       Fpanel(Fpanel()+1)
-    }else if(input$tabs1==2 && Mpanel() < 3){
+    }else if(input$tabs1==2 && Mpanel() < 7){
       Mpanel(Mpanel()+1)
     }else if(input$tabs1==3 && Dpanel() < 4){
       Dpanel(Dpanel()+1)
@@ -1355,9 +1356,15 @@ shinyServer(function(input, output, session) {
   )
   observeEvent(input$All_FP,
      if(input$All_FP == 0 | input$All_FP%%2 == 0){
-        updateCheckboxGroupInput(session,"FP",choices=FP_list,selected=FP_list)
+       updateCheckboxGroupInput(session,"FP",choices=FP_list,selected=FP_list)
+       updateSliderInput(session,"loc",value=1)
+       updateSliderInput(session,"stmag",value=1)
+
      }else{
-        updateCheckboxGroupInput(session,"FP",choices=FP_list)
+       updateCheckboxGroupInput(session,"FP",choices=FP_list)
+       updateSliderInput(session,"loc",value=1)
+       updateSliderInput(session,"stmag",value=1)
+
      }
   )
   observeEvent(input$All_F,
@@ -1432,7 +1439,13 @@ shinyServer(function(input, output, session) {
        updateCheckboxGroupInput(session,"V",choices=V_list)
     }
   )
-
+  observeEvent(input$All_Dh,
+    if(input$All_Dh == 0 | input$All_Dh%%2 == 0){
+      updateCheckboxGroupInput(session,"Dh",choices=Dh_list,selected=Dh_list[[5]])
+    }else{
+      updateCheckboxGroupInput(session,"Dh",choices=Dh_list,selected=Dh_list[[5]])
+    }
+  )
 
   # ---- Management all switches -------------
 
@@ -1457,6 +1470,37 @@ shinyServer(function(input, output, session) {
                  updateCheckboxGroupInput(session,"IV",choices=IV_list)
                }
   )
+
+  observeEvent(input$All_IBE,
+               if(input$All_IBE == 0 | input$All_IBE%%2 == 0){
+                 #vals<-as.list(IB_list[input$IB])
+                 updateCheckboxGroupInput(session,"IBE",choices=IBE_list,selected=input$IB)
+               }else{
+                 updateCheckboxGroupInput(session,"IBE",choices=IBE_list,selected=input$IB)
+               }
+  )
+  observeEvent(input$All_IVE,
+               if(input$All_IVE == 0 | input$All_IVE%%2 == 0){
+                 updateCheckboxGroupInput(session,"IVE",choices=IVE_list,selected=input$IV)
+               }else{
+                 updateCheckboxGroupInput(session,"IVE",choices=IVE_list,selected=input$IV)
+               }
+  )
+  observeEvent(input$All_IBSL,
+               if(input$All_IBSL == 0 | input$All_IBSL%%2 == 0){
+                 updateCheckboxGroupInput(session,"IBSL",choices=IBSL_list,selected=input$IB)
+               }else{
+                 updateCheckboxGroupInput(session,"IBSL",choices=IBSL_list,selected=input$IB)
+               }
+  )
+  observeEvent(input$All_IVSL,
+               if(input$All_IVSL == 0 | input$All_IVSL%%2 == 0){
+                 updateCheckboxGroupInput(session,"IVSL",choices=IVSL_list,selected=input$IV)
+               }else{
+                 updateCheckboxGroupInput(session,"IVSL",choices=IVSL_list,selected=input$IV)
+               }
+  )
+
 
 
   # ---- Data all switches -------------
@@ -1502,19 +1546,27 @@ shinyServer(function(input, output, session) {
   output$ploth <- renderPlot(ploth())
   output$plotFP <- renderPlot(plotFP())
   output$plotF <- renderPlot(plotF())
+  output$plotqh <- renderPlot(plotqh())
+  output$plotq <- renderPlot(plotq())
+  output$plotmat <- renderPlot(plotmat())
   output$plotsel <- renderPlot(plotsel())
   output$plotdome <- renderPlot(plotdome())
   output$plotDR <- renderPlot(plotDR())
   output$plotPRM <- renderPlot(plotPRM())
   output$plotsigR <- renderPlot(plotsigR())
-  output$plotqh <- renderPlot(plotqh())
-  output$plotq <- renderPlot(plotq())
+  output$plotAh <- renderPlot(plotAh())
+  output$plotVh <- renderPlot(plotVh())
   output$plotA <- renderPlot(plotA())
   output$plotV <- renderPlot(plotV())
+  output$plotDh <- renderPlot(plotDh()) #19
 
   # Management
   output$plotIB <- renderPlot(plotIB())
   output$plotIV <- renderPlot(plotIV())
+  output$plotIB_E <- renderPlot(plotIB_E())
+  output$plotIV_E <- renderPlot(plotIV_E())
+  output$plotIB_SL <- renderPlot(plotIB_SL())
+  output$plotIV_SL <- renderPlot(plotIV_SL()) # 7
 
   # Data
   output$plotBeta <- renderPlot(plotBeta())

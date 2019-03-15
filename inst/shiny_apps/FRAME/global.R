@@ -7,12 +7,12 @@ Current_Year<<-as.integer(substr(Sys.time(),start=1,stop=4))
 
 # ----- Fishery answers -----------------------------------------------------------------------------
 
-M_list<<-list("Very short-lived (0.6 < M)" = "M_60", "Short-lived      (0.4 < M < 0.6)" = "M_40_60",
-              "Moderate life span  (0.2 < M < 0.4)" = "M_20_40", "Moderately long-lived (0.1 < M < 0.2)" = "M_10_20",
-              "Long-lived          (0.05 < M < 0.1)" = "M_05_10","Very long-lived    (M < 0.05)" = "M_05")
+M_list<<-list("Very short-lived (5 < maximum age < 7)" = "M_60", "Short-lived (7 < maximum age < 10)" = "M_40_60",
+              "Moderate life span  (10 < maximum age < 20)" = "M_20_40", "Moderately long-lived (20 < maximum age < 40)" = "M_10_20",
+              "Long-lived          (40 < maximum age < 80)" = "M_05_10","Very long-lived    (80 < maximum age < 160)" = "M_05")
 
-M_mins<- c( 0.6,    0.4,      0.2,      0.1,      0.05,    0.025)
-M_maxes<-c( 0.8,    0.6,      0.4,      0.2,      0.1,     0.05)
+M_mins<- c( 0.56,    0.39,      0.2,      0.098,      0.049,    0.02445)
+M_maxes<-c( 0.78,    0.56,      0.39,      0.2,      0.098,     0.049)
 
 D_list<<-list("Crashed (D < 0.05)" = "D_05", "Very depleted (0.05 < D < 0.1)" = "D_05_10",
               "Depleted (0.1 < D < 0.15)" = "D_10_15", "Moderately depleted (0.15 < D < 0.3)" = "D_15_30",
@@ -21,26 +21,26 @@ D_list<<-list("Crashed (D < 0.05)" = "D_05", "Very depleted (0.05 < D < 0.1)" = 
 D_mins<- c( 0.01,  0.05,      0.1,      0.15,      0.3,     0.5)
 D_maxes<-c( 0.05,   0.1,      0.15,     0.3,       0.5,     0.8)
 
-
-h_list<<-list("Not resilient (h < 0.3)" = "h_30", "Low resilience (0.3 < 0.5)" = "h_30_50",
-              "Moderate resilence (0.5 < h < 0.7)" = "h_50_70", "Resilient (0.7 < h < 0.9)" = "h_70_90",
-              "Very Resilient (0.9 < h)" = "h_90")
+h_list<<-list("Not resilient (steepness < 0.3)" = "h_30", "Low resilience (0.3 < steepness < 0.5)" = "h_30_50",
+              "Moderate resilence (0.5 < steepness < 0.7)" = "h_50_70", "Resilient (0.7 < steepness < 0.9)" = "h_70_90",
+              "Very Resilient (0.9 < steepness)" = "h_90")
 
 h_mins<- c( 0.25,   0.3,      0.5,      0.7,      0.9)
 h_maxes<-c( 0.3,    0.5,      0.7,      0.9,      0.99)
 
 
-FP_list<<-list("Stable" = "FP_s","Gradual reduction" = "FP_gr" ,"Boom-bust" = "FP_bb","Gradual increases"="FP_gi",
+FP_list<<-list("Stable" = "FP_s","Two-phase" = "FP_gr" ,"Boom-bust" = "FP_bb","Gradual increases"="FP_gi",
                "Stable, recent increases"="FP_ri", "Stable, recent declines" = "FP_rd")
 
-M1s<-   c(0.2,    0.3,   0.2,    0.15,   0.2,     0.2)
-M2s<-   c(1.2,    0.3,   0.7,    1.4,    1.2,     0.7)
-sd1s<-  c(0.075,  0.1,   0.1,    0.05,   0.075,   0.075)
-sd2s<-  c(0.1,    0.5,   0.18,   0.4,    0.2,     0.2)
+M1s<-   c(0.2,    0.32,   0.2,    0.15,   0.2,     0.2)
+M2s<-   c(1.2,    0.79,   0.7,    1.4,    1.2,     0.7)
+sd1s<-  c(0.075,  0.13,   0.1,    0.05,   0.075,   0.075)
+sd2s<-  c(0.1,    0.15,   0.18,   0.4,    0.2,     0.2)
 h2s<-   c(0,      0,     3,      8,      2.5,     0)
+bms<-   c(F,      T,     F,      F,      F,       F)
 
-F_list<<-list("Not variable (CV ~ 10%)" = "F_10", "Variable (10% < CV < 25%)" = "F_10_25",
-              "Highly variable (25% < CV < 50%)"="F_25_50")
+F_list<<-list("Not variable (less than 20% inter-annual change (IAC))" = "F_10", "Variable (maximum IAC between 20% to 50%)" = "F_10_25",
+              "Highly variable (maximum IAC between 50% and 100%)"="F_25_50")
 
 F_mins<-   c(0.05,    0.1,    0.25)
 F_maxes<-   c(0.1,     0.25,   0.5)
@@ -51,6 +51,15 @@ q_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Decli
 
 q_mins<- c(-3,       -2,       -1,      1,      2)
 q_maxes<-c(-2,       -1,       1,       2,      3)
+
+qh_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Declining by 1-2% pa (halves every 35-70 years)"="q_d2_d1",
+              "Stable -1% to 1% pa (may halve/double every 70 years)"="q_d1_1","Increasing by 1-2% pa (doubles every 35-70 years)"="q_1_2",
+              "Increasing by 2-3% pa (doubles every 25-35 years)"="q_2_3")
+
+qh_mins<- c(-3,       -2,       -1,      1,      2)
+qh_maxes<-c(-2,       -1,       1,       2,      3)
+
+
 
 
 LM_list<<-list("Very small (0.4 < LM < 0.5)" = "LM_40_50","Small (0.5 < LM < 0.6)"="LM_50_60",
@@ -89,9 +98,9 @@ PRM_mins<- c(  0,     0.05,    0.25,      0.5,      0.75,  0.95)
 PRM_maxes<-c(  0.05,  0.25,     0.5,      0.75,      0.95, 1)
 
 
-sigR_list<<-list("Very low (sigma R < 0.1)"="sigR_10","Low (0.1 < sigma R < 0.3)"="sigR_10_30",
-                 "Moderate (0.3 < sigma R < 0.6"="sigR_30_60", "High (0.6 < sigma R < 0.9"="sigR_60_90",
-                 "Very high (0.9 < sigma R)"="sigR_90")
+sigR_list<<-list("Very low (less than 10% inter-annual changes (IAC))"="sigR_10","Low (max IAC of between 20% and 60%)"="sigR_10_30",
+                 "Moderate (max IAC of between 60% and 120%)"="sigR_30_60", "High (max IAC of between 120% and 180%)"="sigR_60_90",
+                 "Very high (max IAC greater than 180%)"="sigR_90")
 
 sigR_mins<- c(  0.05,     0.1,          0.3,         0.6,        0.9)
 sigR_maxes<-c(  0.1,      0.3,          0.6,         0.9,        1.2)
@@ -108,6 +117,27 @@ V_list<<-list("Very low (P < 1%)" = "P_1", "Low (1% < P < 5%)" = "P_1_5", "Moder
 
 V_mins<- c(0.005, 0.01,     0.05,    0.1,        0.2)
 V_maxes<-c(0.01,  0.05,     0.1,     0.2,        0.5)
+
+
+Ah_list<<-list("None"="A_1","Small (A < 5%)"="A_1_5", "Small-moderate (5% < A < 10%)" = "A_5_10", "Moderate (10% < A < 20%)" = "A_10_20",
+              "Large (20% < A < 30%)"="A_20_30","Very large (30% < A < 40%)" = "A_30_40", "Huge (40% < A < 50%)"="A_40_50")
+
+Ah_mins<- c(0.005,  0.01,     0.05,    0.1,        0.2,       0.3,       0.4)
+Ah_maxes<-c(0.01,  0.05,     0.1,     0.2,        0.3,       0.4,       0.5)
+
+Vh_list<<-list("Very low (P < 1%)" = "P_1", "Low (1% < P < 5%)" = "P_1_5", "Moderate (5% < P < 10%)" = "P_5_10",
+              "High (10% < P < 20%)" = "P_10_20", "Fully mixed" = "P_20")
+
+Vh_mins<- c(0.005, 0.01,     0.05,    0.1,        0.2)
+Vh_maxes<-c(0.01,  0.05,     0.1,     0.2,        0.5)
+
+
+Dh_list<<-list("Very low (0.1 < D1 < 0.15)" = "D1_10_15", "Low (0.15 < D1 < 0.3)" = "D1_15_30",
+              "Moderate (0.3 < D < 0.5)" = "D1_30_50", "High (0.5 < D1)" = "D1_50",
+              "Asymptotic unfished levels (D1 = 1)" = "D1_100_100")
+
+Dh_mins<- c( 0.1,      0.15,      0.3,     0.5, 1)
+Dh_maxes<-c( 0.15,     0.3,       0.5,     1,   1)
 
 
 # ----- Management answers -----------------------------------------------------------------------------
@@ -129,12 +159,41 @@ IV_mins<-c(0.005,0.01,0.05,0.1,0.2)
 IV_maxes<-c(0.01,0.05,0.1,0.2,0.4)
 
 
+IBE_list<<-list("Large underages (40% - 70% of recommended)" = "IB_n30", "Underages (70% - 90% of recommended)" = "IB_n30_n10","Slight underages (90% - 100% of recommended)" = "IB_n10_0",
+               "Taken exactly (95% - 105% of recommended)"="IB_n5_5","Slight overages (100% - 110% of recommended)"="IB_0_10","Overages (110% - 150% of recommended)"="IB_10_30","Large overages (150% - 200% of recommended)"="IB_30")
+
+IBE_mins<- c( 0.4,  0.7,      0.9,     0.95,      1,     1.1, 1.5)
+IBE_maxes<-c( 0.7,  0.9,      1,       1.05,      1.1,   1.5, 2)
+
+
+IVE_list<<-list("Constant (V < 1%)" = "IV_1", "Not variable (1% < V < 5%)" = "IV_1_5","Low variability (5% < V < 10%)" = "IV_5_10",
+               "Variable (10% < V < 20%)"="IV_10_20","Highly variable (20% < V < 40%)"="IV_20_40")
+
+IVE_mins<-c(0.005,0.01,0.05,0.1,0.2)
+IVE_maxes<-c(0.01,0.05,0.1,0.2,0.4)
+
+IBSL_list<<-list("Large underages (40% - 70% of recommended)" = "IB_n30", "Underages (70% - 90% of recommended)" = "IB_n30_n10","Slight underages (90% - 100% of recommended)" = "IB_n10_0",
+               "Taken exactly (95% - 105% of recommended)"="IB_n5_5","Slight overages (100% - 110% of recommended)"="IB_0_10","Overages (110% - 150% of recommended)"="IB_10_30","Large overages (150% - 200% of recommended)"="IB_30")
+
+IBSL_mins<- c( 0.4,  0.7,      0.9,     0.95,      1,     1.1, 1.5)
+IBSL_maxes<-c( 0.7,  0.9,      1,       1.05,      1.1,   1.5, 2)
+
+
+IVSL_list<<-list("Constant (V < 1%)" = "IV_1", "Not variable (1% < V < 5%)" = "IV_1_5","Low variability (5% < V < 10%)" = "IV_5_10",
+               "Variable (10% < V < 20%)"="IV_10_20","Highly variable (20% < V < 40%)"="IV_20_40")
+
+IVSL_mins<-c(0.005,0.01,0.05,0.1,0.2)
+IVSL_maxes<-c(0.01,0.05,0.1,0.2,0.4)
+
+
+
+
 # ----- Data answers -----------------------------------------------------------------------------
 
 D1_list<<-list("Historical annual catches (from unfished)" = "ann_cat","Recent annual catches (at least 5 recent years)" = "ann_cat_R", "Historical relative abundance index (from unfished)"= "ind",
                "Recent relative abundance index (at least 5 recent years)"= "ind_R",
                "Fishing effort" = "fis_eff","Size composition (length samples)" = "siz_com","Age composition (age samples)" = "age_com", "Growth (growth parameters)" = "growth",
-               "Current biomass survey"="cur_bio_sur")
+               "Absolute biomass survey"="cur_bio_sur")
 
 CB_list<<-list("Strong under-reporting (30% - 50%)" = "CB_n50_n30", "Under-reporting (10% - 30%)" = "CB_n30_n10","Slight under-reporting (less than 10%)" = "CB_n10_0",
                "Reported accurately (+/- 5%)" = "CB_n5_5","Slight over-reporting (less than 10%)" = "CB_0_10")
