@@ -1,11 +1,14 @@
 
 
 UpPanelState<-function(){
-  for(i in 1:length(PanelState)){
+  for(i in 1:3){
     for(j in 1:length(PanelState[[i]])) {
       value<-sapply(inputnames[[i]][j],function(x) input[[x]])
       PanelState[[i]][[j]] <<- get(MasterList[[i]][j])%in%value
     }
+  }
+  for(j in 1:length(PanelState[[4]])) {
+    PanelState[[4]][[j]] <<-sapply(inputnames[[4]][j],function(x) input[[x]])
   }
 }
 

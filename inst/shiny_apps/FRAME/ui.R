@@ -81,7 +81,7 @@ shinyUI(
              h2("FRAME")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v3.1.2)",style="padding:19px;")
+             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v4.1.1)",style="padding:19px;")
       ),
 
       column(3,offset=2,style="padding:14px;height:65px",
@@ -205,52 +205,72 @@ shinyUI(
                                 actionLink("All_h","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==5",
-                                checkboxGroupInput("FP", label = h5("5. Trend of historical exploitation",style="color:black"),
-                                        choices = FP_list, selected = FP_list),
-                                actionLink("All_FP","UNKNOWN")),
+                              column(6,
+                                             checkboxGroupInput("FP", label = h5("5. Pattern of historical fishing effort",style="color:black"),
+                                            choices = FP_list, selected = FP_list),
+                                             actionLink("All_FP","UNKNOWN")),
+                              column(6,
+                                HTML("<br>"),
+                                sliderInput("loc",label=h5("Skew"),min=0.2,max=1.8,value=1,step=0.1),
+                                sliderInput("stmag",label=h5("Magnitude of recent change"),min=0.2,max=1.8,value=1,step=0.1))),
 
                             conditionalPanel(width=4,condition="output.Fpanel==6",
-                                 checkboxGroupInput("F", label = h5("6. Variability in historical exploitation",style="color:black"),
+                                 checkboxGroupInput("F", label = h5("6. Inter-annual variability in historical effort",style="color:black"),
                                         choices = F_list, selected = F_list),
                                  actionLink("All_F","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==7",
-                                 checkboxGroupInput("sel", label = h5("7. Selectivity relative to length at maturity",style="color:black"),
-                                        choices = sel_list, selected = sel_list),
-                                 actionLink("All_sel","UNKNOWN")),
+                                 checkboxGroupInput("q_h", label = h5("7. Historical fishing efficiency changes",style="color:black"),
+                                                    choices = q_list, selected = q_list),
+                                 actionLink("All_qh","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==8",
-                                 checkboxGroupInput("dome", label = h5("8. Selectivity of large fish",style="color:black"),
+                                 checkboxGroupInput("q", label = h5("8. Future fishing efficiency changes",style="color:black"),
+                                                    choices = q_list, selected = q_list),
+                                 actionLink("All_q","UNKNOWN")),
+
+                            conditionalPanel(width=4,condition="output.Fpanel==9",
+                                 checkboxGroupInput("LM", label = h5("9. Length at maturity",style="color:black"),
+                                        choices = LM_list, selected = LM_list),
+                                 actionLink("All_LM","UNKNOWN")),
+
+                            conditionalPanel(width=4,condition="output.Fpanel==10",
+                                  checkboxGroupInput("sel", label = h5("10. Selectivity of small fish",style="color:black"),
+                                        choices = sel_list, selected = sel_list),
+                                  actionLink("All_sel","UNKNOWN")),
+
+                            conditionalPanel(width=4,condition="output.Fpanel==11",
+                                 checkboxGroupInput("dome", label = h5("11. Selectivity of large fish",style="color:black"),
                                         choices = dome_list, selected = dome_list),
                                  actionLink("All_dome","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==9",
-                                 checkboxGroupInput("DR", label = h5("9. Discard rate",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==12",
+                                 checkboxGroupInput("DR", label = h5("12. Discard rate",style="color:black"),
                                         choices = DR_list, selected = DR_list),
                                  actionLink("All_DR","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==10",
-                                 checkboxGroupInput("PRM", label = h5("10. Post-release mortality rate",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==13",
+                                 checkboxGroupInput("PRM", label = h5("13. Post-release mortality rate",style="color:black"),
                                          choices = PRM_list, selected = PRM_list),
                                  actionLink("All_PRM","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==11",
-                                 checkboxGroupInput("sigR", label = h5("11. Recruitment variability",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==14",
+                                 checkboxGroupInput("sigR", label = h5("14. Recruitment variability",style="color:black"),
                                          choices = sigR_list, selected = sigR_list),
                                  actionLink("All_sigR","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==12",
-                                  checkboxGroupInput("q", label = h5("12. Changing fishing efficiency",style="color:black"),
-                                         choices = q_list, selected = q_list),
-                                  actionLink("All_q","UNKNOWN")),
+                            conditionalPanel(width=4,condition="output.Fpanel==15",
+                                  checkboxGroupInput("A", label = h5("15. Size existing marine reserve",style="color:black"),
+                                         choices = A_list, selected = A_list),
+                                  actionLink("All_AE","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==13",
-                                  checkboxGroupInput("A", label = h5("13. Size of potential / existing marine reserve",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==16",
+                                  checkboxGroupInput("A", label = h5("16. Size of future potential marine reserves",style="color:black"),
                                          choices = A_list, selected = A_list),
                                   actionLink("All_A","UNKNOWN")),
 
-                            conditionalPanel(width=4,condition="output.Fpanel==14",
-                                  checkboxGroupInput("V", label = h5("14. Spatial mixing (movement)",style="color:black"),
+                            conditionalPanel(width=4,condition="output.Fpanel==17",
+                                  checkboxGroupInput("V", label = h5("17. Spatial mixing (movement)",style="color:black"),
                                          choices = V_list, selected = V_list),
                                   actionLink("All_V","UNKNOWN")),
 
@@ -392,6 +412,22 @@ shinyUI(
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==7",
+                          column(6,plotOutput("plotqh",height=240)),
+                          column(6,
+                                h5("The annual percentage increase or decrease in historical fishing efficiency. In targeted fisheries gear efficiency may improve over time given techological improvements in the gear, changes in fishing behavior, fish distribution and information sharing among fishers, among other things. Conversely, non-target or bycatch species may be subject to declining fishing efficiency due to regulations or avoidance behaviors. The catchability (q) is the fraction of available fish caught per unit of effort. For example, a 2% per annum increase in fishing efficiency means that after 35 years twice as many fish will be caught for the same effort as today.",style = "color:grey"),
+                                h5("The introduction to fishing efficiency by the FAO provides a ", a("basic summary.", href="http://www.fao.org/docrep/008/y6982e/y6982e06.htm", target="_blank"),style = "color:grey"),
+                                h5(a("Arrenguin-Sanchez", href="https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI", target="_blank")," provides a more comprehensive review of catchability.",style = "color:grey")
+                      )),
+
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==8",
+                          column(6,plotOutput("plotq",height=240)),
+                          column(6,
+                                h5("The annual percentage increase or decrease in future fishing efficiency. In targeted fisheries gear efficiency may improve over time given techological improvements in the gear, changes in fishing behavior, fish distribution and information sharing among fishers, among other things. Conversely, non-target or bycatch species may be subject to declining fishing efficiency due to regulations or avoidance behaviors. The catchability (q) is the fraction of available fish caught per unit of effort. For example, a 2% per annum increase in fishing efficiency means that after 35 years twice as many fish will be caught for the same effort as today.",style = "color:grey"),
+                                h5("The introduction to fishing efficiency by the FAO provides a ", a("basic summary.", href="http://www.fao.org/docrep/008/y6982e/y6982e06.htm", target="_blank"),style = "color:grey"),
+                                h5(a("Arrenguin-Sanchez", href="https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI", target="_blank")," provides a more comprehensive review of catchability.",style = "color:grey")
+                      )),
+
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==9",
                           column(6,plotOutput("plotsel",height=240)),
                           column(6,
                             h5("Fishing gear selectivity relative to size at maturity (S). For example, if 50% of 40cm fish are caught by the gear and length at 50% maturity is 50cm, then S = 4/5.",style = "color:grey"),
@@ -399,7 +435,7 @@ shinyUI(
                             h5("For a more involved discussion on selectivity see the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==8",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==10",
                          column(6,plotOutput("plotdome",height=240)),
                          column(6,
                            h5("Fishing gear selectivity of the largest individuals (SL). For example, if only 20% of the longest fish are caught by the gear, SL = 0.2.",style = "color:grey"),
@@ -407,7 +443,7 @@ shinyUI(
                            h5("and here is the ", a("IATTC CAPAM workshop report.", href="https://swfsc.noaa.gov/publications/CR/2013/2013Crone.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==9",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==11",
                           column(6,plotOutput("plotDR",height=240)),
                           column(6,
                             h5("Discard rate (DR) is the fraction of fish that discarded both dead and alive",style = "color:grey"),
@@ -415,7 +451,7 @@ shinyUI(
                             h5("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://drive.google.com/open?id=1ZtqB_MHapyagplv_enJ0o-_t4UKF5chh", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==10",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==12",
                           column(6,plotOutput("plotPRM",height=240)),
                           column(6,
                             h5("The post-release mortality rate (PRM) is the fraction of discarded fish that die after release",style = "color:grey"),
@@ -423,7 +459,7 @@ shinyUI(
                             h5("and one of the authors of that guide, Michael Davis also has a useful article: ", a("Key principles for understanding fish bycatch discard mortality.", href="https://drive.google.com/open?id=1ZtqB_MHapyagplv_enJ0o-_t4UKF5chh", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==11",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==13",
                            column(6,plotOutput("plotsigR",height=240)),
                            column(6,
                              h5("The interannual variability in recruitment is expressed here as the coefficient of variation in log-normal recruitment deviations (sigma R). Recruitment is expected to change among years in response to changing spawning biomass levels. Additional variability may be driven by many factors including varying ocean conditions, amount of spawning habitat, food availability and predation.  Sigma R controls the extent of this additional variability in annual recruitments. For example, a sigma R of 10% means that 95% of recruitments will fall in approximately 80-120% of the mean recruitment predicted from spawning biomass.",style = "color:grey"),
@@ -431,22 +467,16 @@ shinyUI(
                              h5("See also ", a("Chambers and Trippel (1997).", href="https://drive.google.com/open?id=1KhwP5URGPzW6ViJPiwprfY2tE2uucpDR", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==12",
-                           column(6,plotOutput("plotq",height=240)),
-                           column(6,
-                             h5("The annual percentage increase or decrease in fishing efficiency. In targeted fisheries gear efficiency may improve over time given techological improvements in the gear, changes in fishing behavior, fish distribution and information sharing among fishers, among other things. Conversely, non-target or bycatch species may be subject to declining fishing efficiency due to regulations or avoidance behaviors. The catchability (q) is the fraction of available fish caught per unit of effort. For example, a 2% per annum increase in fishing efficiency means that after 35 years twice as many fish will be caught for the same effort as today.",style = "color:grey"),
-                             h5("The introduction to fishing efficiency by the FAO provides a ", a("basic summary.", href="http://www.fao.org/docrep/008/y6982e/y6982e06.htm", target="_blank"),style = "color:grey"),
-                             h5(a("Arrenguin-Sanchez", href="https://drive.google.com/open?id=1ZrHbhotCJ5Vjw4JNloUSY94BVoM0iyfI", target="_blank")," provides a more comprehensive review of catchability.",style = "color:grey")
-                      )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==13",
+
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==14",
                            column(6,plotOutput("plotA",height=240)),
                            column(6,
                              h5("The size of a potential or existing spatial closure (Marine Reserve). The size A, is the % of habitat that is protected.",style = "color:grey"),
                              h5("The FAO provides a comprehensive ", a("review of Marine Protected Areas.", href="http://www.fao.org/docrep/015/i2090e/i2090e.pdf", target="_blank"),style = "color:grey")
                       )),
 
-                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==14",
+                      conditionalPanel(condition="input.tabs1==1&output.Fpanel==15",
                            column(6,plotOutput("plotV",height=240)),
                            column(6,
                             h5("The degree of the spatial of the fish stock is represented as the probability (P) of a fish leaving area 1 (i.e. the marine protected area, MPA) between years",style = "color:grey"),
@@ -631,10 +661,10 @@ shinyUI(
                  ),
 
                  column(width = 2,
-                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4)",
+                   conditionalPanel(condition="(input.tabs1==1 & output.Fpanel<17)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4)",
                       actionButton("Fcont","Next >")
                    ),
-                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<14)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
+                   conditionalPanel(condition="!((input.tabs1==1 & output.Fpanel<17)|(input.tabs1==2 & output.Mpanel<3)|(input.tabs1==3 & output.Dpanel<4))",
                       actionButton("FcontD","Next >",style="color: #CFCFCF;  border-color: #CFCFCF") #background-color: #CFCFCF;
                    )
 

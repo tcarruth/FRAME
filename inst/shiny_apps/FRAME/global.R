@@ -1,5 +1,7 @@
 
+# Shared variables
 
+Current_Year<<-as.integer(substr(Sys.time(),start=1,stop=4))
 
 # App design
 
@@ -43,12 +45,28 @@ F_list<<-list("Not variable (CV ~ 10%)" = "F_10", "Variable (10% < CV < 25%)" = 
 F_mins<-   c(0.05,    0.1,    0.25)
 F_maxes<-   c(0.1,     0.25,   0.5)
 
-sel_list<<-list("Very small (S < 0.5)" = "sel_50","Small (0.5 < S < 0.75)"="sel_50_75",
-                "Similar to maturity (0.75 < S < 1.25)" = "sel_75_125",
-                "Large (1.25 < S < 1.5)" = "sel_125_150","Very large (1.5 < S)"="sel_150_200")
+q_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Declining by 1-2% pa (halves every 35-70 years)"="q_d2_d1",
+              "Stable -1% to 1% pa (may halve/double every 70 years)"="q_d1_1","Increasing by 1-2% pa (doubles every 35-70 years)"="q_1_2",
+              "Increasing by 2-3% pa (doubles every 25-35 years)"="q_2_3")
 
-sel_mins<- c( 0.25,   0.5,         0.75,      1.25,      1.50)
-sel_maxes<-c( 0.5,    0.75,        1.25,      1.50,      2)
+q_mins<- c(-3,       -2,       -1,      1,      2)
+q_maxes<-c(-2,       -1,       1,       2,      3)
+
+
+LM_list<<-list("Very small (0.4 < LM < 0.5)" = "LM_40_50","Small (0.5 < LM < 0.6)"="LM_50_60",
+                "Moderate (0.6 < LM < 0.7)" = "LM_60_70",
+                "Moderate to large (0.7 < LM < 0.8)" = "LM_70_80","Large (0.8 < LM < 0.9)"="LM_80_90")
+
+LM_mins<- (4:8)/10
+LM_maxes<-(5:9)/10
+
+
+sel_list<<-list("Very small (0.1 < S < 0.2)" = "sel_10_20","Small (0.2 < S < 0.4)"="sel_20_40",
+                "Half asymptotic length (0.4 < S < 0.6)" = "sel_40_60",
+                "Large (0.6 < S < 0.8)" = "sel_60_80","Very large (0.8 < S < 0.9)"="sel_80_90")
+
+sel_mins<- c( 0.1,   0.2,         0.4,      0.6,  0.8)
+sel_maxes<-c( 0.2,   0.4,         0.6,      0.8,  0.9)
 
 
 dome_list<<-list("Asymptotic selectivity (SL = 1)" = "dome_100", "Declining selectivity with length (0.75 < SL < 1)"="dome_75_100",
@@ -78,12 +96,6 @@ sigR_list<<-list("Very low (sigma R < 0.1)"="sigR_10","Low (0.1 < sigma R < 0.3)
 sigR_mins<- c(  0.05,     0.1,          0.3,         0.6,        0.9)
 sigR_maxes<-c(  0.1,      0.3,          0.6,         0.9,        1.2)
 
-q_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Declining by 1-2% pa (halves every 35-70 years)"="q_d2_d1",
-              "Stable -1% to 1% pa (may halve/double every 70 years)"="q_d1_1","Increasing by 1-2% pa (doubles every 35-70 years)"="q_1_2",
-              "Increasing by 2-3% pa (doubles every 25-35 years)"="q_2_3")
-
-q_mins<- c(-3,       -2,       -1,      1,      2)
-q_maxes<-c(-2,       -1,       1,       2,      3)
 
 A_list<<-list("None"="A_1","Small (A < 5%)"="A_1_5", "Small-moderate (5% < A < 10%)" = "A_5_10", "Moderate (10% < A < 20%)" = "A_10_20",
               "Large (20% < A < 30%)"="A_20_30","Very large (30% < A < 40%)" = "A_30_40", "Huge (40% < A < 50%)"="A_40_50")
@@ -139,6 +151,11 @@ Beta_maxes<-c( 3,                2,             1.25,          0.8,         0.50
 Err_list<<-list("Perfect" = "Err_perf","Good (accurate and precise)" = "Err_good","Data moderate (some what inaccurate and imprecise)"="Err_Mod",
                 "Data poor (inaccurate and imprecise)" = "Err_bad")
 
+
+# ------ Sliders -----------------------------------------------------------------------------------
+
+loc<<-list("loc"=1)
+stmag<<-list("stmag"=1)
 
 
 

@@ -18,9 +18,8 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"3.1.3"
+  FRAMEversion<<-"4.1.1"
   #options(browser = false)
-
   # MPs
 
   # -------------------------------------------------------------
@@ -52,8 +51,6 @@ shinyServer(function(input, output, session) {
 
   # Advice
   source("./Advice.R",local=TRUE)
-
-
 
   # Miscellaneous
   source("./Misc.R",local=TRUE)
@@ -125,7 +122,7 @@ shinyServer(function(input, output, session) {
   outputOptions(output,"AdCalc",suspendWhenHidden=FALSE)
   outputOptions(output,"Tweak",suspendWhenHidden=FALSE)
 
-  output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 14")})
+  output$Fpanelout <- renderText({ paste("Fishery",Fpanel(),"/ 17")})
   output$Mpanelout <- renderText({ paste("Management",Mpanel(),"/ 3")})
   output$Dpanelout <- renderText({ paste("Data",Dpanel(),"/ 4")})
 
@@ -144,7 +141,7 @@ shinyServer(function(input, output, session) {
 3. Provide all relevant reference materials, such as assessments, research, and other analysis.
 
       ",
-      rep("No justification was provided",13)),
+      rep("No justification was provided",16)),
 
      c(
 "1. Describe what, if any, current management measures are used to constrain catch/effort.
@@ -180,32 +177,36 @@ shinyServer(function(input, output, session) {
   Fpanel_names<-c("M_list","D_list","h_list","FP_list","F_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","q_list","A_list","V_list")
   Mpanel_names<-c("M1_list","IB_list","IV_list")
   Dpanel_names<-c("D1_list","CB_list","Beta_list","Err_list")
+  Slider_names<-c("loc","stmag")
 
-  MasterList<<-list(Fpanel_names,Mpanel_names,Dpanel_names)
+  MasterList<<-list(Fpanel_names,Mpanel_names,Dpanel_names,Slider_names)
 
-  PanelState<<-list(Fpanel=lapply(Fpanel_names, makeState),
+  PanelState<-list(Fpanel=lapply(Fpanel_names, makeState),
                    Mpanel=lapply(Mpanel_names, makeState),
-                   Dpanel=lapply(Dpanel_names, makeState))
+                   Dpanel=lapply(Dpanel_names, makeState),
+                   Slider=lapply(Slider_names, makeState))
 
-  PanelState[[3]][[4]]<<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
+  PanelState[[3]][[4]]<-c(F,F,F,T) # Exception is the final selection of the data menu - quality is a radio button default to data-poor
 
   getinputnames<-function(x)strsplit(x,"_")[[1]][1]
 
   inputnames<<-list(Fpanel=lapply(Fpanel_names,getinputnames),
-                   Mpanel=lapply(Mpanel_names,getinputnames),
-                   Dpanel=lapply(Dpanel_names,getinputnames))
+                    Mpanel=lapply(Mpanel_names,getinputnames),
+                    Dpanel=lapply(Dpanel_names,getinputnames),
+                    Slider=lapply(Slider_names,getinputnames))
 
   inputtabs<-as.vector(unlist(inputnames))
 
   # Record all changes to tabs
   observeEvent(sapply(inputtabs, function(x) input[[x]]),{
 
-    for(i in 1:length(PanelState)){
-      for(j in 1:length(PanelState[[i]])) {
-        value<-sapply(inputnames[[i]][j],function(x) input[[x]])
-        PanelState[[i]][[j]] <<- get(MasterList[[i]][j])%in%value
-      }
-    }
+    UpPanelState()
+    #for(i in 1:length(PanelState)){
+     # for(j in 1:length(PanelState[[i]])) {
+      #  value<-sapply(inputnames[[i]][j],function(x) input[[x]])
+       # PanelState[[i]][[j]] <<- get(MasterList[[i]][j])%in%value
+      #}
+    #}
 
   })
 
@@ -238,14 +239,14 @@ shinyServer(function(input, output, session) {
     tryCatch({
 
         MSClog<-readRDS(file=filey$datapath)
-        cond<-length(MSClog)==3 & sum(names(MSClog[[1]])==c("Fpanel","Mpanel","Dpanel"))==3
+        cond<-length(MSClog)==3 & sum(names(MSClog[[1]])==c("Fpanel","Mpanel","Dpanel","Slider"))==4
 
         if(cond){
           PanelState<<-MSClog[[1]]
           Just<<-MSClog[[2]]
 
           # All panels except radio button on D4
-          for(i in 1:length(PanelState)){
+          for(i in 1:3){
             for(j in 1:length(PanelState[[i]])) {
               if(!(i==3 & j==4)){ # not the radio button
                 state<-as.vector(unlist(PanelState[[i]][j]))
@@ -255,6 +256,9 @@ shinyServer(function(input, output, session) {
                 updateCheckboxGroupInput(session, as.character(inputnames[[i]][j]), selected = selected)
               }
             }
+          }
+          for(j in 1:length(PanelState[[4]])){
+            updateSliderInput(session,as.character(inputnames[[4]][j]),value=as.numeric(PanelState[[4]][j]))
           }
 
           # update the radio button D4
@@ -825,7 +829,6 @@ shinyServer(function(input, output, session) {
   })
 
 
-
   # Update panelstate if ...
   observeEvent(input$D1,{
     UpPanelState()
@@ -834,9 +837,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$M1,{
     UpPanelState()
   })
-
-
-
 
 
   # ===== Reports ==================================================================================================
@@ -1314,7 +1314,7 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$Fcont,{
 
-    if(input$tabs1==1 && Fpanel() < 14){
+    if(input$tabs1==1 && Fpanel() < 17){
       Fpanel(Fpanel()+1)
     }else if(input$tabs1==2 && Mpanel() < 3){
       Mpanel(Mpanel()+1)
@@ -1367,6 +1367,21 @@ shinyServer(function(input, output, session) {
         updateCheckboxGroupInput(session,"F",choices=F_list)
      }
   )
+  observeEvent(input$All_qh,
+     if(input$All_qh == 0 | input$All_qh%%2 == 0){
+       updateCheckboxGroupInput(session,"q_h",choices=q_list,selected=q_list)
+     }else{
+       updateCheckboxGroupInput(session,"q_h",choices=q_list)
+     }
+  )
+  observeEvent(input$All_q,
+     if(input$All_q == 0 | input$All_q%%2 == 0){
+       updateCheckboxGroupInput(session,"q",choices=q_list,selected=q_list)
+     }else{
+       updateCheckboxGroupInput(session,"q",choices=q_list)
+     }
+  )
+
   observeEvent(input$All_sel,
      if(input$All_sel == 0 | input$All_sel%%2 == 0){
         updateCheckboxGroupInput(session,"sel",choices=sel_list,selected=sel_list)
@@ -1402,13 +1417,7 @@ shinyServer(function(input, output, session) {
         updateCheckboxGroupInput(session,"sigR",choices=sigR_list)
      }
   )
-  observeEvent(input$All_q,
-     if(input$All_q == 0 | input$All_q%%2 == 0){
-        updateCheckboxGroupInput(session,"q",choices=q_list,selected=q_list)
-     }else{
-        updateCheckboxGroupInput(session,"q",choices=q_list)
-     }
-  )
+
   observeEvent(input$All_A,
     if(input$All_A  == 0 | input$All_A%%2 == 0){
        updateCheckboxGroupInput(session,"A",choices=A_list,selected=A_list)
@@ -1498,6 +1507,7 @@ shinyServer(function(input, output, session) {
   output$plotDR <- renderPlot(plotDR())
   output$plotPRM <- renderPlot(plotPRM())
   output$plotsigR <- renderPlot(plotsigR())
+  output$plotqh <- renderPlot(plotqh())
   output$plotq <- renderPlot(plotq())
   output$plotA <- renderPlot(plotA())
   output$plotV <- renderPlot(plotV())
