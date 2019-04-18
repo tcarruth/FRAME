@@ -385,7 +385,7 @@ plotF <- function(dummy=1){
 plotqh <- function(dummy=1){
 
   q_nams2<-unlist(q_list) #c("q_d3_d2","q_d2_d1","q_d1_1","q_1_2","q_2_3")
-  cond<- q_nams2 %in% input$q_h
+  cond<- q_nams2 %in% input$qh
 
   if(sum(cond)>0){
 
@@ -401,7 +401,7 @@ plotqh <- function(dummy=1){
     qy_max<-(1+q_max/100)^(1:ny)
     qy_min<-(1+q_min/100)^(1:ny)
 
-    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par(mfrow=c(1,1),mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
 
     plot(range(yrs),c(0,2.5),col="white",xlab="",ylab="")
     polygon(yrs[c(1:ny,ny:1)],c(qy_max,qy_min[ny:1]),border=NA,col=fcol)
@@ -448,7 +448,7 @@ plotq <- function(dummy=1){
     qy_max<-(1+q_max/100)^(1:ny)
     qy_min<-(1+q_min/100)^(1:ny)
 
-    par(mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+    par(mfrow=c(1,1),mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
 
     plot(c(0.5,ny)+2018,c(0,2.5),col="white",xlab="",ylab="")
     polygon(2018+c(1:ny,ny:1),c(qy_max,qy_min[ny:1]),border=NA,col=fcol)
@@ -478,9 +478,9 @@ plotq <- function(dummy=1){
 
 }
 
-plotmat <- function(dummy=1){
+plotLM <- function(dummy=1){
 
-  par( mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par(mfrow=c(1,1), mar=c(4.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   LM_nams<-unlist(LM_list)#c("sel_50", "sel_50_75","sel_75_125","sel_125_150","sel_150_200")
   cond<-LM_nams%in%input$LM
 
@@ -505,7 +505,7 @@ plotmat <- function(dummy=1){
     #lines(lengths,mat2,col=icol)
 
     mtext("Length at 50% maturity relative to asymptotic length (LM)",1,line=2)
-    mtext("Frac. max spawning potential per weight",2,line=2)
+    mtext("Frac. max spawn. potential per kg",2,line=2)
     #legend('bottomright',legend=c("Selectivity","Maturity"),fill=c(fcol,icol),bty='n',cex=0.8,border='white')
 
     #abline(v=c(0,1),col='black',lty=1)
@@ -520,7 +520,7 @@ plotmat <- function(dummy=1){
 
 plotsel <- function(dummy=1){
 
-  par( mar=c(3.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
+  par(mfrow=c(1,1), mar=c(4.5,3,0.01,0.01), cex.main = 1.5, cex.lab=1.35 )
   sel_nams<-unlist(sel_list)#c("sel_50", "sel_50_75","sel_75_125","sel_125_150","sel_150_200")
   cond<-sel_nams%in%input$sel
 

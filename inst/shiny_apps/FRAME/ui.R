@@ -78,10 +78,10 @@ shinyUI(
     fluidRow(
 
       column(1,style="height:65px",
-             h2("FRAME")
+             h2("MERA")
       ),
       column(5,style="height:65px",
-             h5("fishery risk assessment and method evaluation    (MSC-DLMtool App v4.1.1)",style="padding:19px;")
+             h5("method evaluation and risk assessment    (MSC-DLMtool App v4.1.1)",style="padding:19px;")
       ),
 
       column(3,offset=2,style="padding:14px;height:65px",
@@ -95,11 +95,11 @@ shinyUI(
     ),
     hr(),
 
-    h4("Welcome to FRAME, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
-    h5("FRAME links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool and MSEtool  to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
+    h4("Welcome to MERA, a tool for analyzing risk, guiding fishery improvement projects, and evaluating management strategies for certification.",style = "color:black"),
+    h5("MERA links a straightforward graphical questionaire to the powerful OMx operating model of DLMtool and MSEtool  to conduct rapid management strategy evaluation (MSE) for multiple management procedures (MPs). ",style = "color:grey"),
     h5("In step A the fishery is characterized and any available data are loaded. In step B an operating model is constructed that is used in step C to evaluate feasible MPs or
      apply a suitable MP (Application). Finally, in step D indicators can be used to detect changes in system dynamics.",style = "color:grey"),
-    h5("For further information see the ", a("FRAME Manual.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html", target="_blank"),style = "color:grey"),
+    h5("For further information see the ", a("MERA Manual.", href="https://dlmtool.github.io/DLMtool/MERA/MERA.html", target="_blank"),style = "color:grey"),
     h5("The DLMtool paper is also available ", a("here.", href="https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.13081", target="_blank"),style = "color:grey"),
     h5("For technical questions or bug reports please contact ", a("t.carruthers@oceans.ubc.ca", href="mailto:t.carruthers@ubc.ca", target="_blank"),style = "color:grey"),
 
@@ -119,7 +119,7 @@ shinyUI(
                radioButtons("Mode",label=NULL,choices=c("Streamlined","Advanced"),selected="Streamlined")),
 
                column(8,
-                      h5("FRAME contains two modes of differing complexity",style = "color:grey"),
+                      h5("MERA contains two modes of differing complexity",style = "color:grey"),
                       h5(" - Streamlined mode is an entirely questionnaire based description of fishery dynamics for calculation of biological risk where data are limited",style = "color:grey"),
                       h5(" - Advanced mode builds on the questionnaire to use data to condition operating models and identify exceptional circumstances ", style = "color:grey")
                )
@@ -157,7 +157,7 @@ shinyUI(
                                  h5(" - vulnerability to fishing of various size classes",style="color:grey"),
                                  h5(""),
                                  h5("More detailed help on the Fishery questions can be found in the
-                                         FRAME User Guide: ", a("Section 4.", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#4_the_fishery_tab", target="_blank"),style="color:grey")),
+                                         MERA User Guide: ", a("Section 4.", href="https://dlmtool.github.io/DLMtool/MERA/MERA.html#4_the_fishery_tab", target="_blank"),style="color:grey")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==1",#|output.Fpanel==undefined",
                                 fluidRow(
@@ -222,7 +222,7 @@ shinyUI(
                                  actionLink("All_F","UNKNOWN")),
 
                             conditionalPanel(width=4,condition="output.Fpanel==7",
-                                 checkboxGroupInput("q_h", label = h5("7. Historical fishing efficiency changes",style="color:black"),
+                                 checkboxGroupInput("qh", label = h5("7. Historical fishing efficiency changes",style="color:black"),
                                                     choices = q_list, selected = q_list),
                                  actionLink("All_qh","UNKNOWN")),
 
@@ -299,8 +299,8 @@ shinyUI(
                                       h5(" - identify what management procedures are feasible given the types of management measures.",style="color:grey"),
                                       h5(" - determine the relative success of management procedures that provide various types of advice.",style="color:grey"),
                                       h5(""),
-                                      h5("More detailed help on the Management questions can be found in the FRAME manual
-                                         : ", a("Section 5", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#5_the_management_tab", target="_blank"),style="color:grey")),
+                                      h5("More detailed help on the Management questions can be found in the MERA manual
+                                         : ", a("Section 5", href="https://dlmtool.github.io/DLMtool/MERA/MERA.html#5_the_management_tab", target="_blank"),style="color:grey")),
 
 
                                  conditionalPanel(width=4,condition="output.Mpanel==1",
@@ -314,7 +314,7 @@ shinyUI(
                                                   actionLink("All_IB","UNKNOWN")),
 
                                  conditionalPanel(width=4,condition="output.Mpanel==3",
-                                                  checkboxGroupInput("IV", label = h5("3. TAC Implementation uncertainty: variability",style="color:black"),
+                                                  checkboxGroupInput("IV", label = h5("3. TAC implementation variability",style="color:black"),
                                                                      choices = IV_list, selected = IV_list),
                                                   actionLink("All_IV","UNKNOWN")),
 
@@ -324,7 +324,7 @@ shinyUI(
                                                   actionLink("All_IBE","MATCH TAC IMPLEMENTATION")),
 
                                  conditionalPanel(width=4,condition="output.Mpanel==5",
-                                                  checkboxGroupInput("IVE", label = h5("5. TAE implementation uncertainty: variability",style="color:black"),
+                                                  checkboxGroupInput("IVE", label = h5("5. TAE implementation variability",style="color:black"),
                                                                      choices = IVE_list, selected = IVE_list),
                                                   actionLink("All_IVE","MATCH TAC IMPLEMENTATION")),
 
@@ -334,7 +334,7 @@ shinyUI(
                                                   actionLink("All_IBSL","MATCH TAC IMPLEMENTATION")),
 
                                  conditionalPanel(width=4,condition="output.Mpanel==7",
-                                                  checkboxGroupInput("IVSL", label = h5("7. Size limit implementation uncertainty: variability",style="color:black"),
+                                                  checkboxGroupInput("IVSL", label = h5("7. Size limit implementation variability",style="color:black"),
                                                                      choices = IVSL_list, selected = IVSL_list),
                                                   actionLink("All_IVSL","MATCH TAC IMPLEMENTATION")),
 
@@ -351,8 +351,8 @@ shinyUI(
                                   h5(" - identify what management procedures are feasible given the types of data available.",style="color:grey"),
                                   h5(" - determine the relative success of the management approaches that rely on differing types of data.",style="color:grey"),
                                   h5(""),
-                                  h5("More detailed help on the data questions can be found in the FRAME manual
-                                         : ", a("Section 6", href="https://dlmtool.github.io/DLMtool/FRAME/FRAME.html#6_the_data_tab", target="_blank"),style="color:grey")),
+                                  h5("More detailed help on the data questions can be found in the MERA manual
+                                         : ", a("Section 6", href="https://dlmtool.github.io/DLMtool/MERA/MERA.html#6_the_data_tab", target="_blank"),style="color:grey")),
 
                                  conditionalPanel(width=4,condition="output.Dpanel==1",
                                                   checkboxGroupInput("D1", label = h5("1. Types of data that are available",style="color:black"),
@@ -464,7 +464,7 @@ shinyUI(
                       )),
 
                       conditionalPanel(condition="input.tabs1==1&output.Fpanel==9",
-                          column(6,plotOutput("plotmat",height=240)),
+                          column(6,plotOutput("plotLM",height=240)),
                           column(6,
                             h5("Size a maturity relative to asymptotic length (LM).",style = "color:grey"),
                             h5("Note 1: 'maturity' as used by this model (and most fish population dynamics models) is not really whether a fish has fully developed gonads, but rather the fraction of maximum spawning potential per weight. For example, some fishes mature early, but at small sizes they spawn infrequently and their recruits have poor survival (low spawning fraction).",style = "color:grey"),
@@ -661,7 +661,7 @@ shinyUI(
                           h5("Growth data refers to estimates for growth parameters such as von Bertalanffy growth parameter (K) and mean asymptotic length (L-infinity).", style = "color:grey"),
                           h5("Size and age composition data are samples of sizes and ages in the catch going back at least 2 years from the present", style = "color:grey"),
                           h5(""),
-                          h5("If you require further guidance on what types of data are available in your fishery see the FRAME manual: ", a("Section 6.", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"),style = "color:grey")
+                          h5("If you require further guidance on what types of data are available in your fishery see the MERA manual: ", a("Section 6.", href="http://www.sciencedirect.com/science/article/pii/S0165783613003081", target="_blank"),style = "color:grey")
 
                       ),
 
@@ -726,7 +726,7 @@ shinyUI(
                              h5("Users can also choose to exclude reference management procdures (e.g. zero catches, fishing at FMSY), activate parallel computation if more than 48 simulations are specified (which is much faster but there is no MSE progress bar).",style = "color:grey"),
                              h5("The Application step requires the selection of a single MP. Other options include the loading of custom DLMtool/MSEtool code (MPs, performance metrics and MSE controls)",style = "color:grey"),
                              h5(""),
-                             h5("A more detailed guide to these options can be found in the FRAME manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey"),
+                             h5("A more detailed guide to these options can be found in the MERA manual ",a("Section 7.", href="www.datalimitedtoolkit.org", target="_blank"),style = "color:grey"),
                              h5(""),
                              h5("NOTE: a few features are currently not available such as the ability to specify Low Trophic Level (LTL) species for an alternative
                                 performance evaluation, the ability to upload indicator data and select variables for power analysis.",style = "color:grey")
@@ -805,7 +805,7 @@ shinyUI(
            column(4,style="height:50px",
 
                  column(6,style="padding:10px",
-                        fileInput("Load","Load  (.frame)",accept=c("frame",".frame"))
+                        fileInput("Load","Load  (.mera)",accept=c("mera",".mera"))
                  ),
 
                  column(2,
@@ -994,7 +994,7 @@ shinyUI(
                        h5("- Risk Assessment: a set of MPs reflecting status quo management including reference management approaches", style = "color:grey"),
                        h5("- Top 20: MPs that generally perform well in many cases but may not be appropriate for your operating model", style = "color:grey"),
                        h5("- All: an MSE is run for all available MPs (~100) which can take 20 minutes or more", style = "color:grey"),
-                       h5("- Demo: a small selection of fast-running MPs for FRAME demonstration purposes only", style = "color:grey"),
+                       h5("- Demo: a small selection of fast-running MPs for MERA demonstration purposes only", style = "color:grey"),
                        h5("Users may wish not to include reference MPs (No ref. MPs) that include perfect FMSY management and zero catches. Alternatively they may wish to test data-rich MPs that are slower to run", style = "color:grey"),
                        h5("In situations where operating models are built with more than 48 simulations it can be much faster to use parallel computing ('Parallel comp.)
                           although the progress bar will not longer work ",style="color:grey"),

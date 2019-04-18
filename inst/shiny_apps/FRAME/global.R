@@ -52,9 +52,9 @@ q_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Decli
 q_mins<- c(-3,       -2,       -1,      1,      2)
 q_maxes<-c(-2,       -1,       1,       2,      3)
 
-qh_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="q_d3_d2","Declining by 1-2% pa (halves every 35-70 years)"="q_d2_d1",
-              "Stable -1% to 1% pa (may halve/double every 70 years)"="q_d1_1","Increasing by 1-2% pa (doubles every 35-70 years)"="q_1_2",
-              "Increasing by 2-3% pa (doubles every 25-35 years)"="q_2_3")
+qh_list<<-list("Declining by 2-3% pa (halves every 25-35 years)"="qh_d3_d2","Declining by 1-2% pa (halves every 35-70 years)"="qh_d2_d1",
+              "Stable -1% to 1% pa (may halve/double every 70 years)"="qh_d1_1","Increasing by 1-2% pa (doubles every 35-70 years)"="qh_1_2",
+              "Increasing by 2-3% pa (doubles every 25-35 years)"="qh_2_3")
 
 qh_mins<- c(-3,       -2,       -1,      1,      2)
 qh_maxes<-c(-2,       -1,       1,       2,      3)
@@ -172,8 +172,8 @@ IVE_list<<-list("Constant (V < 1%)" = "IV_1", "Not variable (1% < V < 5%)" = "IV
 IVE_mins<-c(0.005,0.01,0.05,0.1,0.2)
 IVE_maxes<-c(0.01,0.05,0.1,0.2,0.4)
 
-IBSL_list<<-list("Large underages (40% - 70% of recommended)" = "IB_n30", "Underages (70% - 90% of recommended)" = "IB_n30_n10","Slight underages (90% - 100% of recommended)" = "IB_n10_0",
-               "Taken exactly (95% - 105% of recommended)"="IB_n5_5","Slight overages (100% - 110% of recommended)"="IB_0_10","Overages (110% - 150% of recommended)"="IB_10_30","Large overages (150% - 200% of recommended)"="IB_30")
+IBSL_list<<-list("Much smaller (40% - 70% of recommended)" = "IB_n30", "Smaller (70% - 90% of recommended)" = "IB_n30_n10","Slightly smaller (90% - 100% of recommended)" = "IB_n10_0",
+               "Taken exactly (95% - 105% of recommended)"="IB_n5_5","Slightly larger (100% - 110% of recommended)"="IB_0_10","Larger (110% - 150% of recommended)"="IB_10_30","Much larger (150% - 200% of recommended)"="IB_30")
 
 IBSL_mins<- c( 0.4,  0.7,      0.9,     0.95,      1,     1.1, 1.5)
 IBSL_maxes<-c( 0.7,  0.9,      1,       1.05,      1.1,   1.5, 2)
@@ -215,6 +215,7 @@ Err_list<<-list("Perfect" = "Err_perf","Good (accurate and precise)" = "Err_good
 
 loc<<-list("loc"=1)
 stmag<<-list("stmag"=1)
+co<<-list("co"=1)
 
 
 

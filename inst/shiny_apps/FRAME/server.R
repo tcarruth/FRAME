@@ -18,7 +18,7 @@ source("./global.R")
 # Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output, session) {
 
-  FRAMEversion<<-"4.1.1"
+  Version<<-"4.1.1"
   #options(browser = false)
   # MPs
 
@@ -165,7 +165,7 @@ shinyServer(function(input, output, session) {
 4. Describe all sources of uncertainty in the status, biology, life history and data sources of the fishery.	Include links to documentation, reports.
 
       "
-      , rep("No justification was provided",2)))
+      , rep("No justification was provided",3)))
 
 
   # Default simulation ttributes --------------------------------------------------------------------------------
@@ -865,7 +865,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Questionnaire Report for ",input$Name),
-                     set_type=paste0("(FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("(FRAME version ",Version,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
@@ -904,7 +904,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Data report for ",input$Name),
-                     set_type=paste0("Demonstration Data description"," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Demonstration Data description"," (FRAME version ",Version,")"),
                      dat=dat,
                      author=input$Author,
                      ntop=input$ntop,
@@ -943,7 +943,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Operating Model Conditioning Report for ",input$Name),
-                     set_type=paste0("Demonstration Conditioning analysis"," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Demonstration Conditioning analysis"," (FRAME version ",Version,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
@@ -982,7 +982,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Full Operating Model Specification Report for ",input$Name),
-                     set_type=paste0("(FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("(FRAME version ",Version,")"),
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
                      Des=MSClog[[3]],
@@ -1027,7 +1027,7 @@ shinyServer(function(input, output, session) {
 
       params <- list(test = input$Name,
                      set_title=paste0("Evaluation Report for ",input$Name),
-                     set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",Version,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -1099,7 +1099,7 @@ shinyServer(function(input, output, session) {
 
         params <- list(test = input$Name,
                        set_title=paste0("Evaluation Report for ",input$Name),
-                       set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",FRAMEversion,")"),
+                       set_type=paste0("Evaluation of MPs analysis "," (FRAME version ",Version,")"),
 
                        PanelState=MSClog[[1]],
                        Just=MSClog[[2]],
@@ -1158,7 +1158,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Application Report for ",input$Name),
-                     set_type=paste0("Application of an MP"," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Application of an MP"," (FRAME version ",Version,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],
@@ -1210,7 +1210,7 @@ shinyServer(function(input, output, session) {
         library(rmarkdown)
         params <- list(test = input$Name,
                        set_title=paste0("Application Report for ",input$Name),
-                       set_type=paste0("Application of an MP"," (FRAME version ",FRAMEversion,")"),
+                       set_type=paste0("Application of an MP"," (FRAME version ",Version,")"),
 
                        PanelState=MSClog[[1]],
                        Just=MSClog[[2]],
@@ -1256,7 +1256,7 @@ shinyServer(function(input, output, session) {
       library(rmarkdown)
       params <- list(test = input$Name,
                      set_title=paste0("Ancillary Indicator Analysis Report for ",input$Name),
-                     set_type=paste0("Ancillary indicators report"," (FRAME version ",FRAMEversion,")"),
+                     set_type=paste0("Ancillary indicators report"," (FRAME version ",Version,")"),
 
                      PanelState=MSClog[[1]],
                      Just=MSClog[[2]],

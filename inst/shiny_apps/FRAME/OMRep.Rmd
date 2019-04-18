@@ -54,12 +54,12 @@ This is a prototype of an automatic report that documents how the user specified
 <br clear="both"/>
 
 ```{r labs,echo=F,warning=F,error=F,results='asis'}
- incrate<-1/21
+ incrate<-1/29
  incProgress(incrate)
  
- Flabs<-c("","Longevity","Depletion","Resilence","Pattern of historical exploitation", "Variability in historical exploitation", "Fishery selectivity relative to maturity","Vulnerability of large individuals","Discard rate","Post-release mortality rate","Recruitment variability","Changes in fishing efficiency","Size of an prospective marine reserve","Stock viscosity (movement in/out of marine reserve)")
+ Flabs<-c("","Longevity","Stock depletion","Resilence","Historical effort pattern", "Inter-annual variability in historical effort", "Historical fishing efficiency changes","Future fishing efficiency changes","Length at maturity","Selectivity of small fish","Selectivity of large fish","Discard rate","Post-release mortality rate","Recruitment variability","Size of an existing MPA","Spatial mixing (movement) in/out of existing MPA","Size of a future potential MPA","Spatial mixing (movement) in/out of future potential MPA","Initial stock depletion")
 
-Flists<-c("","M_list","D_list","h_list","FP_list","F_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","q_list","A_list","V_list")
+Flists<-c("","M_list","D_list","h_list","FP_list","F_list","q_list","qh_list","LM_list","sel_list","dome_list","DR_list","PRM_list","sigR_list","A_list","V_list","Ah_list","Vh_list","Dh_list")
 
 if(Just[[1]][1]!="No introduction / general comments were provided"){
   
@@ -115,7 +115,8 @@ doQJust<-function(Answered,Selected,Justification){
   
 
 
-for(ff in 2:14){
+for(ff in 2:19){
+  cat("\\newpage")
   cat('\n')
   cat(paste0("## ",Flabs[ff]))
   cat('\n')
@@ -156,7 +157,7 @@ for(ff in 2:14){
 
 <br clear="both"/>
 
-## Implementation uncertainty: consistent overages/underages
+## TAC offset: consistent overages/underages
 
 ```{r M2_IB, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
   
@@ -172,7 +173,7 @@ for(ff in 2:14){
 
 <br clear="both"/>
 
-## Implementation uncertainty: variability
+## TAC implementation variability
 
 ```{r M3_IV, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
   
@@ -187,6 +188,72 @@ for(ff in 2:14){
 ```
 
 <br clear="both"/>
+
+## TAE offset: consistent overages/underages
+
+```{r M4_IBE, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IBE_list))
+  selected=unlist(PanelState[[2]][4])
+  Justification=data.frame(Just[[2]][4])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
+  plotIB_E()
+  incProgress(incrate)
+
+```
+
+<br clear="both"/>
+
+## TAE implementation variability
+
+```{r M5_IVE, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IVE_list))
+  selected=unlist(PanelState[[2]][5])
+  Justification=data.frame(Just[[2]][5])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
+  plotIV_E()
+  incProgress(incrate)
+
+```
+
+<br clear="both"/>
+
+
+## Size limit offset: consistent overages/underages
+
+```{r M6_IBE, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IBSL_list))
+  selected=unlist(PanelState[[2]][6])
+  Justification=data.frame(Just[[2]][6])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
+  plotIB_SL()
+  incProgress(incrate)
+
+```
+
+<br clear="both"/>
+
+## Size limit implementation variability
+
+```{r M7_IVE, echo=FALSE, results='asis',fig.width=7, fig.height=3.5}
+  
+  Answer=names(unlist(IVSL_list))
+  selected=unlist(PanelState[[2]][7])
+  Justification=data.frame(Just[[2]][7])
+  doQJust(Answer,selected,Justification)
+  cat("\n\n") 
+  plotIV_SL()
+  incProgress(incrate)
+
+```
+
+<br clear="both"/>
+
 
 # Data Characteristics
 
